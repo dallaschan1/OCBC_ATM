@@ -1,3 +1,4 @@
+#Testing
 from flask import Flask, request, jsonify, send_from_directory
 import firebase_admin
 from firebase_admin import credentials
@@ -15,12 +16,12 @@ firebase_admin.initialize_app(cred)
 
 @app.route('/')
 def index():
-    with open('index.html', 'r') as file:
+    with open('./public/index.html', 'r') as file:
         return file.read()
     
 @app.route('/fingerprint')
 def fingerprint():
-    with open('./Web/html/fingerprint.html', 'r') as file:
+    with open('./public/html/fingerprint.html', 'r') as file:
         return file.read()
 
 # Endpoint to send FCM message
