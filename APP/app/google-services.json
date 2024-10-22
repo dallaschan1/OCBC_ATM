@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "931683814899",
+    "project_id": "atm-app-66706",
+    "storage_bucket": "atm-app-66706.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:931683814899:android:3c9fcf5f526074b8409686",
+        "android_client_info": {
+          "package_name": "sg.edu.np.mad.atm"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAXkciGlC-85fGyp6NfWJzWXh6gSsXC0ps"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
