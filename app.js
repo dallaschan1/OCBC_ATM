@@ -1,6 +1,8 @@
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
+const admin = require('firebase-admin');
+const { sendFcmMessage } = require('./controllers/fcmController');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const env = require('dotenv').config();
 const API_KEY = process.env.GEMINI_API_KEY;
@@ -13,8 +15,13 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 // Middleware setup
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public'))); 
+app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/fingerprint', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/html/fingerprint.html'));
+});
+
+app.post('/send-message', sendFcmMessage);
 
 let conversationHistory = [];
 app.post('/api/converse', async (req, res) => {
