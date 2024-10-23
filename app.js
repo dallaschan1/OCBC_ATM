@@ -3,6 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const admin = require('firebase-admin');
 const { sendFcmMessage } = require('./controllers/fcmController');
+const { registerUser } = require('./controllers/userController');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const env = require('dotenv').config();
 const API_KEY = process.env.GEMINI_API_KEY;
@@ -22,6 +23,8 @@ app.get('/fingerprint', (req, res) => {
 });
 
 app.post('/send-message', sendFcmMessage);
+
+app.post('/register', registerUser);
 
 let conversationHistory = [];
 app.post('/api/converse', async (req, res) => {
@@ -85,6 +88,6 @@ app.post('/api/converse', async (req, res) => {
 });
 
 // Start the server
-app.listen(PORT, () => {
+app.listen(PORT,'0.0.0.0', () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

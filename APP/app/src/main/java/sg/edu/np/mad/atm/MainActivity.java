@@ -15,6 +15,8 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import android.content.Context;
 import android.os.CancellationSignal;
 import android.util.Log;
+import android.widget.Button;
+
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 
@@ -47,6 +49,12 @@ public class MainActivity extends AppCompatActivity {
         if (getIntent().getBooleanExtra("triggerBiometrics", false)) {
             startBiometricAuthentication();
         }
+
+        Button registerButton = findViewById(R.id.registerButton);
+        registerButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, RegistrationActivity.class);
+            startActivity(intent);
+        });
     }
 
     public void startBiometricAuthentication() {
