@@ -77,10 +77,9 @@ recognition.addEventListener('end', () => {
 
 // Function to send user input to the backend
 async function processUserInput(input) {
-    if (isSending) return;  
+    if (isSending) return;
     isSending = true;
 
-    
     recognition.stop();
     textDisplay.innerText = `Processing: ${input}`;
 
@@ -92,18 +91,49 @@ async function processUserInput(input) {
         });
 
         const data = await response.json();
-        if (data && data.response) {
-            textDisplay.innerText = `Gemini AI says: ${data.response}`;
-            await speakResponse(data.response);  // Wait for TTS to finish
+        const aiResponse = data.response;
+        
+        // Check if the response contains specific ATM command phrases
+        if (aiResponse.includes("Convert Currency 1")) {
+            openCard("convert-currency");
+        } else if (aiResponse.includes("Crypto Currency Services 2")) {
+            openCard("crypto-services");
+        } else if (aiResponse.includes("Pay Bills 3")) {
+            openCard("pay-bills");
+        } else if (aiResponse.includes("Transfer Fund 4")) {
+            openCard("transfer-fund");
+        } else if (aiResponse.includes("Savings or Loan Details 5")) {
+            openCard("loan-details");
+        } else if (aiResponse.includes("Update Personal Particulars 6")) {
+            openCard("update-personal");
+        } else if (aiResponse.includes("Deposit Money 7")) {
+            openCard("deposit-money");
+        } else if (aiResponse.includes("Withdraw Money 8")) {
+            openCard("withdraw-money");
+        } else if (aiResponse.includes("Check Account Balance 9")) {
+            openCard("check-balance");
+        } else {
+            textDisplay.innerText = `Gemini AI says: ${aiResponse}`;
+            await speakResponse(aiResponse);
         }
     } catch (error) {
         console.error('Error while fetching response from server:', error);
         textDisplay.innerText = "Error: Could not get a response from the server.";
     }
 
-    // Resume recognition after processing the response
     isSending = false;
     recognition.start();
     console.log("Speech recognition resumed.");
 }
 
+// Function to open specific card based on Gemini's response
+function openCard(cardId) {
+    const allCards = document.querySelectorAll('.option-card');
+    allCards.forEach(card => card.style.display = 'none');  // Hide all cards
+
+    const selectedCard = document.getElementById(cardId);
+    if (selectedCard) {
+        selectedCard.style.display = 'block';  // Show the relevant card
+        textDisplay.innerText = `Opening ${selectedCard.querySelector('h3').innerText}...`;
+    }
+}
