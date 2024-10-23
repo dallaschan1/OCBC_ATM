@@ -42,8 +42,10 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    implementation("com.google.firebase:firebase-bom:32.1.1")
     implementation("com.google.firebase:firebase-messaging:23.1.0")
     implementation("androidx.biometric:biometric:1.1.0")
     implementation("androidx.core:core:1.6.0")
     implementation("androidx.core:core-ktx:1.6.0")
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
 }
