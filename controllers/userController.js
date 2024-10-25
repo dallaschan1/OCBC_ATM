@@ -39,4 +39,5 @@ async function nricCheck(req, res) {
     }
 }
 
-module.exports = { registerUser , nricCheck};
+
+module.exports = { registerUser , nricCheck };

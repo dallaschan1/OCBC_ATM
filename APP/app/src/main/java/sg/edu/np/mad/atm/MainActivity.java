@@ -20,8 +20,22 @@ import android.widget.Button;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 
-public class MainActivity extends AppCompatActivity {
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.IOException;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+public class MainActivity extends AppCompatActivity {
+    private static final String SERVER_URL = "http://192.168.18.70:3001/notify-success";
+//    private static final String SERVER_URL = "https://511b-27-125-184-90.ngrok-free.app/notify-success";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
                         super.onAuthenticationSucceeded(result);
                         Log.d(TAG, "Authentication succeeded!");
+                        notifyBackendOfSuccess();
                         // Handle successful authentication here
                     }
 
@@ -89,6 +104,45 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         biometricPrompt.authenticate(promptInfo);
+    }
+
+    private void notifyBackendOfSuccess() {
+        OkHttpClient client = new OkHttpClient();
+
+        // JSON payload with only authentication status
+        JSONObject json = new JSONObject();
+        try {
+            json.put("authStatus", "success");
+            Log.d(TAG, "JSON Object to send: " + json.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        RequestBody body = RequestBody.create(
+                json.toString(),
+                MediaType.parse("application/json")
+        );
+
+        Request request = new Request.Builder()
+                .url(SERVER_URL)
+                .post(body)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.e(TAG, "Failed to notify backend", e);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    Log.d(TAG, "Backend notified successfully");
+                } else {
+                    Log.e(TAG, "Backend notification failed: " + response.message());
+                }
+            }
+        });
     }
 
     @Override

@@ -3,7 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const admin = require('firebase-admin');
 const { sendFcmMessage } = require('./controllers/fcmController');
-const { registerUser, nricCheck } = require('./controllers/userController');
+const { registerUser, nricCheck, notifySuccess } = require('./controllers/userController');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const env = require('dotenv').config();
 const API_KEY = process.env.GEMINI_API_KEY;
@@ -74,11 +74,31 @@ app.get('/fingerprint', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/html/fingerprint.html'));
 });
 
+app.get('/Home', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/html/HomePage.html'));
+});
+
 app.post('/send-message', sendFcmMessage);
 
 app.post('/register', registerUser);
 
 app.post('/check-nric', nricCheck);
+
+let authStatus = false; // Store auth status globally for simplicity
+
+app.post('/notify-success', (req, res) => {
+    const { authStatus: status } = req.body;
+    if (status === "success") {
+        authStatus = true; // Update the status
+        return res.status(200).json({ success: true });
+    }
+    return res.status(400).json({ error: "Authentication failed" });
+});
+
+// New endpoint to check the authentication status
+app.get('/check-auth-status', (req, res) => {
+    res.status(200).json({ authenticated: authStatus });
+});
 
 let conversationHistory = [];
 app.post('/api/converse', async (req, res) => {
