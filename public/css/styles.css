@@ -1,6 +1,6 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
+    font-family: 'Inter', sans-serif;
+    background-color: #F9F2F2; /* Soft pinkish background similar to your example */
     margin: 0;
     padding: 0;
     display: flex;
@@ -10,42 +10,64 @@ body {
 }
 
 .container {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
+    background-color: #FFFFFF;
+    padding: 30px 20px;
+    border-radius: 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 700px;
-    max-width: 100%;
+    width: 800px;
+    max-width: 90%;
 }
 
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }
 
-.back-button, .exit-button {
+.back-button {
     background: none;
     border: none;
-    color: #555;
-    font-size: 16px;
+    color: #333;
+    font-size: 18px;
     cursor: pointer;
+    font-weight: bold;
 }
 
 .user-info {
     display: flex;
     align-items: center;
+    gap: 15px;
 }
 
 .user-icon {
-    width: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    margin-right: 10px;
+}
+
+.language-select {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.exit-button {
+    background: none;
+    border: none;
+    color: #333;
+    font-size: 16px;
+    cursor: pointer;
 }
 
 .currency-selection {
     text-align: center;
+    margin-top: 20px;
+}
+
+.currency-selection h2 {
+    color: #8F8C8C;
+    font-size: 24px;
     margin-bottom: 20px;
 }
 
@@ -53,23 +75,28 @@ body {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 15px;
-    margin-top: 20px;
+    width: 100%;
 }
 
 .currency-button {
-    background-color: #5f3dc4;
+    background: linear-gradient(45deg, #5F3DC4, #4E32A3); /* Matching the color gradient */
     color: white;
-    padding: 15px 20px;
+    padding: 15px;
     border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    text-align: left;
+    border-radius: 30px;
+    font-size: 18px;
     cursor: pointer;
     transition: background-color 0.3s;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
 }
 
 .currency-button:hover {
-    background-color: #4e32a3;
+    background-color: #4E32A3; /* Slightly darker color on hover */
 }
 
 .currency-button:focus {
