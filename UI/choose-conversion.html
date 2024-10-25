@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Conversion</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header">
+            <button class="back-button" onclick="location.href='index.html'">← Back</button>
+            <h1>Currency Conversion</h1>
+            <div class="user-info">
+                <img src="user-icon.png" alt="User" class="user-icon">
+                <div class="language-select">
+                    <span>English</span>
+                    <button class="exit-button">Exit</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Currency Selection Section -->
+        <div class="currency-selection">
+            <h2>Choose a Currency</h2>
+            <div class="currency-grid">
+                <button class="currency-button" onclick="selectCurrency('USD')">🇺🇸 US Dollar</button>
+                <button class="currency-button" onclick="selectCurrency('EUR')">🇪🇺 Euro</button>
+                <button class="currency-button" onclick="selectCurrency('GBP')">🇬🇧 British Pound</button>
+                <button class="currency-button" onclick="selectCurrency('JPY')">🇯🇵 Japanese Yen</button>
+                <button class="currency-button" onclick="selectCurrency('AUD')">🇦🇺 Australian Dollar</button>
+                <button class="currency-button" onclick="selectCurrency('CNY')">🇨🇳 Chinese Yuan</button>
+                <button class="currency-button" onclick="selectCurrency('MYR')">🇲🇾 Malaysia Ringgit</button>
+                <button class="currency-button" onclick="selectCurrency('INR')">🇮🇳 Indian Rupee</button>
+                <button class="currency-button" onclick="selectCurrency('VND')">🇻🇳 Vietnamese Dong</button>
+                <button class="currency-button" onclick="selectCurrency('PHP')">🇵🇭 Philippine Peso</button>
+                <button class="currency-button" onclick="selectCurrency('KRW')">🇰🇷 South Korean Won</button>
+                <button class="currency-button" onclick="selectCurrency('THB')">🇹🇭 Thai Bhat</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function selectCurrency(currency) {
+            localStorage.setItem('selectedCurrency', currency);
+            // Redirect to conversion page
+            location.href = 'conversion.html';
+        }
+    </script>
+</body>
+</html>

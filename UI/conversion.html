@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Conversion</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-button" onclick="location.href='choose-conversion.html'">← Back</button>
+            <h1>Currency Conversion</h1>
+        </div>
+        <div class="action-section">
+            <div class="amount-display">
+                <label for="amount-input">Amount:</label>
+                <input type="number" id="amount-input" placeholder="Enter amount to deposit/withdraw">
+            </div>
+            <div class="currency-conversion">
+                <button class="conversion-button from-currency" id="fromCurrencyDisplay">🇺🇸 US Dollar</button>
+                <span class="conversion-arrow">⇄</span>
+                <button class="conversion-button to-currency" id="toCurrencyDisplay">🇬🇧 British Pound</button>
+            </div>
+            <div class="buttons">
+                <button class="action-button" onclick="showPopup('deposit')">Deposit</button>
+                <button class="action-button" onclick="showPopup('withdraw')">Withdraw</button>
+            </div>
+        </div>
+
+        <!-- Pop-ups for Deposit/Withdraw -->
+        <div class="popup-overlay" id="popup-overlay"></div>
+        
+        <div class="popup" id="popup-withdraw">
+            <h3>Confirm Withdrawal</h3>
+            <p>Withdraw Amount: <span id="withdrawAmount"></span></p>
+            <button class="continue-button" onclick="completeTransaction('withdraw')">Continue</button>
+        </div>
+        
+        <div class="popup" id="popup-deposit">
+            <h3>Confirm Deposit</h3>
+            <p>Deposit Amount: <span id="depositAmount"></span></p>
+            <button class="continue-button" onclick="completeTransaction('deposit')">Continue</button>
+        </div>
+
+        <!-- Success Message Pop-up -->
+        <div class="popup" id="popup-success">
+            <h3>Transaction Successful</h3>
+            <p id="transactionMessage"></p>
+            <button class="close-button" onclick="closePopup()">Close</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
