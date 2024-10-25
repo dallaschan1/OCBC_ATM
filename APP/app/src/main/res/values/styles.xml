@@ -1,3 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="roundimageview" parent="">
+        <item name = "cornerFamily">rounded</item>
+        <item name = "cornerSizeBottomLeft">40dp</item>
+        <item name = "cornerSizeBottomRight">40dp</item>
+        <item name = "color">@color/white</item>
+    </style>
 </resources>
+

@@ -1,10 +1,14 @@
 package sg.edu.np.mad.atm;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.messaging.FirebaseMessaging;
 import org.json.JSONObject;
@@ -29,10 +33,12 @@ public class RegistrationActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
-
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         EditText nricInput = findViewById(R.id.nricInput);
         EditText passwordInput = findViewById(R.id.passwordInput);
         Button registerButton = findViewById(R.id.registerButton);
+        TextView logintext = findViewById(R.id.loginText);
 
         registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -60,6 +66,12 @@ public class RegistrationActivity extends AppCompatActivity {
                             registerUser(nric, password, token);
                         });
             }
+        });
+
+
+        logintext.setOnClickListener(v -> {
+            Intent intent = new Intent(RegistrationActivity.this, login.class);
+            startActivity(intent);
         });
     }
 

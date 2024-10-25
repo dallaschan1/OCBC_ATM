@@ -15,7 +15,9 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import android.content.Context;
 import android.os.CancellationSignal;
 import android.util.Log;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
@@ -41,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -69,6 +73,12 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, RegistrationActivity.class);
             startActivity(intent);
         });
+
+        Button loginButton = findViewById(R.id.Login);
+        loginButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, login.class);
+            startActivity(intent);
+        });
     }
 
     public void startBiometricAuthentication() {
@@ -78,6 +88,8 @@ public class MainActivity extends AppCompatActivity {
                     public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
                         super.onAuthenticationSucceeded(result);
                         Log.d(TAG, "Authentication succeeded!");
+
+                        Toast.makeText(MainActivity.this, "Authentication Succeeded!", Toast.LENGTH_LONG).show();
                         notifyBackendOfSuccess();
                         // Handle successful authentication here
                     }
