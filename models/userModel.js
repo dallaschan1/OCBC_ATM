@@ -27,4 +27,17 @@ async function updateUserToken(nric, token) {
     }
 }
 
-module.exports = { findUserByNric, updateUserToken };
+async function checkNric(nric) {
+    try {
+        let pool = await sql.connect(dbConfig);
+        let result = await pool.request()
+            .input("nric", sql.VarChar, nric)
+            .query("SELECT token FROM Users WHERE nric = @nric");
+        return result.recordset[0]; // Return the user if found
+    } catch (err) {
+        console.error("Database error (findUserByNric):", err);
+        throw err;
+    }
+}
+
+module.exports = { findUserByNric, updateUserToken, checkNric };

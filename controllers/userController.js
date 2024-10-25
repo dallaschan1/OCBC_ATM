@@ -1,4 +1,4 @@
-const { findUserByNric, updateUserToken } = require("../models/userModel");
+const { findUserByNric, updateUserToken, checkNric } = require("../models/userModel");
 
 async function registerUser(req, res) {
     const { nric, token } = req.body;
@@ -19,4 +19,24 @@ async function registerUser(req, res) {
     }
 }
 
-module.exports = { registerUser };
+async function nricCheck(req, res) {
+    const { nric } = req.body;
+
+    if (!nric) {
+        return res.status(400).json({ error: "NRIC is required" });
+    }
+
+    try {
+        const user = await findUserByNric(nric);
+        if (user) {
+            return res.status(200).json({ token: user.token }); // Return the token if found
+        } else {
+            return res.status(404).json({ error: "NRIC not found or no linked token" });
+        }
+    } catch (error) {
+        console.error('Error checking NRIC:', error);
+        return res.status(500).json({ error: "An error occurred while checking NRIC" });
+    }
+}
+
+module.exports = { registerUser , nricCheck};
