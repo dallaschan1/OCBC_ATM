@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -44,6 +44,84 @@
                 });
             } else {
                 responseDiv.innerText = 'Geolocation is not supported by this browser.';
+            }
+        });
+    </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biometric Authentication</title>
+</head>
+<body>
+    <input type="text" id="nricInput" placeholder="Enter NRIC">
+    <button id="triggerButton">Next</button>
+    <div id="response"></div>
+
+    <script>
+        document.getElementById('triggerButton').addEventListener('click', async () => {
+            const nric = document.getElementById('nricInput').value.trim();
+            const responseDiv = document.getElementById('response');
+
+            if (!nric) {
+                responseDiv.innerText = 'Please enter your NRIC.';
+                return;
+            }
+
+            // Send the NRIC to the backend to check for linked token
+            const nricResponse = await fetch('/check-nric', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ nric })
+            });
+
+            const nricData = await nricResponse.json();
+
+            if (nricResponse.ok) {
+                // If a token is found, get user location and send the message
+                const token = nricData.token;
+
+                // Get user location
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(async (position) => {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+
+                        // Send the FCM token and location to the backend
+                        const response = await fetch('/send-message', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ 
+                                token: token, 
+                                location: { lat: latitude, lng: longitude } // Include location in the request body
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            responseDiv.innerText = 'Success: ' + data.message; // Display success message
+                        } else {
+                            responseDiv.innerText = 'Error: ' + data.error; // Display error message
+                        }
+                    }, (error) => {
+                        console.error('Error getting location: ', error);
+                        responseDiv.innerText = 'Error getting location: ' + error.message; // Handle location error
+                    });
+                } else {
+                    responseDiv.innerText = 'Geolocation is not supported by this browser.';
+                }
+            } else {
+                responseDiv.innerText = 'Error: ' + nricData.error; // Display NRIC check error message
             }
         });
     </script>

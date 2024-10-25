@@ -22,7 +22,8 @@ import okhttp3.Response;
 public class RegistrationActivity extends AppCompatActivity {
 
     private static final String TAG = "RegistrationActivity";
-    private static final String SERVER_URL = "http://192.168.18.70:3001/register"; // Update with your backend URL
+    private static final String SERVER_URL = "http://192.168.18.70:3001/register";
+    //private static final String SERVER_URL = "https://26d8-2406-3003-2005-3fc7-59f4-44fa-5bb4-31f1.ngrok-free.app/register";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

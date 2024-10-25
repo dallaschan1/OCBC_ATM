@@ -3,7 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const admin = require('firebase-admin');
 const { sendFcmMessage } = require('./controllers/fcmController');
-const { registerUser } = require('./controllers/userController');
+const { registerUser, nricCheck } = require('./controllers/userController');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const env = require('dotenv').config();
 const API_KEY = process.env.GEMINI_API_KEY;
@@ -14,9 +14,6 @@ const PORT = 3001;
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 const { HarmBlockThreshold, HarmCategory } = require("@google/generative-ai");
-
-
-
 
 const safetySettings = [
   {
@@ -73,13 +70,15 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", safetySettin
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// app.get('/fingerprint', (req, res) => {
-//   res.sendFile(path.join(__dirname, 'public/html/fingerprint.html'));
-// });
+app.get('/fingerprint', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/html/fingerprint.html'));
+});
 
-// app.post('/send-message', sendFcmMessage);
+app.post('/send-message', sendFcmMessage);
 
-// app.post('/register', registerUser);
+app.post('/register', registerUser);
+
+app.post('/check-nric', nricCheck);
 
 let conversationHistory = [];
 app.post('/api/converse', async (req, res) => {
