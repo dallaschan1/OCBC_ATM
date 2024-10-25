@@ -3,24 +3,80 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:gravity="center"
+    android:background="#F9F9F9">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Create an account"
+        android:textSize="24sp"
+        android:textColor="#000000"
+        android:textStyle="bold"
+        android:layout_marginBottom="24dp"
+        android:gravity="center"/>
 
     <EditText
         android:id="@+id/nricInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="NRIC" />
+        android:hint="NRIC"
+        android:padding="12dp"
+        android:textColorHint="@color/black"
+        android:background="@drawable/rounded_edittext"
+        android:layout_marginBottom="16dp" />
+
+    <EditText
+        android:id="@+id/emailInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Email Address"
+        android:padding="12dp"
+        android:textColorHint="@color/black"
+        android:inputType="textEmailAddress"
+        android:background="@drawable/rounded_edittext"
+        android:layout_marginBottom="16dp" />
 
     <EditText
         android:id="@+id/passwordInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Password"
-        android:inputType="textPassword" />
+        android:inputType="textPassword"
+        android:padding="12dp"
+        android:textColorHint="@color/black"
+        android:background="@drawable/rounded_edittext"
+        android:layout_marginBottom="24dp" />
 
     <Button
         android:id="@+id/registerButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="#FF6D6D"
+        android:padding="16dp"
+        android:text="Sign up"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/termsText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Register" />
+        android:text="By continuing, you agree to our terms of service."
+        android:textSize="14sp"
+        android:textColor="#888888"
+        android:layout_gravity="center"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/loginText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Already have an account? Sign in here"
+        android:textSize="14sp"
+        android:textColor="#1E88E5"
+        android:layout_gravity="center"/>
 </LinearLayout>
