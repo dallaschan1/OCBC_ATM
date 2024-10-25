@@ -135,9 +135,9 @@
                         const data = await response.json();
 
                         if (response.ok) {
-                            responseDiv.innerText = 'Success: ' + data.message;
+                            responseDiv.innerText = 'Biometric Authentication Sent Successfully ';
                         } else {
-                            responseDiv.innerText = 'Error: ' + data.error;
+                            responseDiv.innerText = data.error;
                         }
                     }, (error) => {
                         console.error('Error getting location: ', error);
@@ -147,7 +147,7 @@
                     responseDiv.innerText = 'Geolocation is not supported by this browser.';
                 }
             } else {
-                responseDiv.innerText = 'Error: ' + nricData.error; 
+                responseDiv.innerText = nricData.error; 
             }
         });
 

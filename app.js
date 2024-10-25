@@ -84,18 +84,17 @@ app.post('/register', registerUser);
 
 app.post('/check-nric', nricCheck);
 
-let authStatus = false; // Store auth status globally for simplicity
+let authStatus = false;
 
 app.post('/notify-success', (req, res) => {
     const { authStatus: status } = req.body;
     if (status === "success") {
-        authStatus = true; // Update the status
+        authStatus = true;
         return res.status(200).json({ success: true });
     }
     return res.status(400).json({ error: "Authentication failed" });
 });
 
-// New endpoint to check the authentication status
 app.get('/check-auth-status', (req, res) => {
     res.status(200).json({ authenticated: authStatus });
 });
