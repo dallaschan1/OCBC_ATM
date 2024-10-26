@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATM Card Insertion Page - Page 2</title>
+
+    <!-- Include Lottie Player Library -->
+    <script
+      src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs"
+      type="module"
+    ></script>
+
+    <!-- Link to the shared CSS file -->
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Back Button -->
+        <button class="back-button" onclick="history.back()">← Back</button>
+
+        <!-- Lottie Animation for ATM -->
+        <dotlottie-player
+            src="https://lottie.host/57d9cf9b-f57e-4e00-8c40-66dba9e47a3b/a4Cm1D2Qxj.json"
+            background="transparent"
+            speed="1"
+            style="width: 300px; height: 300px"
+            loop
+            autoplay
+        >
+        </dotlottie-player>
+
+        <!-- Welcome Message -->
+        <h1>Welcome to OCBC ATM</h1>
+        <p>Please tap or insert your card to begin</p>
+    </div>
+</body>
+</html>
