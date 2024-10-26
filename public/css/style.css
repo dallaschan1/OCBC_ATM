@@ -2,12 +2,9 @@
 body, html {
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #FCECEC; /* Light pink background */
+    font-family: Arial, sans-serif;
+
 }
 
 /* Container styling */
@@ -26,36 +23,8 @@ body, html {
     align-items: center;
 }
 
-/* Back button styling (used in page 2) */
-.back-button {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    font-size: 16px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    color: #333;
-}
 
-.back-button:hover {
-    color: #666;
-}
-
-/* Heading and message styling */
-h1 {
-    font-size: 24px;
-    color: #333;
-    margin-bottom: 10px;
-}
-
-p {
-    font-size: 18px;
-    color: #666;
-}
-
+/*card-login.html*/
 /* Styling for the verification buttons (used in page 1) */
 .verification-button {
     background-color: #81b9f1; /* Light blue background */
@@ -83,4 +52,468 @@ p {
     font-size: 16px;
     color: #999;
     margin: 10px 0;
+}
+
+/*card-login.html*/
+/* Back button styling (used in page 2) */
+.back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: #333;
+}
+
+.back-button:hover {
+    color: #666;
+}
+
+
+/*pincode.html*/
+/* PIN Pad Container */
+.pinpad-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #FFF;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+}
+
+/* PIN Display Container */
+.pin-display-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    background-color: #EDEDED;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    padding: 5px;
+}
+
+/* PIN Display with embedded checkbox */
+.pin-display {
+    flex: 1;
+    height: 40px;
+    background-color: #EDEDED;
+    border: none;
+    outline: none;
+    font-size: 24px;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Checkbox inside input styling */
+#showPinCheckbox {
+    transform: scale(1.2); 
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+/* Separator line */
+hr {
+    width: 100%;
+    border: 0.5px solid #333;
+    margin-bottom: 20px;
+}
+
+/* PIN Pad Grid */
+.pinpad-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+/* Buttons styling */
+.pin-button {
+    background-color: #E0E0E0;
+    border: none;
+    border-radius: 5px;
+    padding: 20px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.pin-button:hover {
+    background-color: #CCC;
+}
+
+/* Action Buttons Styling */
+.action-button {
+    font-size: 16px;
+    padding: 20px;
+    font-weight: bold;
+    color: #FFF;
+}
+
+.cancel-button {
+    background-color: #FF6B6B;
+}
+
+.clear-button {
+    background-color: #FFD93D; 
+}
+
+.enter-button {
+    background-color: #6BCB77; 
+}
+
+.action-button:hover {
+    opacity: 0.8;
+}
+
+/*keyboard.html*/
+
+/* Keyboard Container */
+.keyboard-container {
+    width: 900px;
+    max-width: 90%;
+    background-color: #FFF;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.back-button, .exit-button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #333;
+}
+
+/* Input Section Styling */
+.input-section {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+#inputField {
+    flex: 1;
+    height: 40px;
+    padding: 10px;
+    font-size: 18px;
+    border-radius: 5px;
+    border: 1px solid #CCC;
+    outline: none;
+}
+
+.clear-button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    margin-left: 10px;
+    color: #999;
+}
+
+.clear-button:hover {
+    color: #333;
+}
+
+/* Keypad Styling */
+.keypad {
+    display: grid;
+    grid-template-rows: auto auto auto auto; /* Four rows for the keyboard */
+    gap: 10px;
+    width: 100%;
+    max-width: 800px;
+}
+
+/* Row-specific styles to match the layout */
+.row {
+    display: grid;
+    gap: 10px;
+    justify-content: center; /* Center the content horizontally */
+}
+
+.row-1, .row-2 {
+    grid-template-columns: repeat(10, 1fr); /* Uniform 10 columns */
+}
+
+.row-3 {
+    grid-template-columns: repeat(9, 1fr) 1.5fr; /* 9 keys + Backspace */
+}
+
+.row-4 {
+    grid-template-columns: repeat(8, 1fr) 2fr; /* 8 keys + wider Enter */
+}
+
+/* Buttons styling */
+.key-button {
+    background-color: #E0E0E0;
+    border: none;
+    border-radius: 5px;
+    padding: 15px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%; /* Ensure the buttons take up equal space */
+}
+
+.key-button:hover {
+    background-color: #CCC;
+}
+
+/* Backspace button styling */
+.backspace-button {
+    background-color: #E0E0E0; /* Same color as other keys */
+    grid-column: span 1.5; /* Span one and a half columns for compact size */
+}
+
+/* Enter button styling */
+.enter-button {
+    background-color: #E0E0E0; /* Same color as other keys */
+    grid-column: span 2.5; /* Span two and a half columns for wider button */
+}
+
+/* HomePage.html*/
+
+#Left {
+    width: 40%;
+    padding-left: 50px;
+    padding-right: 8em;
+    padding-top: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Align contents to the left */
+    justify-content: flex-start;
+}
+
+#Left h1 {
+    text-align: left; /* Align text to the left */
+    margin-bottom: 20px;
+    width: 100%; /* Ensure the heading takes full width */
+    padding-left: 10px; /* Optional: add some padding to match alignment */
+}
+
+#Cash-Container {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    width: 85%;
+    margin-top: 10px;
+ 
+}
+
+
+#Top, #Middle {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    flex: 1; /* This allows both sections to grow equally */
+    margin-bottom: 15px;
+}
+
+
+
+.Cash-Holder {
+    background: linear-gradient(45deg, #422EB3, #2E2371);
+    display: flex;
+    flex: 1; /* Allow each holder to grow equally */
+    height: 4rem;
+    border-radius: 20px;
+    font-size: 30px;
+    color: white;
+    justify-content: center;
+    align-items: center;
+}
+#Bottom {
+    width: 100%;
+    height: 4rem; /* Height of bottom section */
+    border-radius: 20px;
+    margin-bottom: 10px;
+    background: linear-gradient(45deg, #422EB3, #2E2371);
+    color: white;
+    font-size: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#Right {
+    flex: 1; /* Allow #Right to grow */
+    padding: 50px;
+    padding-top: 40px;
+    background-color: #F6EDED;
+    padding-bottom: 0;
+    height: auto; 
+    padding-left: 3rem;
+    width: 60rem;
+
+
+}
+
+.Top-container {
+    display: flex;
+    flex-direction: row; /* Arrange items side by side */
+    align-items: start; /* Center vertically */
+    justify-content: space-between; /* Push items to the edges */
+    padding: 20px;
+    padding-bottom: 5px;
+    width: 100%;
+}
+
+.Camera {
+    background: #ddd;
+    width: 150px; /* Adjust size as needed */
+    height: 150px; /* Make height the same as width */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%; /* Makes it a circle */
+}
+
+.English-Exit {
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+
+#other-services-container {
+    margin-top: 15px; /* Space above the container */
+}
+#other-services-container h1{
+    margin-bottom: 17px; /* Space above the container */
+}
+
+.services-row {
+    display: flex; /* Use flexbox for side-by-side layout of service boxes */
+    gap: 20px; /* Space between the boxes */
+}
+
+.Other-Service-Holder {
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    flex: 1; /* Allow the boxes to grow equally */
+    height: 13rem; /* Set a fixed height for the boxes */
+    border-radius: 30px;
+    background: white; /* Set background color to white */
+    color: black; /* Change text color to black for visibility */
+    justify-content: center; /* Center items */
+    align-items: center; /* Center items */
+    font-size: 24px; /* Adjust font size */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Optional: Add some shadow for depth */
+}
+
+.service-image {
+    width: 5rem; /* Adjust size as needed */
+    margin-top: 2rem;
+    height: auto; /* Maintain aspect ratio */
+    margin-bottom: 10px; /* Space between image and header */
+}
+
+.more-services {
+    margin-top: 20px; /* Space above the text */
+    font-size: 20px; /* Adjust font size */
+    color: #422EB3; /* Change color to match your theme */
+    cursor: pointer; /* Change cursor to indicate it's clickable */
+    text-align: right; /* Align text to the right */
+    width: 100%; /* Ensure it takes the full width of the container */
+}
+
+.more-services:hover {
+    color: #2E2371; /* Change color on hover for interaction */
+}
+
+/*Voice assistany*/
+#voice-assistant {
+    margin-top: 4.4rem;
+    margin-bottom: 1rem;
+}
+
+.voice-assistant-content {
+    display: flex; /* Use flexbox for layout */
+    flex-direction: column; /* Stack items vertically */
+    align-items: flex-end; /* Align items to the right */
+    text-align: right; /* Align text to the right */
+}
+
+.voice-image {
+    width: 4rem; /* Smaller size for the microphone image */
+    height: auto; /* Maintain aspect ratio */
+    margin-bottom: 5px; /* Space between image and header */
+    margin-right:0rem;
+}
+
+.voice-assistant-header {
+    display: flex; /* Use flexbox to align header and toggle */
+    align-items: center; /* Center items vertically */
+}
+
+#voice-assistant h3 {
+    font-size: 24px; /* Adjust font size */
+    color: #422EB3; /* Change color to match your theme */
+    margin: 0; /* Remove margin */
+    margin-right: 10px; /* Space between header and toggle */
+}
+
+/* Toggle Switch Styles */
+.toggle-container {
+    display: flex; /* Use flexbox for layout */
+    align-items: center; /* Center items vertically */
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px; /* Width of the toggle */
+    height: 34px; /* Height of the toggle */
+}
+
+.switch input {
+    opacity: 0; /* Hide the default checkbox */
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc; /* Gray background */
+    transition: .4s; /* Smooth transition */
+    border-radius: 34px; /* Round the corners */
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px; /* Height of the toggle circle */
+    width: 26px; /* Width of the toggle circle */
+    left: 4px; /* Position of the circle */
+    bottom: 4px; /* Position of the circle */
+    background-color: white; /* White circle */
+    border-radius: 50%; /* Make it a circle */
+    transition: .4s; /* Smooth transition */
+}
+
+input:checked + .slider {
+    background-color: #422EB3; /* Color when checked */
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px); /* Move the circle when checked */
 }
