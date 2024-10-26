@@ -1,0 +1,86 @@
+/* General Reset */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #FCECEC; /* Light pink background */
+}
+
+/* Container styling */
+.container {
+    text-align: center;
+    padding: 40px;
+    background-color: #FFF;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    width: 900px; /* Fixed width for the white box */
+    max-width: 90%; /* Ensure it is responsive on smaller screens */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Back button styling (used in page 2) */
+.back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: #333;
+}
+
+.back-button:hover {
+    color: #666;
+}
+
+/* Heading and message styling */
+h1 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+p {
+    font-size: 18px;
+    color: #666;
+}
+
+/* Styling for the verification buttons (used in page 1) */
+.verification-button {
+    background-color: #81b9f1; /* Light blue background */
+    color: #333;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 0; /* Adjusted padding for consistent height */
+    cursor: pointer;
+    margin: 15px 0;
+    transition: background-color 0.3s ease;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    width: 80%; /* Make the buttons the same width */
+    max-width: 300px; /* Limit maximum button width */
+    display: inline-block;
+    text-decoration: none;
+}
+
+.verification-button:hover {
+    background-color: #4c6f92; /* Slightly darker blue on hover */
+}
+
+/* Styling for the "Or" text (used in page 1) */
+.or-text {
+    font-size: 16px;
+    color: #999;
+    margin: 10px 0;
+}
