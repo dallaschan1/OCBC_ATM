@@ -174,7 +174,6 @@ hr {
 }
 
 /*keyboard.html*/
-
 /* Keyboard Container */
 .keyboard-container {
     width: 900px;
@@ -282,6 +281,7 @@ hr {
     background-color: #E0E0E0; /* Same color as other keys */
     grid-column: span 2.5; /* Span two and a half columns for wider button */
 }
+
 
 /* HomePage.html*/
 
