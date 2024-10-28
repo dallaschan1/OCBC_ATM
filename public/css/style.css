@@ -4,14 +4,15 @@ body, html {
     padding: 0;
     display: flex;
     font-family: Arial, sans-serif;
-
+    justify-content: center;
+    height: 100vh;
 }
 
 /* Container styling */
 .container {
     text-align: center;
     padding: 40px;
-    background-color: #FFF;
+    background-color: #ffffff;
     border-radius: 10px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
     width: 900px; /* Fixed width for the white box */
@@ -27,8 +28,8 @@ body, html {
 /*card-login.html*/
 /* Styling for the verification buttons (used in page 1) */
 .verification-button {
-    background-color: #81b9f1; /* Light blue background */
-    color: #333;
+    background-color: #6c87a5; /* Light blue background */
+    color: #ffffff;
     font-size: 18px;
     border: none;
     border-radius: 5px;
@@ -174,6 +175,7 @@ hr {
 }
 
 /*keyboard.html*/
+
 /* Keyboard Container */
 .keyboard-container {
     width: 900px;
@@ -282,14 +284,13 @@ hr {
     grid-column: span 2.5; /* Span two and a half columns for wider button */
 }
 
-
 /* HomePage.html*/
 
 #Left {
-    width: 40%;
+    width: 45%;
     padding-left: 50px;
-    padding-right: 8em;
-    padding-top: 90px;
+
+    padding-top: 70px;
     display: flex;
     flex-direction: column;
     align-items: flex-start; /* Align contents to the left */
@@ -350,10 +351,9 @@ hr {
 #Right {
     flex: 1; /* Allow #Right to grow */
     padding: 50px;
-    padding-top: 40px;
+    padding-top: 20px;
     background-color: #F6EDED;
-    padding-bottom: 0;
-    height: auto; 
+    padding-bottom: 5px;
     padding-left: 3rem;
     width: 60rem;
 
@@ -435,9 +435,159 @@ hr {
     color: #2E2371; /* Change color on hover for interaction */
 }
 
-/*Voice assistany*/
+/*shoulder surfing alert*/
+@keyframes blink {
+    0%, 100% { opacity: 1; }  /* Fully visible at the start and end */
+    50% { color: #fff200; }     /* Half transparent in the middle */
+}
+
+#shoulder-surfing-warning {
+    position: fixed;
+    top: 15px;
+    left: 8rem;
+    color: rgb(255, 255, 255);
+    background-color: rgba(215, 13, 13 ); 
+    width: 80%;
+    height: 2rem;
+    padding: 8px 12px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    animation: blink 1s infinite; /* Apply blinking animation */
+}
+
+#shoulder-surfing-warning h2 {
+    font-size: inherit;
+    margin: 0;
+    padding-left: 25rem;
+}
+/* Exit confirmation */
+#exit-confirmation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+    display: none; /* Hidden by default */
+    justify-content: center; /* Centering modal */
+    align-items: center; /* Centering modal */
+    z-index: 1001; /* Above other elements */
+    transition: opacity 0.3s ease; /* Fade in/out effect */
+}
+
+/* Larger modal content */
+.modal-content {
+    background-color: #fff; /* White background for the modal */
+    border-radius: 15px; /* More rounded corners */
+    padding: 40px; /* More padding for spaciousness */
+    text-align: center; /* Center text */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4); /* Deeper shadow for depth */
+    animation: fadeIn 0.3s ease; /* Fade-in animation for modal */
+    max-width: 500px; /* Max width for the modal */
+    width: 100%; /* Responsive width */
+    height: 300px; /* Fixed height for the modal */
+    display: flex; /* Use flexbox for alignment */
+    flex-direction: column; /* Align items in a column */
+    justify-content: center; /* Center items vertically */
+}
+
+
+/* Flex container for buttons */
+.button-container {
+    display: flex; /* Use flexbox for alignment */
+    justify-content: space-between; /* Space between buttons */
+    margin-top: 13px; /* Space above the buttons */
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px); /* Slide in from above */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-button {
+    margin: 15px; /* Margin around buttons */
+    padding: 15px 30px; /* Increased padding for larger buttons */
+    margin-bottom: 0;
+    border: none; /* No border */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor */
+    font-size: 20px; /* Larger font size */
+    transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
+    width: 45%; /* Adjust width for buttons */
+}
+/* Font size adjustment for paragraph */
+.modal-content p {
+    font-size: 18px; /* Adjust the size as needed */
+    line-height: 1.5; /* Improve readability */
+}
+/* Confirm button style */
+.confirm {
+    background-color: #4CAF50; /* Green */
+    color: white; /* White text */
+}
+
+/* Cancel button style */
+.cancel {
+    background-color: #f44336; /* Red */
+    color: white; /* White text */
+}
+
+/* Button hover effects */
+.confirm:hover {
+    background-color: #45a049; /* Darker green on hover */
+    transform: scale(1.05); /* Slightly enlarge button */
+}
+
+.cancel:hover {
+    background-color: #d32f2f; /* Darker red on hover */
+    transform: scale(1.05); /* Slightly enlarge button */
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .modal-content {
+        width: 90%; /* Full width on smaller screens */
+        padding: 20px; /* Adjust padding */
+    }
+
+    .modal-button {
+        width: 100%; /* Full-width buttons */
+        margin: 5px 0; /* Less margin for buttons */
+    }
+}
+#loading-animation {
+    display: flex; /* Use flexbox to arrange children */
+    flex-direction: column; /* Arrange children vertically */
+    justify-content: center; /* Center items vertically */
+    align-items: center; /* Center items horizontally */
+    height: 100px; /* Adjust height if needed */
+    margin-top: 20px; /* Space above the loading animation */
+}
+
+#loading-animation p {
+    margin-top: 10px; /* Space above the text */
+    font-size: 22px; /* Font size for text */
+    color: #555; /* Text color */
+    text-align: center; /* Center text */
+}
+
+/*Voice assistant*/
 #voice-assistant {
-    margin-top: 4.4rem;
+    margin-top: 5rem;
     margin-bottom: 1rem;
 }
 
@@ -451,7 +601,7 @@ hr {
 .voice-image {
     width: 4rem; /* Smaller size for the microphone image */
     height: auto; /* Maintain aspect ratio */
-    margin-bottom: 5px; /* Space between image and header */
+    margin-bottom: 10px; /* Space between image and header */
     margin-right:0rem;
 }
 
