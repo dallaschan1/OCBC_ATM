@@ -144,6 +144,30 @@
                 document.getElementById("shoulder-surfing-warning").style.display = "none";
             }
 
+            // Changing language
+            document.addEventListener("DOMContentLoaded", function() {
+            const englishButton = document.getElementById("English");
+            const languageDropdown = document.getElementById("language-dropdown");
+
+            // Toggle dropdown visibility when "English" is clicked
+            englishButton.onclick = function() {
+                languageDropdown.style.display = languageDropdown.style.display === "block" ? "none" : "block";
+            };
+
+            // Hide dropdown if clicked outside
+            document.addEventListener("click", function(event) {
+                if (!englishButton.contains(event.target) && !languageDropdown.contains(event.target)) {
+                    languageDropdown.style.display = "none";
+                }
+            });
+        });
+
+            // Function to handle language change
+            function changeLanguage(language) {
+                alert("Language switched to: " + language);
+                document.getElementById("language-dropdown").style.display = "none";
+            }
+
             // Confirm exit and show loading animation
             window.confirmExit = function() {
                 console.log("Exit confirmed."); // Debug message
