@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Exit</title>
+    <!-- Link to the shared CSS file -->
+    <link rel="stylesheet" href="../css/normalise.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<style>
+    body {
+        align-items: center;
+        background-color: #3f4147; 
+        display: flex;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        color: #311919;
+        font-family: Arial, sans-serif;
+    }
+
+    .container {
+        text-align: center;
+        max-width: 400px;
+    }
+
+    .exit-button, .cancel-button {
+        display: inline-block;
+        padding: 10px 20px;
+        margin: 10px;
+        font-size: 1.2rem;
+        color: #ffffff;
+        background-color: #d9534f; /* red for the exit button */
+        border: none;
+        border-radius: 8px;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .exit-button:hover {
+        background-color: #c9302c;
+    }
+
+    .cancel-button {
+        background-color: #5bc0de; /* blue for the cancel button */
+    }
+
+    .cancel-button:hover {
+        background-color: #31b0d5;
+    }
+</style>
+<body>
+    <div class="container">
+        <h1>Are you sure you want to exit?</h1>
+        <p>Please confirm if you want to leave the ATM session.</p>
+        
+        <!-- "Yes" and "No" buttons for exit confirmation -->
+        <a href="exit.html" class="exit-button">Yes, Exit</a>
+        <a href="homepage.html" class="cancel-button">No, Return</a>
+    </div>
+</body>
+</html>
