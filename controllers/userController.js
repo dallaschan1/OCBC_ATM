@@ -1,4 +1,4 @@
-const { findUserByNric, updateUserTokenAndPassword, checkNric,loginUser } = require("../models/userModel");
+const { findUserByNric, updateUserTokenAndPassword, checkNric,loginUser, deductBalanceFromModel } = require("../models/userModel");
 
 async function registerUser(req, res) {
     const { nric, token, password } = req.body;
@@ -53,4 +53,24 @@ async function login(req, res) {
     }
 }
 
-module.exports = { registerUser , nricCheck, login };
+async function handleDeductBalance (req, res) {
+    const { id, amount } = req.body;
+
+    try {
+        const success = await deductBalanceFromModel(id, amount);
+
+        if (success) {
+            res.status(200).json({ message: "Balance deducted successfully" });
+        } else {
+            res.status(400).json({ message: "Error updating balance" });
+        }
+    } catch (error) {
+        if (error.message === "Insufficient balance") {
+            res.status(400).json({ message: "Insufficient balance" });
+        } else {
+            res.status(500).json({ message: "Database error" });
+        }
+    }
+};
+
+module.exports = { registerUser , nricCheck, login, handleDeductBalance };
