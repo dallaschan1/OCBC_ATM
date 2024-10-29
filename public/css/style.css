@@ -6,6 +6,7 @@ body, html {
     font-family: Arial, sans-serif;
     justify-content: center;
     height: 100vh;
+    width: 100vw;
 }
 
 /* Container styling */
@@ -290,7 +291,7 @@ hr {
     width: 45%;
     padding-left: 50px;
 
-    padding-top: 70px;
+    padding-top: 40px;
     display: flex;
     flex-direction: column;
     align-items: flex-start; /* Align contents to the left */
@@ -357,7 +358,7 @@ hr {
     padding-left: 3rem;
     width: 60rem;
 
-
+    margin-right: 0
 }
 
 .Top-container {
@@ -370,15 +371,7 @@ hr {
     width: 100%;
 }
 
-.Camera {
-    background: #ddd;
-    width: 150px; /* Adjust size as needed */
-    height: 150px; /* Make height the same as width */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 50%; /* Makes it a circle */
-}
+
 
 .English-Exit {
 
@@ -390,7 +383,7 @@ hr {
 
 
 #other-services-container {
-    margin-top: 15px; /* Space above the container */
+    margin-top: 90px; /* Space above the container */
 }
 #other-services-container h1{
     margin-bottom: 17px; /* Space above the container */
@@ -587,7 +580,7 @@ hr {
 
 /*Voice assistant*/
 #voice-assistant {
-    margin-top: 5rem;
+    margin-top: 4rem;
     margin-bottom: 1rem;
 }
 
@@ -657,7 +650,7 @@ hr {
     bottom: 4px; /* Position of the circle */
     background-color: white; /* White circle */
     border-radius: 50%; /* Make it a circle */
-    transition: .4s; /* Smooth transition */
+    transition: .4s; /* Smooth transition *
 }
 
 input:checked + .slider {
@@ -666,4 +659,41 @@ input:checked + .slider {
 
 input:checked + .slider:before {
     transform: translateX(26px); /* Move the circle when checked */
+}
+
+        
+.video-wrapper {
+    position: relative;
+    width: 150px; 
+    height: 150px;
+    border-radius: 50%; 
+    overflow: hidden; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+}
+
+
+.circular-video {
+    border-radius: 50%; 
+    object-fit: cover; 
+    width: 100%; 
+    height: 100%; 
+    position: absolute;
+}
+
+
+canvas {
+    position: absolute; 
+    top: 0;
+    left: 0;
+    width: 100%; 
+    height: 100%; 
+    border-radius: 50%; 
+    pointer-events: none; 
+}
+
+.Camera{
+    width: 150px;
 }
