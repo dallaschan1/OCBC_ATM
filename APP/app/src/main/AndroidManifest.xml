@@ -18,6 +18,12 @@
         android:theme="@style/Theme.ATM"
         tools:targetApi="31">
         <activity
+            android:name=".QRCode"
+            android:exported="false" />
+        <activity
+            android:name=".dashboard"
+            android:exported="false" />
+        <activity
             android:name=".login"
             android:exported="false" />
         <activity

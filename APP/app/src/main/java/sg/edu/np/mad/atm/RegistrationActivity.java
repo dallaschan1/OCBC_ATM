@@ -29,14 +29,18 @@ public class RegistrationActivity extends AppCompatActivity {
     private static final String SERVER_URL = "http://192.168.18.70:3001/register";
     //private static final String SERVER_URL = "https://26d8-2406-3003-2005-3fc7-59f4-44fa-5bb4-31f1.ngrok-free.app/register";
 
+    private EditText nricInput;
+    private EditText passwordInput;
+    private EditText emailInput;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        EditText nricInput = findViewById(R.id.nricInput);
-        EditText passwordInput = findViewById(R.id.passwordInput);
+        nricInput = findViewById(R.id.nricInput);
+        passwordInput = findViewById(R.id.passwordInput);
+        emailInput = findViewById(R.id.emailInput);
         Button registerButton = findViewById(R.id.registerButton);
         TextView logintext = findViewById(R.id.loginText);
 
@@ -103,7 +107,11 @@ public class RegistrationActivity extends AppCompatActivity {
                 public void onResponse(Call call, Response response) throws IOException {
                     if (response.isSuccessful()) {
                         Log.d(TAG, "User registered successfully: " + response.body().string());
-                        // You can navigate back to MainActivity or show a success message here
+                        runOnUiThread(() -> {
+                            nricInput.setText("");
+                            passwordInput.setText("");
+                            emailInput.setText("");
+                        });
                     } else {
                         Log.e(TAG, "Registration failed: " + response.message());
                     }

@@ -1,7 +1,7 @@
-const { findUserByNric, updateUserToken, checkNric } = require("../models/userModel");
+const { findUserByNric, updateUserTokenAndPassword, checkNric,loginUser } = require("../models/userModel");
 
 async function registerUser(req, res) {
-    const { nric, token } = req.body;
+    const { nric, token, password } = req.body;
 
     try {
         // Check if the NRIC exists in the database
@@ -11,7 +11,7 @@ async function registerUser(req, res) {
         }
 
         // Update the user's FCM token
-        await updateUserToken(nric, token);
+        await updateUserTokenAndPassword(nric, token, password);
         return res.status(200).json({ message: "User token updated successfully" });
     } catch (error) {
         console.error("Error during registration:", error);
@@ -39,5 +39,18 @@ async function nricCheck(req, res) {
     }
 }
 
+async function login(req, res) {
+    const { nric, password } = req.body;
+    try {
+        const user = await loginUser(nric, password);
+        if (user) {
+            res.status(200).json({ message: "Login successful", user });
+        } else {
+            res.status(401).json({ message: "Invalid credentials" });
+        }
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+}
 
-module.exports = { registerUser , nricCheck };
+module.exports = { registerUser , nricCheck, login };

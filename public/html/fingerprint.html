@@ -83,11 +83,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Biometric Authentication</title>
+    <link rel ="stylesheet" href="../css/fingerprint.css" ></link>
 </head>
 <body>
-    <input type="text" id="nricInput" placeholder="Enter NRIC">
-    <button id="triggerButton">Next</button>
-    <div id="response"></div>
+    <div class="card">
+        <h2>Enter NRIC</h2>
+        <input type="text" id="nricInput" placeholder="Enter NRIC Here">
+        <button id="triggerButton">Send</button>
+        <div id="response" class="response"></div>
+        <div class="hint">
+            Click  <span class="blue-text">"Send"</span> to send or retry authentication.
+        </div>        
+    </div>
 
     <script>
         document.getElementById('triggerButton').addEventListener('click', async () => {
