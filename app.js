@@ -70,34 +70,34 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", safetySettin
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/fingerprint', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/html/fingerprint.html'));
+// app.get('/fingerprint', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'public/html/fingerprint.html'));
+// });
+
+app.get('/a', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'HomePage.html'));
 });
 
-app.get('/Home', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/html/HomePage.html'));
-});
+// app.post('/send-message', sendFcmMessage);
 
-app.post('/send-message', sendFcmMessage);
+// app.post('/register', registerUser);
 
-app.post('/register', registerUser);
+// app.post('/check-nric', nricCheck);
 
-app.post('/check-nric', nricCheck);
+// let authStatus = false;
 
-let authStatus = false;
+// app.post('/notify-success', (req, res) => {
+//     const { authStatus: status } = req.body;
+//     if (status === "success") {
+//         authStatus = true;
+//         return res.status(200).json({ success: true });
+//     }
+//     return res.status(400).json({ error: "Authentication failed" });
+// });
 
-app.post('/notify-success', (req, res) => {
-    const { authStatus: status } = req.body;
-    if (status === "success") {
-        authStatus = true;
-        return res.status(200).json({ success: true });
-    }
-    return res.status(400).json({ error: "Authentication failed" });
-});
-
-app.get('/check-auth-status', (req, res) => {
-    res.status(200).json({ authenticated: authStatus });
-});
+// app.get('/check-auth-status', (req, res) => {
+//     res.status(200).json({ authenticated: authStatus });
+// });
 
 let conversationHistory = [];
 app.post('/api/converse', async (req, res) => {
