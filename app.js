@@ -5,7 +5,7 @@ const admin = require('firebase-admin');
 const QRCode = require('qrcode');
 const cors = require('cors');
 const { sendFcmMessage } = require('./controllers/fcmController')
-const { registerUser, nricCheck, notifySuccess, login } = require('./controllers/userController');
+const { registerUser, nricCheck, notifySuccess, login, handleDeductBalance, storeWebToken } = require('./controllers/userController');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const env = require('dotenv').config();
 const API_KEY = process.env.GEMINI_API_KEY;
@@ -184,6 +184,7 @@ app.get('/display-qr', (req, res) => {
   res.send(html);
 });
 
+app.post('/deduct-balance', handleDeductBalance);
 
 let conversationHistory = [];
 app.post('/api/converse', async (req, res) => {
