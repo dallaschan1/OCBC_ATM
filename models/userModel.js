@@ -102,5 +102,49 @@ async function deductBalanceFromModel(id, amount) {
     }
 }
 
+async function storeWebTokenInDatabase(nric, webToken) {
+    try {
+        let pool = await sql.connect(dbConfig);
+        await pool.request()
+            .input("nric", sql.VarChar, nric)
+            .input("webToken", sql.VarChar, webToken)
+            .query("UPDATE Users SET web_token = @webToken WHERE nric = @nric");
+    } catch (err) {
+        console.error("Database error (storeWebTokenInDatabase):", err);
+        throw err;
+    }
+}
 
-module.exports = { findUserByNric, updateUserTokenAndPassword, checkNric, loginUser, deductBalanceFromModel };
+async function getWebTokenFromDatabase(nric) {
+    try {
+        let pool = await sql.connect(dbConfig);
+        let result = await pool.request()
+            .input("nric", sql.VarChar, nric)
+            .query("SELECT web_token FROM Users WHERE nric = @nric");
+        return result.recordset[0]?.web_token || null; // Return the web_token or null if not found
+    } catch (err) {
+        console.error("Database error (getWebTokenFromDatabase):", err);
+        throw err;
+    }
+}
+
+async function removeWebTokenFromDatabase(nric) {
+    try {
+        await sql.connect(dbConfig);
+
+        const result = await sql.query`UPDATE Users SET web_token = NULL WHERE nric = ${nric}`;
+
+        return result.rowsAffected[0];
+    } catch (error) {
+        throw new Error('Database error: ' + error.message);
+    } finally {
+        // Close the database connection
+        await sql.close();
+    }
+}
+
+module.exports = { findUserByNric, updateUserTokenAndPassword, checkNric, loginUser, deductBalanceFromModel, 
+    storeWebTokenInDatabase,
+    getWebTokenFromDatabase,
+    removeWebTokenFromDatabase
+ };
