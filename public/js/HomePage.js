@@ -79,34 +79,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (recordset && recordset.length > 0) {
                 const withdrawAmounts = recordset.map(record => Number(record.WithdrawAmount));
                 
-                // Find highest and lowest values
-                const highest = Math.max(...withdrawAmounts);
-                const lowest = Math.min(...withdrawAmounts);
+                // Sort amounts in ascending order
+                withdrawAmounts.sort((a, b) => a - b);
 
-                // Count occurrences of each amount
-                const amountCounts = {};
-                withdrawAmounts.forEach(amount => {
-                    amountCounts[amount] = (amountCounts[amount] || 0) + 1;
-                });
+                // Collect unique values
+                const uniqueAmounts = [...new Set(withdrawAmounts)];
 
-                // Sort amounts by occurrence count in descending order
-                const sortedAmounts = Object.keys(amountCounts)
-                    .map(amount => ({ amount: Number(amount), count: amountCounts[amount] }))
-                    .sort((a, b) => b.count - a.count);
+                // Fill in with default values if less than 4 unique amounts
+                const defaultValues = [5, 10, 20, 50];
+                while (uniqueAmounts.length < 4) {
+                    uniqueAmounts.push(defaultValues.shift());
+                }
 
-                // Get the top 2 most used amounts (excluding highest and lowest)
-                const topTwoMostUsed = sortedAmounts
-                    .filter(item => item.amount !== highest && item.amount !== lowest)
-                    .slice(0, 2)
-                    .map(item => item.amount);
+                // Sort the final list to ensure it's in ascending order
+                uniqueAmounts.sort((a, b) => a - b);
 
-                // Fill the 4 h3 elements with highest, lowest, and top 2 most used amounts
+                // Fill the 4 h3 elements with amounts in ascending order
                 const cashButtons = document.querySelectorAll('.Cash-Holder h3');
                 if (cashButtons.length >= 4) {
-                    cashButtons[0].textContent = `$${highest}`;
-                    cashButtons[1].textContent = `$${lowest}`;
-                    cashButtons[2].textContent = `$${topTwoMostUsed[0] || 0}`;
-                    cashButtons[3].textContent = `$${topTwoMostUsed[1] || 0}`;
+                    cashButtons[0].textContent = `$${uniqueAmounts[0]}`;
+                    cashButtons[1].textContent = `$${uniqueAmounts[1]}`;
+                    cashButtons[2].textContent = `$${uniqueAmounts[2]}`;
+                    cashButtons[3].textContent = `$${uniqueAmounts[3]}`;
                 }
             }
         } catch (error) {
