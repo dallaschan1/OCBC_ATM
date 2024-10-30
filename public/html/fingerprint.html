@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -100,4 +100,139 @@
 </body>
 </html>
 
+ -->
 
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biometric Authentication</title>
+    <link rel="stylesheet" href="../css/fingerprint.css"></link>
+</head>
+<body>
+    <div class="card">
+        <h2>Enter NRIC</h2>
+        <input type="text" id="nricInput" placeholder="Enter NRIC Here">
+        <button id="triggerButton">Send</button>
+        <div id="response" class="response"></div>
+        <div class="hint">
+            Click <span class="blue-text">"Send"</span> to send or retry authentication.
+        </div>        
+    </div>
+
+    <script src="../js/session.js"></script>
+    <script>
+        document.getElementById('triggerButton').addEventListener('click', async () => {
+            const nric = document.getElementById('nricInput').value.trim();
+            const responseDiv = document.getElementById('response');
+
+            if (!nric) {
+                responseDiv.innerText = 'Please enter your NRIC.';
+                return;
+            }
+
+            // Send the NRIC to the backend to check for linked token
+            const nricResponse = await fetch('/check-nric', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ nric })
+            });
+
+            const nricData = await nricResponse.json();
+
+            if (nricResponse.ok) {
+                // If a token is found, get user location and send the message
+                const token = nricData.token;
+
+                // Get user location
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(async (position) => {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+
+                        // Generate the web token (implement this function accordingly)
+                        const webToken = generateWebToken(nric, token);
+
+                        const expirationTime = new Date(Date.now() + 2 * 60 * 1000).toISOString(); // Store in ISO format
+                        localStorage.setItem('nric', nric);
+                        localStorage.setItem('webToken', webToken);
+                        localStorage.setItem('expirationTime', expirationTime);
+
+                        // Store the web token in the database
+                        const storeResponse = await fetch('/store-web-token', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ nric, webToken })
+                        });
+
+                        // Check if storing the web token was successful
+                        if (!storeResponse.ok) {
+                            const storeData = await storeResponse.json();
+                            responseDiv.innerText = 'Error storing web token: ' + storeData.error;
+                            return;
+                        }
+
+                        // Send the FCM token and location to the backend
+                        const messageResponse = await fetch('/send-message', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ 
+                                token: token, 
+                                location: { lat: latitude, lng: longitude }
+                            })
+                        });
+
+                        const messageData = await messageResponse.json();
+
+                        if (messageResponse.ok) {
+                            responseDiv.innerText = 'Biometric Authentication Sent Successfully.';
+                        } else {
+                            responseDiv.innerText = 'Error: ' + messageData.error;
+                        }
+                    }, (error) => {
+                        console.error('Error getting location: ', error);
+                        responseDiv.innerText = 'Error getting location: ' + error.message;
+                    });
+                } else {
+                    responseDiv.innerText = 'Geolocation is not supported by this browser.';
+                }
+            } else {
+                responseDiv.innerText = 'Error: ' + nricData.error; 
+            }
+        });
+
+        let authCheckInterval;
+
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch('/check-auth-status');
+                const data = await response.json();
+                
+                if (data.authenticated) {
+                    clearInterval(authCheckInterval);
+                    window.location.href = '/Home';
+                }
+            } catch (error) {
+                console.error('Error checking authentication status:', error);
+            }
+        }
+
+        authCheckInterval = setInterval(checkAuthStatus, 2000);
+
+        function generateWebToken(nric, token) {
+            // Replace with your token generation logic
+            return btoa(JSON.stringify({ nric, token, timestamp: Date.now() })); // Example encoding
+        }
+    </script>
+</body>
+</html>
