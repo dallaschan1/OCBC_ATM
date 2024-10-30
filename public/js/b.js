@@ -11,7 +11,7 @@ Promise.all([
 
 function startVideo() {
   navigator.getUserMedia(
-    { video: { width: 1280, height: 720 } }, // Increase camera resolution for better detection
+    { video: { width: 200, height: 200 } }, // Increase camera resolution for better detection
     stream => video.srcObject = stream,
     err => console.error(err)
   );

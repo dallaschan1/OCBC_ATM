@@ -110,9 +110,11 @@ recognition.addEventListener('error', (event) => {
     }
 });
 
+let a = false;
 async function processUserInput(input) {
     if (isRecognitionRunning) {
         recognition.stop(); // Stop ongoing recognition
+        a = true;
         await new Promise(resolve => setTimeout(resolve, 500)); // Wait for recognition to stop completely
     }
 
@@ -155,19 +157,22 @@ async function processUserInput(input) {
         console.error('Error while fetching response from server:', error);
         isRecognitionRunning = false;
         startRecognition();
+        a = false;
     } finally {
         if (active) {
             isRecognitionRunning = false;  // Update flag after speaking response
             console.log("Speech recognition will resume once processing ends.");
             startRecognition(); // Restart recognition after processing
+            a = false;
         }
     }
 }
 
 recognition.addEventListener('end', () => {
-    if (active) {
+    if (active && !a) {
         console.log("Speech recognition ended. Restarting...");
         setTimeout(() => {
+            isRecognitionRunning = false;  // Update flag when recognition ends
             startRecognition();  // Restart only when recognition is properly ended and active
         }, 500);
     }
