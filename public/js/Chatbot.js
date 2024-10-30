@@ -7,47 +7,72 @@ recognition.continuous = true;
 let isRecognitionRunning = false;  // Flag to track if recognition is running
 let silenceTimeout;
 let transcriptBuffer = "";
-const textDisplay = document.getElementById('textDisplay');
+
+const slider = document.getElementsByClassName("slider")[0];
+let active = false;
+
+// Event listener for slider to turn voice mode on or off
+slider.addEventListener("click", () => {
+    active = !active;
+    if (active) {
+        console.log("Voice mode activated.");
+        speakResponse("Voice mode activated.");
+        startRecognition();
+        
+    } else {
+        console.log("Voice mode deactivated.");
+        window.speechSynthesis.cancel(); 
+        stopRecognition();
+        speakResponse("Voice mode deactivated.");
+        
+        
+    }
+});
 
 // Function to start recognition safely
 function startRecognition() {
-    if (!isRecognitionRunning) {
+    if (!isRecognitionRunning && active) {
         recognition.start();
         isRecognitionRunning = true;  // Update flag when recognition starts
         console.log("Speech recognition started.");
     }
 }
 
-window.onload = () => {
-    startRecognition();
-};
+// Function to stop recognition safely
+function stopRecognition() {
+    if (isRecognitionRunning) {
+        recognition.stop();
+        isRecognitionRunning = false;  // Update flag when recognition stops
+        console.log("Speech recognition stopped.");
+    }
+}
 
 // Handle speech recognition result
 recognition.addEventListener('result', (event) => {
-    transcriptBuffer = Array.from(event.results)
+    if (!active) return;  // If voice mode is off, ignore results
+
+    // Check if the result is final
+    const finalTranscript = Array.from(event.results)
+        .filter(result => result.isFinal) // Only consider final results
         .map(result => result[0].transcript)
         .join(' ')
         .trim();
 
-    console.log("Partial transcript:", transcriptBuffer);
-    textDisplay.innerText = `Listening: ${transcriptBuffer}`;
-
-    // Reset the silence timeout whenever the user is speaking
-    if (silenceTimeout) clearTimeout(silenceTimeout);
-
-    silenceTimeout = setTimeout(() => {
-        if (transcriptBuffer.trim()) {
-            console.log("User stopped speaking. Sending input to Gemini...");
-            processUserInput(transcriptBuffer);
-            transcriptBuffer = "";  // Clear buffer after sending input
-            textDisplay.innerText = "Processing...";  // Update UI feedback
-        }
-    }, 2000); // 2-second timeout after user stops speaking
+    if (finalTranscript) {
+        // Clear the buffer
+        transcriptBuffer = finalTranscript;
+        console.log("Final transcript:", transcriptBuffer);
+        processUserInput(transcriptBuffer);
+        transcriptBuffer = "";  // Clear buffer after sending input
+        if (silenceTimeout) clearTimeout(silenceTimeout); // Clear any pending silence timeout
+    }
 });
 
 // Function for Text-to-Speech (TTS)
 function speakResponse(response) {
     return new Promise((resolve, reject) => {
+        
+
         window.speechSynthesis.cancel();  // Stop any ongoing speech
 
         const utterance = new SpeechSynthesisUtterance(response);
@@ -58,7 +83,12 @@ function speakResponse(response) {
         const voices = window.speechSynthesis.getVoices();
         utterance.voice = voices.find(voice => voice.name.includes("Google US English")) || voices[0];
 
-        utterance.onend = () => resolve();  
+        utterance.onend = () => {
+            resolve();
+            if (active) {
+                startRecognition(); // Restart recognition after TTS ends
+            }
+        };
         utterance.onerror = (event) => reject(event.error);
 
         window.speechSynthesis.speak(utterance);
@@ -70,7 +100,7 @@ recognition.addEventListener('error', (event) => {
     console.error('Speech recognition error:', event.error);
     isRecognitionRunning = false;  // Update flag if recognition stops due to an error
 
-    if (event.error === 'no-speech') {
+    if (event.error === 'no-speech' && active) {
         console.log("No speech detected. Restarting...");
         setTimeout(() => {
             startRecognition();  // Restart safely after a small delay
@@ -79,12 +109,12 @@ recognition.addEventListener('error', (event) => {
 });
 
 async function processUserInput(input) {
-    isRecognitionRunning = true;
-
-    recognition.stop();  // Stop ongoing recognition
+    if (isRecognitionRunning) {
+        recognition.stop(); // Stop ongoing recognition
+        await new Promise(resolve => setTimeout(resolve, 500)); // Wait for recognition to stop completely
+    }
 
     try {
-        textDisplay.innerText = `Processing: ${input}`;
         const response = await fetch('http://localhost:3001/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -94,6 +124,9 @@ async function processUserInput(input) {
         const data = await response.json();
         const aiResponse = data.responseText;
 
+        if (!active) return;  // If voice mode is turned off during processing, do not proceed
+
+        // Handle response
         if (aiResponse.includes("Convert Currency 1")) {
             openCard("convert-currency");
         } else if (aiResponse.includes("Crypto Currency Services 2")) {
@@ -113,22 +146,24 @@ async function processUserInput(input) {
         } else if (aiResponse.includes("Check Account Balance 9")) {
             openCard("check-balance");
         } else {
-            textDisplay.innerText = "Gemini AI says: ${aiResponse}";
             await speakResponse(aiResponse);
+            isRecognitionRunning = false;  // Update flag after speaking response
         }
     } catch (error) {
         console.error('Error while fetching response from server:', error);
-        textDisplay.innerText = "Error: Could not get a response from the server.";
     } finally {
-        console.log("Speech recognition will resume once recognition ends.");
+        if (active) {
+            console.log("Speech recognition will resume once processing ends.");
+            startRecognition(); // Restart recognition after processing
+        }
     }
 }
 
 recognition.addEventListener('end', () => {
-    if (!isRecognitionRunning) {
+    if (active && !isRecognitionRunning) {
         console.log("Speech recognition ended. Restarting...");
         setTimeout(() => {
-            startRecognition();  // Restart only when recognition is properly ended
+            startRecognition();  // Restart only when recognition is properly ended and active
         }, 500);
     }
 });
@@ -141,6 +176,6 @@ function openCard(cardId) {
     const selectedCard = document.getElementById(cardId);
     if (selectedCard) {
         selectedCard.style.display = 'block';  // Show the relevant card
-        textDisplay.innerText = `Opening ${selectedCard.querySelector('h3').innerText}...`;
+        console.log(`Opening ${selectedCard.querySelector('h3').innerText}...`);
     }
 }
