@@ -68,32 +68,34 @@ recognition.addEventListener('result', (event) => {
     }
 });
 
-// Function for Text-to-Speech (TTS)
+let isSpeaking = false;
+
 function speakResponse(response) {
     return new Promise((resolve, reject) => {
-        
+        if (isSpeaking) return;  // Avoid overlapping speeches
+        isSpeaking = true;
 
-        window.speechSynthesis.cancel();  // Stop any ongoing speech
-
+        window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(response);
         utterance.lang = 'en-US';
-        utterance.rate = 1.2;  
+        utterance.rate = 1.2;
         utterance.pitch = 1.0;
 
-        const voices = window.speechSynthesis.getVoices();
-        utterance.voice = voices.find(voice => voice.name.includes("Google US English")) || voices[0];
-
         utterance.onend = () => {
+            isSpeaking = false;
             resolve();
             if (active) {
-                startRecognition(); // Restart recognition after TTS ends
+                startRecognition();
             }
         };
-        utterance.onerror = (event) => reject(event.error);
+        utterance.onerror = (event) => {
+            isSpeaking = false;
+            reject(event.error);
+        };
 
         window.speechSynthesis.speak(utterance);
     });
-}
+}   
 
 // Handle errors and end events
 recognition.addEventListener('error', (event) => {
@@ -151,6 +153,8 @@ async function processUserInput(input) {
         }
     } catch (error) {
         console.error('Error while fetching response from server:', error);
+        isRecognitionRunning = false;
+        startRecognition();
     } finally {
         if (active) {
             isRecognitionRunning = false;  // Update flag after speaking response
@@ -161,7 +165,7 @@ async function processUserInput(input) {
 }
 
 recognition.addEventListener('end', () => {
-    if (active && !isRecognitionRunning) {
+    if (active) {
         console.log("Speech recognition ended. Restarting...");
         setTimeout(() => {
             startRecognition();  // Restart only when recognition is properly ended and active
