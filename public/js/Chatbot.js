@@ -77,7 +77,7 @@ function speakResponse(response) {
 
         const utterance = new SpeechSynthesisUtterance(response);
         utterance.lang = 'en-US';
-        utterance.rate = 1.5;  
+        utterance.rate = 1.2;  
         utterance.pitch = 1.0;
 
         const voices = window.speechSynthesis.getVoices();
@@ -147,12 +147,13 @@ async function processUserInput(input) {
             openCard("check-balance");
         } else {
             await speakResponse(aiResponse);
-            isRecognitionRunning = false;  // Update flag after speaking response
+            
         }
     } catch (error) {
         console.error('Error while fetching response from server:', error);
     } finally {
         if (active) {
+            isRecognitionRunning = false;  // Update flag after speaking response
             console.log("Speech recognition will resume once processing ends.");
             startRecognition(); // Restart recognition after processing
         }

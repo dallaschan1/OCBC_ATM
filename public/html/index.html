@@ -3,14 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Continuous Speech AI Demo</title>
-  <script src = "../css/HomePage.css"></script>
+
+  <link rel="stylesheet" href="../css/test.css">
 </head>
 <body>
-   <div id = "textDisplay">
+  <div class="login-container">
+    <h2>Login</h2>
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required><br><br>
     
-   </div>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required><br><br>
+    
+    <button id="login-button">Login</button>
+  </div>
 
-  <script src="./js/Chatbot.js" defer></script>
+  <script src="./js/index.js" defer></script>
+  <script>
+    document.getElementById('login-button').addEventListener('click', async function() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      
+      if (username && password) {
+        try {
+          const response = await PasswordLogin(username, password);
+          if (response && response.user.UserID) {
+            localStorage.setItem('UserId', response.user.UserID);
+            window.location.href = '/Home';
+          } else {
+            console.error('Invalid response from server');
+          }
+        } catch (error) {
+          console.error('Login failed:', error);
+        }
+      } else {
+        alert('Please enter both username and password');
+      }
+    });
+
+    async function PasswordLogin(userName, password) {
+      try {
+        const response = await fetch('/PasswordLogin', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ userName, password })
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        return await response.json();
+      } catch (error) {
+        console.error('Error during fetch:', error);
+        throw error;
+      }
+    }
+    
+  </script>
 </body>
 </html>
