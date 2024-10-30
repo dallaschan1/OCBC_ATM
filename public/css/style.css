@@ -310,7 +310,7 @@ hr {
     flex-direction: column;
     height: auto;
     width: 85%;
-    margin-top: 10px;
+    margin-top: 50px;
  
 }
 
@@ -383,7 +383,7 @@ hr {
 
 
 #other-services-container {
-    margin-top: 90px; /* Space above the container */
+    margin-top:80px; /* Space above the container */
 }
 #other-services-container h1{
     margin-bottom: 17px; /* Space above the container */
@@ -667,14 +667,16 @@ input:checked + .slider:before {
         
 .video-wrapper {
     position: relative;
-    width: 150px; 
-    height: 150px;
+    width: 200px; 
+    height: 200px;
     border-radius: 50%; 
     overflow: hidden; 
     display: flex;
     justify-content: center;
     align-items: center;
     background-color: #000;
+    margin-bottom: 0;
+    padding: 0;
 }
 
 

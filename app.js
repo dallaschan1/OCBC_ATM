@@ -12,7 +12,8 @@ const API_KEY = process.env.GEMINI_API_KEY;
 const app = express();
 const PORT = 3001;
 
-
+const Password = require('./controllers/PasswordController');
+const Withdraw = require('./controllers/withdrawalController');
 
 // Middleware setup
 app.use(bodyParser.json());
@@ -140,6 +141,9 @@ app.get('/', (req, res) => {
 // Chatbot API
 app.post("/chat", chatbot.startChatForUser);
 
+app.post('/PasswordLogin', Password.login);
+app.post('/withdraw', Withdraw.withdraw);
+app.get('/withdraw', Withdraw.dailyWithdraw);
 
 // Start the server
 app.listen(PORT,'0.0.0.0', () => {
