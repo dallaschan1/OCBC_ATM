@@ -1,4 +1,4 @@
-const geminiChatModel = require("../geminiChatConfig.js");
+const geminiChatModel = require("../homePageGeminiChatConfig.js");
 
 let history = [];
 
