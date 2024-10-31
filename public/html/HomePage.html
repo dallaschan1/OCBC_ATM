@@ -107,9 +107,17 @@
         </div>
         
         <!-- Voice Assistant Section -->
+        <!-- Voice Assistant Section -->
         <div id="voice-assistant">
             <div class="voice-assistant-content">
-                <img src="../images/microphone.png" alt="Voice Assistant" class="voice-image">
+                <div id="test">
+                    <div id="waveformContainer">
+                        <canvas id="waveform"></canvas>
+                    </div>
+                    <div id="microphoneContainer">
+                        <img src="../images/microphone.png" alt="Voice Assistant" class="voice-image">
+                    </div>
+                </div>
                 <div class="voice-assistant-header">
                     <h3>Voice Assistant</h3>
                     <div class="toggle-container">
@@ -121,6 +129,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 
     <!-- Warning message initially hidden -->
@@ -147,7 +156,7 @@
     </div>
 
     <script src = "../js/HomePage.js"></script>
-    <script src="../js/Chatbot.js" defer></script>
+    
     <script src="../js/session.js"></script>
 </body>
 </html>

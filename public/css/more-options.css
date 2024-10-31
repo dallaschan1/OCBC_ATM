@@ -180,6 +180,7 @@
   position: absolute;
   right: 60px;
   bottom: 40px;
+  height: 112px;
 }
 
 .voice-assistant-content {
@@ -187,6 +188,7 @@
   flex-direction: column; /* Stack items vertically */
   align-items: flex-end; /* Align items to the right */
   text-align: right; /* Align text to the right */
+  height: 100%;
 }
 
 .voice-image {
@@ -196,10 +198,7 @@
   margin-right:0rem;
 }
 
-.voice-assistant-header {
-  display: flex; /* Use flexbox to align header and toggle */
-  align-items: center; /* Center items vertically */
-}
+
 
 #voice-assistant h3 {
   font-size: 24px; /* Adjust font size */
@@ -261,6 +260,23 @@ input:checked + .slider:before {
   transform: translateX(26px); /* Move the circle when checked */
 }
 
+.voice-assistant-content {
+display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    height: 100%;
+  }
+  
+ 
+
+
+.voice-assistant-header{
+   height: 100%;
+   display: flex;
+}
+  
+  
   #containerr{
     width: 90vw;
     display: flex;
@@ -331,10 +347,45 @@ canvas {
   pointer-events: none; 
 }
 
+
 .Camera{
   width: 150px;
 }
 
 #yum{
 flex-grow: 0.9;
+}
+
+#tests {
+    display: flex;
+    align-items: start; /* Align items vertically centered */
+    justify-content: start;
+    width: 100%;
+    height: 100%;
+    gap: 10px; /* Add some space between the waveform and microphone */
+}
+
+#waveformContainer {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#microphoneContainer {
+    display: flex;
+    justify-content: end;
+    align-items: end;
+   
+}
+
+
+#waveform {
+    width: 70%; 
+    height: 60%; 
+    color: blue;
+    pointer-events: none; 
+    border: 1px solid black;
+    border-radius: 0;
 }
