@@ -23,6 +23,7 @@ slider.addEventListener("click", () => {
         console.log("Voice mode deactivated.");
         window.speechSynthesis.cancel(); 
         stopRecognition();
+        isSpeaking = false;
         speakResponse("Voice mode deactivated.");
         
         
