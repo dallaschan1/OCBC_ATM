@@ -4,12 +4,17 @@ recognition.interimResults = true;
 recognition.lang = 'en-US';
 recognition.continuous = true;
 
-let isRecognitionRunning = false;  // Flag to track if recognition is running
-let silenceTimeout;
+let isRecognitionRunning = false;
 let transcriptBuffer = "";
 
 const slider = document.getElementsByClassName("slider")[0];
 let active = false;
+
+let audioContext;
+let analyser;
+let microphone;
+const canvas = document.getElementById('waveform');
+const canvasCtx = canvas.getContext('2d');
 
 // Event listener for slider to turn voice mode on or off
 slider.addEventListener("click", () => {
@@ -18,15 +23,14 @@ slider.addEventListener("click", () => {
         console.log("Voice mode activated.");
         speakResponse("Voice mode activated.");
         startRecognition();
-        
+        startVisualizer();
     } else {
         console.log("Voice mode deactivated.");
         window.speechSynthesis.cancel(); 
         stopRecognition();
+        stopVisualizer();
         isSpeaking = false;
         speakResponse("Voice mode deactivated.");
-        
-        
     }
 });
 
@@ -34,7 +38,7 @@ slider.addEventListener("click", () => {
 function startRecognition() {
     if (!isRecognitionRunning && active) {
         recognition.start();
-        isRecognitionRunning = true;  // Update flag when recognition starts
+        isRecognitionRunning = true;
         console.log("Speech recognition started.");
     }
 }
@@ -43,29 +47,108 @@ function startRecognition() {
 function stopRecognition() {
     if (isRecognitionRunning) {
         recognition.stop();
-        isRecognitionRunning = false;  // Update flag when recognition stops
+        isRecognitionRunning = false;
         console.log("Speech recognition stopped.");
     }
 }
 
-// Handle speech recognition result
-recognition.addEventListener('result', (event) => {
-    if (!active) return;  // If voice mode is off, ignore results
+// Function to start the audio visualizer
+async function startVisualizer() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 512;
+        microphone = audioContext.createMediaStreamSource(stream);
+        microphone.connect(analyser);
+        drawWaveform();
+    } catch (error) {
+        console.error('Error accessing the microphone:', error);
+    }
+}
 
-    // Check if the result is final
+// Function to stop the visualizer
+function stopVisualizer() {
+    if (audioContext) {
+        audioContext.close();
+        audioContext = null;
+        analyser = null;
+        console.log("Audio context stopped.");
+    }
+}
+
+// Function to draw the waveform
+function drawWaveform() {
+    if (!analyser) return;
+
+    const bufferLength = analyser.fftSize;
+    const dataArray = new Uint8Array(bufferLength);
+
+    function draw() {
+        if (!analyser) return; // Stop if visualizer is not active
+        requestAnimationFrame(draw);
+
+        analyser.getByteTimeDomainData(dataArray);
+
+        // Clear the canvas
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Set up the style for the waveform line
+        canvasCtx.lineWidth = 2;
+        canvasCtx.strokeStyle = 'blue';
+
+        // Begin drawing the waveform path
+        canvasCtx.beginPath();
+        const sliceWidth = canvas.width / bufferLength;
+        let x = 0;
+
+        let significantSignal = false;
+
+        for (let i = 0; i < bufferLength; i++) {
+            const v = dataArray[i] / 128.0; // Normalize between 0 and 1
+            const y = (v * canvas.height) / 2;
+
+            if (Math.abs(v - 1) > 0.05) {  // Check if there's a significant signal
+                significantSignal = true;
+            }
+
+            if (i === 0) {
+                canvasCtx.moveTo(x, y);
+            } else {
+                canvasCtx.lineTo(x, y);
+            }
+
+            x += sliceWidth;
+        }
+
+        // If no significant audio signal, draw a flat line in the middle
+        if (!significantSignal) {
+            canvasCtx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous drawing
+            canvasCtx.beginPath();
+            canvasCtx.moveTo(0, canvas.height / 2);
+            canvasCtx.lineTo(canvas.width, canvas.height / 2);
+        }
+
+        canvasCtx.stroke();
+    }
+
+    draw();
+}
+
+recognition.addEventListener('result', (event) => {
+    if (!active) return;
+
     const finalTranscript = Array.from(event.results)
-        .filter(result => result.isFinal) // Only consider final results
+        .filter(result => result.isFinal)
         .map(result => result[0].transcript)
         .join(' ')
         .trim();
 
     if (finalTranscript) {
-        // Clear the buffer
         transcriptBuffer = finalTranscript;
         console.log("Final transcript:", transcriptBuffer);
         processUserInput(transcriptBuffer);
         transcriptBuffer = "";  // Clear buffer after sending input
-        if (silenceTimeout) clearTimeout(silenceTimeout); // Clear any pending silence timeout
     }
 });
 
@@ -73,7 +156,7 @@ let isSpeaking = false;
 
 function speakResponse(response) {
     return new Promise((resolve, reject) => {
-        if (isSpeaking) return;  // Avoid overlapping speeches
+        if (isSpeaking) return;
         isSpeaking = true;
 
         window.speechSynthesis.cancel();
@@ -96,7 +179,7 @@ function speakResponse(response) {
 
         window.speechSynthesis.speak(utterance);
     });
-}   
+}
 
 // Handle errors and end events
 recognition.addEventListener('error', (event) => {
@@ -114,9 +197,9 @@ recognition.addEventListener('error', (event) => {
 let a = false;
 async function processUserInput(input) {
     if (isRecognitionRunning) {
-        recognition.stop(); // Stop ongoing recognition
+        recognition.stop();
         a = true;
-        await new Promise(resolve => setTimeout(resolve, 500)); // Wait for recognition to stop completely
+        
     }
 
     try {
@@ -156,9 +239,7 @@ async function processUserInput(input) {
         }
     } catch (error) {
         console.error('Error while fetching response from server:', error);
-        isRecognitionRunning = false;
-        startRecognition();
-        a = false;
+       
     } finally {
         if (active) {
             isRecognitionRunning = false;  // Update flag after speaking response
