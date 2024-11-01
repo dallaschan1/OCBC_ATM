@@ -111,7 +111,7 @@ public class login extends AppCompatActivity {
                         JSONObject user = jsonResponse.getJSONObject("user");
 
                         // Retrieve user data from the JSON response
-                        String userId = user.getString("id");
+                        String userId = user.getString("UserID");
                         String userName = user.getString("name");
                         String userNric = user.getString("nric");
                         String userToken = user.getString("token");
