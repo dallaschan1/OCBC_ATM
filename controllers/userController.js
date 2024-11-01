@@ -39,6 +39,26 @@ async function nricCheck(req, res) {
     }
 }
 
+async function getId(req, res) {
+    const { nric } = req.body;
+
+    if (!nric) {
+        return res.status(400).json({ error: "NRIC is required" });
+    }
+
+    try {
+        const user = await findUserByNric(nric);
+        if (user) {
+            return res.status(200).json({ UserID: user.UserID }); // Return the token if found
+        } else {
+            return res.status(404).json({ error: "No id found" });
+        }
+    } catch (error) {
+        console.error('Error checking NRIC:', error);
+        return res.status(500).json({ error: "An error occurred while checking NRIC" });
+    }
+}
+
 // Mobile phone login
 async function login(req, res) {
     const { nric, password } = req.body;
@@ -55,10 +75,10 @@ async function login(req, res) {
 }
 
 async function handleDeductBalance (req, res) {
-    const { id, amount } = req.body;
+    const { UserID, amount } = req.body;
 
     try {
-        const success = await deductBalanceFromModel(id, amount);
+        const success = await deductBalanceFromModel(UserID, amount);
 
         if (success) {
             res.status(200).json({ message: "Balance deducted successfully" });
@@ -130,4 +150,4 @@ async function removeWebToken(req, res) {
     }
 }
 
-module.exports = { registerUser , nricCheck, login, handleDeductBalance, storeWebToken, getWebToken, removeWebToken };
+module.exports = { registerUser , nricCheck, login, handleDeductBalance, storeWebToken, getWebToken, removeWebToken,getId };
