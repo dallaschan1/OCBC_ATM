@@ -5,8 +5,10 @@ const admin = require('firebase-admin');
 const QRCode = require('qrcode');
 const cors = require('cors');
 const { sendFcmMessage } = require('./controllers/fcmController')
-const { registerUser, nricCheck, notifySuccess, login, handleDeductBalance, storeWebToken, getWebToken, removeWebToken } = require('./controllers/userController');
+const { registerUser, nricCheck, notifySuccess, login, handleDeductBalance, storeWebToken, getWebToken, removeWebToken, getId } = require('./controllers/userController');
 const chatbot = require("./controllers/chatBotController.js");
+const axios = require('axios');
+const { PythonShell } = require('python-shell');
 const env = require('dotenv').config();
 const API_KEY = process.env.GEMINI_API_KEY;
 const app = express();
@@ -37,6 +39,8 @@ app.post('/send-message', sendFcmMessage);
 app.post('/register', registerUser);
 
 app.post('/check-nric', nricCheck);
+
+app.post('/getting-id', getId);
 
 let authStatus = false;
 
@@ -144,6 +148,23 @@ app.post('/get-web-token', getWebToken);
 
 app.post('/remove-web-token', removeWebToken);
 
+app.post('/check-suspicion', async (req, res) => {
+    const userId = req.body.id;
+    try {
+        const response = await axios.post('http://localhost:5000/check-suspicion', { id: userId });
+        const { suspicious_count, overall_suspicious, adaptive_threshold } = response.data;
+
+        if (overall_suspicious) {
+            return res.status(200).json({ message: "User transactions are suspicious", suspicious_count, adaptive_threshold });
+        } else {
+            return res.status(200).json({ message: "User transactions are not suspicious", suspicious_count, adaptive_threshold });
+        }
+    } catch (error) {
+        console.error("Error calling Flask API:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 // Chatbot API
 app.post("/chat", chatbot.startChatForUser);
 
@@ -151,7 +172,7 @@ app.post('/PasswordLogin', Password.login);
 app.post('/withdraw', Withdraw.withdraw);
 app.get('/withdraw', Withdraw.dailyWithdraw);
 app.get('/More-Options', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/html/more-options.html'));
+    res.sendFile(path.join(__dirname, 'public/html/more-options.html'));
 });
 // Start the server
 app.listen(PORT,'0.0.0.0', () => {

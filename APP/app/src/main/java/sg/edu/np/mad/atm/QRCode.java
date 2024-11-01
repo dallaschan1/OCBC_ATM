@@ -218,7 +218,7 @@ public class QRCode extends AppCompatActivity {
     private void deductBalance(String userId, double amount, double currentBalance) {
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("id", userId);
+            jsonObject.put("UserID", userId);
             jsonObject.put("amount", amount);
         } catch (JSONException e) {
             e.printStackTrace();
