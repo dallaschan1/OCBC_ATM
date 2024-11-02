@@ -26,6 +26,7 @@ async function removeWebToken() {
 
     if (response.ok) {
         // Clear local storage
+        localStorage.removeItem('UserId');
         localStorage.removeItem('nric');
         localStorage.removeItem('webToken');
         localStorage.removeItem('expirationTime');

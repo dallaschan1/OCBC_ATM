@@ -56,7 +56,7 @@ async function loginUser(nric, password) {
     }
 }
 
-async function deductBalanceFromModel(id, amount) {
+async function deductBalanceFromModel(UserID, amount) {
     let transaction;
     try {
         // Connect to the database
@@ -68,8 +68,8 @@ async function deductBalanceFromModel(id, amount) {
 
         // Check current balance
         const currentBalanceResult = await transaction.request()
-            .input("id", sql.Int, id)
-            .query("SELECT balance FROM Users WHERE id = @id");
+            .input("UserID", sql.Int, UserID)
+            .query("SELECT balance FROM Users WHERE UserID = @UserID");
         
         const currentBalance = currentBalanceResult.recordset[0]?.balance;
 
@@ -82,9 +82,9 @@ async function deductBalanceFromModel(id, amount) {
         if (currentBalance >= amount) {
             // Deduct the balance
             await transaction.request()
-                .input("id", sql.Int, id)
+                .input("UserID", sql.Int, UserID)
                 .input("amount", sql.Decimal(10, 2), amount)
-                .query("UPDATE Users SET balance = balance - @amount WHERE id = @id");
+                .query("UPDATE Users SET balance = balance - @amount WHERE UserID = @UserID");
             
             // Commit the transaction
             await transaction.commit();
