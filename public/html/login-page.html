@@ -28,11 +28,26 @@
         <p>To start please choose verification method:</p>
         
         <!-- Buttons for verification options that link to other pages -->
-        <a href="card-login.html" class="verification-button">Card and PIN</a>
+        <button id="cardLogin" class="verification-button">Card and PIN</button>
         <p class="or-text">Or</p>
-        <a href="facial-recognition.html" class="verification-button">Facial Recognition and NRIC</a>
+        <button id="facialRecognition" class="verification-button">Facial Recognition and NRIC</button>
         <p class="or-text">Or</p>
-        <a href="fingerprint.html" class="verification-button">Fingerprint and NRIC</a>
+        <button id="fingerprint" class="verification-button">Fingerprint and NRIC</button>
     </div>
+
+
+    <script>
+        document.getElementById('cardLogin').addEventListener('click', function() {
+            window.location.href = '/login';
+        });
+
+        document.getElementById('facialRecognition').addEventListener('click', function() {
+            window.location.href = '/fingerprint';
+        });
+
+        document.getElementById('fingerprint').addEventListener('click', function() {
+            window.location.href = '/faceLogin';
+        });
+    </script>
 </body>
 </html>

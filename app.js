@@ -28,7 +28,11 @@ app.get('/Home', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/html/index.html'));
+  res.sendFile(path.join(__dirname, 'public/html/login-page.html'));
+});
+
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/index.html'));
 });
 
 app.get('/fingerprint', (req, res) => {
