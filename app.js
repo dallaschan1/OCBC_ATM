@@ -8,6 +8,7 @@ const { sendFcmMessage } = require('./controllers/fcmController')
 const { registerUser, nricCheck, notifySuccess, login, handleDeductBalance, storeWebToken, getWebToken, removeWebToken, getId } = require('./controllers/userController');
 const chatbot = require("./controllers/chatBotController.js");
 const axios = require('axios');
+const {loginUserByFace, updateUserFace} = require("./models/facialModel.js");
 const { PythonShell } = require('python-shell');
 const env = require('dotenv').config();
 const API_KEY = process.env.GEMINI_API_KEY;
@@ -164,6 +165,11 @@ app.post('/check-suspicion', async (req, res) => {
         return res.status(500).json({ error: "Internal server error" });
     }
 });
+
+//Facial Login
+app.get('/faceLogin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/facialRecog.html'))
+})
 
 // Chatbot API
 app.post("/chat", chatbot.startChatForUser);

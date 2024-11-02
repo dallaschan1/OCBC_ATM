@@ -56,7 +56,7 @@ async function loginUser(nric, password) {
     }
 }
 
-async function deductBalanceFromModel(UserID, amount) {
+async function deductBalanceFromModel(UseIDr, amount) {
     let transaction;
     try {
         // Connect to the database
