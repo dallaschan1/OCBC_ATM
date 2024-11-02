@@ -146,6 +146,19 @@
 
             const nricData = await nricResponse.json();
 
+            const idResponse = await fetch('/getting-id', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ nric })
+            });
+
+            const idData = await idResponse.json();
+            console.log(idData);
+            const UserId = idData.UserID;
+            localStorage.setItem('UserId', UserId);
+
             if (nricResponse.ok) {
                 // If a token is found, get user location and send the message
                 const token = nricData.token;
