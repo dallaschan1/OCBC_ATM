@@ -159,10 +159,12 @@ app.post('/check-suspicion', async (req, res) => {
         const response = await axios.post('http://localhost:5000/check-suspicion', { id: userId });
         const { suspicious_count, overall_suspicious, adaptive_threshold } = response.data;
 
+        const suspicious = overall_suspicious === true;
+
         if (overall_suspicious) {
-            return res.status(200).json({ message: "User transactions are suspicious", suspicious_count, adaptive_threshold });
+            return res.status(200).json({ message: "User transactions are suspicious", suspicious_count, adaptive_threshold, suspicious: true  });
         } else {
-            return res.status(200).json({ message: "User transactions are not suspicious", suspicious_count, adaptive_threshold });
+            return res.status(200).json({ message: "User transactions are not suspicious", suspicious_count, adaptive_threshold, suspicious: false });
         }
     } catch (error) {
         console.error("Error calling Flask API:", error);
