@@ -143,8 +143,36 @@ async function removeWebTokenFromDatabase(nric) {
     }
 }
 
+async function findUserByNameOrPhoneNumber(query) {
+    try {
+        let pool = await sql.connect(dbConfig);
+
+        // Check if the query is a phone number (all digits)
+        const isPhoneNumber = /^\d+$/.test(query);
+        let result;
+
+        if (isPhoneNumber) {
+            // Search by phone number
+            result = await pool.request()
+                .input("phoneNumber", sql.VarChar, query)
+                .query("SELECT * FROM Users WHERE phoneNumber = @phoneNumber");
+        } else {
+            // Search by name
+            result = await pool.request()
+                .input("name", sql.VarChar, query)
+                .query("SELECT * FROM Users WHERE name = @name");
+        }
+
+        return result.recordset[0]; // Return the user if found
+    } catch (err) {
+        console.error("Database error (findUserByNameOrPhoneNumber):", err);
+        throw err;
+    }
+}
+
 module.exports = { findUserByNric, updateUserTokenAndPassword, checkNric, loginUser, deductBalanceFromModel, 
     storeWebTokenInDatabase,
     getWebTokenFromDatabase,
-    removeWebTokenFromDatabase
+    removeWebTokenFromDatabase,
+    findUserByNameOrPhoneNumber
  };
