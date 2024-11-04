@@ -1,4 +1,5 @@
-const { findUserByNric, updateUserTokenAndPassword, checkNric,loginUser, deductBalanceFromModel, storeWebTokenInDatabase, getWebTokenFromDatabase,removeWebTokenFromDatabase } = require("../models/userModel");
+const { findUserByNric, updateUserTokenAndPassword, checkNric,loginUser, deductBalanceFromModel,
+     storeWebTokenInDatabase, getWebTokenFromDatabase,removeWebTokenFromDatabase, findUserByNameOrPhoneNumber } = require("../models/userModel");
 
 async function registerUser(req, res) {
     const { nric, token, password } = req.body;
@@ -150,4 +151,25 @@ async function removeWebToken(req, res) {
     }
 }
 
-module.exports = { registerUser , nricCheck, login, handleDeductBalance, storeWebToken, getWebToken, removeWebToken,getId };
+async function findUserByNameOrPhone(req, res) {
+    const { name, phoneNumber } = req.body;
+
+    if (!name && !phoneNumber) {
+        return res.status(400).json({ error: "Either name or phone number is required." });
+    }
+
+    try {
+        const user = await findUserByNameOrPhoneNumber(name, phoneNumber);
+        if (user) {
+            const { name, phoneNumber, UserID } = user;
+            return res.status(200).json({ message: "User found", user: { name, phoneNumber, UserID } });
+        } else {
+            return res.status(404).json({ message: "User not found" });
+        }
+    } catch (error) {
+        console.error("Error finding user by name or phone number:", error);
+        return res.status(500).json({ error: "Server error while finding user" });
+    }
+}
+
+module.exports = { registerUser , nricCheck, login, handleDeductBalance, storeWebToken, getWebToken, removeWebToken,getId, findUserByNameOrPhone };

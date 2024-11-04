@@ -5,7 +5,7 @@ const admin = require('firebase-admin');
 const QRCode = require('qrcode');
 const cors = require('cors');
 const { sendFcmMessage } = require('./controllers/fcmController')
-const { registerUser, nricCheck, notifySuccess, login, handleDeductBalance, storeWebToken, getWebToken, removeWebToken, getId } = require('./controllers/userController');
+const { registerUser, nricCheck, notifySuccess, login, handleDeductBalance, storeWebToken, getWebToken, removeWebToken, getId,findUserByNameOrPhone } = require('./controllers/userController');
 const chatbot = require("./controllers/chatBotController.js");
 const axios = require('axios');
 const {loginUserByFace, updateUserFace} = require("./models/facialModel.js");
@@ -153,24 +153,30 @@ app.post('/get-web-token', getWebToken);
 
 app.post('/remove-web-token', removeWebToken);
 
+app.post('/get-user', findUserByNameOrPhone);
+
 app.post('/check-suspicion', async (req, res) => {
     const userId = req.body.id;
     try {
         const response = await axios.post('http://localhost:5000/check-suspicion', { id: userId });
-        const { suspicious_count, overall_suspicious, adaptive_threshold } = response.data;
+        const { suspicious_count, overall_suspicious, score } = response.data;
 
         const suspicious = overall_suspicious === true;
 
         if (overall_suspicious) {
-            return res.status(200).json({ message: "User transactions are suspicious", suspicious_count, adaptive_threshold, suspicious: true  });
+            return res.status(200).json({ message: "User transactions are suspicious", suspicious_count, score, suspicious: true  });
         } else {
-            return res.status(200).json({ message: "User transactions are not suspicious", suspicious_count, adaptive_threshold, suspicious: false });
+            return res.status(200).json({ message: "User transactions are not suspicious", suspicious_count, score, suspicious: false });
         }
     } catch (error) {
         console.error("Error calling Flask API:", error);
         return res.status(500).json({ error: "Internal server error" });
     }
 });
+
+app.get('/transfer', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/transfer-fund.html'))
+})
 
 //Facial Login
 app.get('/faceLogin', (req, res) => {

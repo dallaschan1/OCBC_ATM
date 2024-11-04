@@ -126,6 +126,7 @@ def check_suspicion():
     short_period = pd.Timedelta(hours=2)  # Define what is considered a "short period"
 
     suspicious_count = 0
+    score = 0
     total_transactions = len(user_transactions)
 
     # Check for criteria
@@ -142,6 +143,7 @@ def check_suspicion():
         ]
         if not recent_incoming.empty:
             suspicious_count += 1
+            score += 1
 
         # Check for large outgoing amounts
         recent_outgoing = user_transactions[
@@ -150,6 +152,7 @@ def check_suspicion():
         ]
         if not recent_outgoing.empty:
             suspicious_count += 1
+            score += 1
 
         # Check for multiple incoming transactions from unique accounts
         recent_transactions = user_transactions[
@@ -159,12 +162,14 @@ def check_suspicion():
 
         if unique_senders > unique_senders_threshold:
             suspicious_count += 1
+            score += 1 
 
     overall_suspicious = suspicious_count > 0  # If any criteria are met
 
     return jsonify({
         "user_id": user_id,
         "suspicious_count": suspicious_count,
+        "score": score,
         "total_transactions": total_transactions,
         "overall_suspicious": overall_suspicious,
         "adaptive_thresholds": {
