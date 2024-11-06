@@ -64,94 +64,168 @@ app.get('/check-auth-status', (req, res) => {
 
 app.post("/login", login);
 
-app.post('/generate-qr', async (req, res) => {
-  const { amount, userId } = req.body;
+// app.post('/generate-qr', async (req, res) => {
+//   const { amount, userId } = req.body;
 
-  if (!amount || !userId) {
-      return res.status(400).json({ error: 'Amount and userId are required' });
-  }
+//   if (!amount || !userId) {
+//       return res.status(400).json({ error: 'Amount and userId are required' });
+//   }
 
-  try {
-      // const qrCodeData = `Withdraw: ${amount}, User: ${userId}`;
-      const qrCodeData = {
+//   try {
+//       // const qrCodeData = `Withdraw: ${amount}, User: ${userId}`;
+//       const qrCodeData = {
+//         action: 'Withdraw',
+//         amount: String(amount),
+//         userId: String(userId)
+//       };
+
+//       const qrCodeDataString = JSON.stringify(qrCodeData);
+//       console.log("QR Code Data:", qrCodeDataString);
+//       // Generate QR code as a Base64 string
+//       const qrCodeBase64 = await QRCode.toDataURL(qrCodeDataString);
+      
+//       // Store the QR code in a temporary variable (or session)
+//       req.app.locals.qrCode = qrCodeBase64;
+
+//       // Prepare the URL for the QR code display page
+//       const redirectUrl = `http://localhost:${PORT}/display-qr`;
+//       require('child_process').exec(`start ${redirectUrl}`);
+//       res.json({ redirectUrl }); // Send back the redirect URL to the mobile app
+//   } catch (error) {
+//       console.error(error);
+//       res.status(500).json({ error: 'Error generating QR code' });
+//   }
+// });
+
+// // Endpoint to display the QR code
+// app.get('/display-qr', (req, res) => {
+//   const qrCodeBase64 = req.app.locals.qrCode; // Get the stored QR code
+//   if (!qrCodeBase64) {
+//       return res.status(404).send('No QR code generated');
+//   }
+
+//   const html = `
+//       <!DOCTYPE html>
+//       <html lang="en">
+//       <head>
+//           <meta charset="UTF-8">
+//           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+//           <title>QR Code</title>
+//           <style>
+//               body {
+//                   display: flex;
+//                   flex-direction: column;
+//                   justify-content: center;
+//                   align-items: center;
+//                   height: 100vh;
+//                   margin: 0;
+//                   text-align: center;
+//                   background: #e4e0e0;  
+//               }
+//               img {
+//                   width: 250px;
+//                   height: 250px;
+//               }
+//               h1 {
+//                   margin-bottom: 20px;
+//               }
+//               p {
+//                   margin-top: 20px;
+//               }
+//           </style>
+//       </head>
+//       <body>
+//           <h1>Your QR Code</h1>
+//           <img src="${qrCodeBase64}" alt="QR Code" />
+//           <p><a href="/">Back to Home</a></p>
+//       </body>
+//       </html>
+//   `;
+
+//   res.send(html);
+// });
+let qrCodeData = null;
+
+// Endpoint to receive data and store it
+app.post('/generate-qr', (req, res) => {
+    const { amount, userId } = req.body;
+
+    if (!amount || !userId) {
+        return res.status(400).json({ error: 'Amount and userId are required' });
+    }
+
+    // Store the data in a temporary variable
+    qrCodeData = {
         action: 'Withdraw',
         amount: String(amount),
         userId: String(userId)
-      };
+    };
 
-      const qrCodeDataString = JSON.stringify(qrCodeData);
-      console.log("QR Code Data:", qrCodeDataString);
-      // Generate QR code as a Base64 string
-      const qrCodeBase64 = await QRCode.toDataURL(qrCodeDataString);
-      
-      // Store the QR code in a temporary variable (or session)
-      req.app.locals.qrCode = qrCodeBase64;
-
-      // Prepare the URL for the QR code display page
-      const redirectUrl = `http://localhost:${PORT}/display-qr`;
-      require('child_process').exec(`start ${redirectUrl}`);
-      res.json({ redirectUrl }); // Send back the redirect URL to the mobile app
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Error generating QR code' });
-  }
+    // Send back a response indicating that the data has been received
+    res.json({ message: 'Data received successfully' });
 });
 
-// Endpoint to display the QR code
-app.get('/display-qr', (req, res) => {
-  const qrCodeBase64 = req.app.locals.qrCode; // Get the stored QR code
-  if (!qrCodeBase64) {
-      return res.status(404).send('No QR code generated');
-  }
+// Endpoint to display the QR code and generate it on page load
+app.get('/display-qr', async (req, res) => {
+    if (!qrCodeData) {
+        return res.status(404).send('No data available to generate QR code');
+    }
 
-  const html = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>QR Code</title>
-          <style>
-              body {
-                  display: flex;
-                  flex-direction: column;
-                  justify-content: center;
-                  align-items: center;
-                  height: 100vh;
-                  margin: 0;
-                  text-align: center;
-                  background: #e4e0e0;  
-              }
-              img {
-                  width: 250px;
-                  height: 250px;
-              }
-              h1 {
-                  margin-bottom: 20px;
-              }
-              p {
-                  margin-top: 20px;
-              }
-          </style>
-      </head>
-      <body>
-          <h1>Your QR Code</h1>
-          <img src="${qrCodeBase64}" alt="QR Code" />
-          <p><a href="/">Back to Home</a></p>
-      </body>
-      </html>
-  `;
+    try {
+        // Convert the QR code data to a JSON string
+        const qrCodeDataString = JSON.stringify(qrCodeData);
+        console.log("Generating QR Code for data:", qrCodeDataString);
 
-  res.send(html);
+        // Generate the QR code as a Base64 string
+        const qrCodeBase64 = await QRCode.toDataURL(qrCodeDataString);
+
+        // Render the HTML page with the generated QR code
+        const html = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>QR Code</title>
+                <style>
+                    body {
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        height: 100vh;
+                        margin: 0;
+                        text-align: center;
+                        background: #e4e0e0;
+                    }
+                    img {
+                        width: 250px;
+                        height: 250px;
+                    }
+                    h1 {
+                        margin-bottom: 20px;
+                    }
+                    p {
+                        margin-top: 20px;
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>Your QR Code</h1>
+                <img src="${qrCodeBase64}" alt="QR Code" />
+                <p><a href="/">Back to Home</a></p>
+            </body>
+            </html>
+        `;
+
+        res.send(html);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error generating QR code');
+    }
 });
 
 app.post('/deduct-balance', handleDeductBalance);
-
-app.post('/store-web-token', storeWebToken);
-
-app.post('/get-web-token', getWebToken);
-
-app.post('/remove-web-token', removeWebToken);
 
 app.post('/get-user', findUserByNameOrPhone);
 
