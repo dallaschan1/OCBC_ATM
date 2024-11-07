@@ -14,7 +14,8 @@ const env = require('dotenv').config();
 const API_KEY = process.env.GEMINI_API_KEY;
 const app = express();
 const PORT = 3001;
-
+const sql = require('mssql');
+const dbConfig = require("./dbconfig.js");
 const Password = require('./controllers/PasswordController');
 const Withdraw = require('./controllers/withdrawalController');
 
@@ -37,6 +38,10 @@ app.get('/login', (req, res) => {
 
 app.get('/fingerprint', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/html/fingerprint.html'));
+});
+
+app.get('/crypto', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/crypto.html'));
 });
 
 app.post('/send-message', sendFcmMessage);

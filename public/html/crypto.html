@@ -36,6 +36,10 @@
         #userTokensList { list-style: none; padding: 0; }
         #userTokensList li { padding: 10px 0; font-size: 1.2rem; border-bottom: 1px solid #ddd; }
         #outputText, #outputsText, #outputssText { font-weight: bold; font-size: 1.2rem; margin-top: 20px; }
+        #userBalance{
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
     </style>
     <script defer src="../js/face-api.min.js"></script>
 </head>
@@ -110,7 +114,7 @@
                 </select>
 
                 <div id="buySection">
-                    <label for="sgdAmount">Enter Amount in SGD:</label>
+                    <label for="sgdAmount">Enter Amount in SGD (Minimum $5):</label>
                     <input type="text" id="sgdAmount" name="sgdAmount" placeholder="Enter SGD Amount" step="0.00000001">
                     <p id="feeText" style="margin: 5px 0; font-size: 0.9em;">Fee (1%):</p>
                     <p id="outputText" style="margin: 5px 0;">You Will Receive:</p>
@@ -207,7 +211,7 @@
                 const response = await fetch(`/balance/${userId}`);
                 const data = await response.json();
                 const balanceElement = document.getElementById('userBalance');
-                balanceElement.textContent = `Balance: $${data.balance} SGD`;
+                balanceElement.textContent = `Balance: $${data.balance.toFixed(2)}`;
             } catch (error) {
                 console.error('Error fetching user balance:', error);
             }
@@ -215,33 +219,39 @@
 
         
         async function fetchUserTokens() {
-            try {
-                const userId = localStorage.getItem('userId');
-                const response = await fetch(`/getTokens/${userId}`);
-                const data = await response.json();
-                const userTokensList = document.getElementById('userTokensList');
-                userTokensList.innerHTML = ''; // Clear previous tokens
+        try {
+            const userId = localStorage.getItem('userId');
+            const response = await fetch(`/getTokens/${userId}`);
+            const data = await response.json();
+            mode = document.querySelector('.tab-buttons button.active').id.replace('Tab', '').toLowerCase();
+            const userTokensList = document.getElementById('userTokensList');
+            userTokensList.innerHTML = ''; // Clear previous tokens
+            
 
-                if (data.tokens && data.tokens.length > 0) {
-                    data.tokens.forEach(token => {
-                        if (token.TokenSymbol && token.Balance != null) {
-                            const listItem = document.createElement('li');
-                            listItem.textContent = `${token.TokenSymbol}: ${token.Balance}`;
-                            userTokensList.appendChild(listItem);
-                        }
-                    });
-                } else {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = 'No tokens found';
-                    userTokensList.appendChild(listItem);
-                }
-
-                // Update balance
-                await yourBalance();
-            } catch (error) {
-                console.error('Error fetching user tokens:', error);
+            if (data.tokens && data.tokens.length > 0) {
+                data.tokens.forEach(token => {
+                    if (token.TokenSymbol && token.Balance != null) {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${token.TokenSymbol}: ${token.Balance.toFixed(8)}`;
+                        userTokensList.appendChild(listItem);
+                    }
+                });
+            } else {
+                const listItem = document.createElement('li');
+                listItem.textContent = 'No tokens found';
+                userTokensList.appendChild(listItem);
             }
+            if (mode === 'buy') {
+                updateBUYTokenSelectOptions(data.tokens);
+            } else {
+                updateTokenSelectOptions(data.tokens);
+            }
+            clearFields();
+            await yourBalance();
+        } catch (error) {
+            console.error('Error fetching user tokens:', error);
         }
+    }
     function updateTokenSelectOptions(tokens) {
     const tokenSelect = document.getElementById('tokenSymbol');
     tokenSelect.innerHTML = ''; // Clear current options
@@ -354,6 +364,10 @@ function updateBUYTokenSelectOptions(tokens) {
                 document.getElementById('feeText').textContent = `Fee (0.1%): $${fee} SGD`;
                 document.getElementById('outputText').textContent = `You Will Receive: ${finalCrypto} ${tokenSymbol}`;
             }
+            else if (sgdAmount < 5) {
+                document.getElementById('feeText').textContent = `Fee (0.1%):`;
+                document.getElementById('outputText').textContent = `You Will Receive:`;
+            }
         } else if (mode === 'sell') {
             if (cryptoAmount > 0 && price > 0) {
                 const sgdReceived = (cryptoAmount * price).toFixed(2);
@@ -403,7 +417,7 @@ function updateBUYTokenSelectOptions(tokens) {
         const userId = localStorage.getItem('userId');
         const price = await fetchTokenPrice(tokenSymbol);
 
-        if (sgdAmount > 0 && price > 0) {
+        if (sgdAmount >= 5 && price > 0) {
             const amount = (sgdAmount / price).toFixed(8);
             try {
                 await fetch('/buyToken', {
