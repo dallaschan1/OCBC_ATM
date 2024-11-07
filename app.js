@@ -266,6 +266,271 @@ app.get('/withdraw', Withdraw.dailyWithdraw);
 app.get('/More-Options', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/html/more-options.html'));
 });
+
+// Crypto API
+app.post('/buyToken', async (req, res) => {
+    const { userId, tokenSymbol, amount, price } = req.body;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+
+        // Get user's balance
+        const userResult = await pool.request()
+            .input('userID', sql.Int, userId)
+            .query('SELECT balance FROM Users WHERE UserID = @userID');
+
+        if (userResult.recordset.length === 0) {
+            return res.status(400).json({ message: 'User not found' });
+        }
+
+        const userBalance = userResult.recordset[0].balance;
+        const totalCost = amount * price;
+
+        // Check if user has enough balance
+        if (userBalance < totalCost) {
+            return res.status(400).json({ message: 'Insufficient cash balance' });
+        }
+
+        // Update user's balance
+        await pool.request()
+            .input('userID', sql.Int, userId)
+            .input('newBalance', sql.Decimal(18, 2), userBalance - totalCost)
+            .query('UPDATE Users SET balance = @newBalance WHERE UserID = @userID');
+
+        // Update user's token balance
+        const userTokenResult = await pool.request()
+            .input('userID', sql.Int, userId)
+            .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+            .query('SELECT Balance FROM UserTokenBalance WHERE UserID = @userID AND TokenSymbol = @tokenSymbol');
+
+        let newTokenBalance = amount;
+
+        if (userTokenResult.recordset.length > 0) {
+            newTokenBalance += parseFloat(userTokenResult.recordset[0].Balance);
+            await pool.request()
+                .input('userID', sql.Int, userId)
+                .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+                .input('newTokenBalance', sql.Decimal(18, 8), newTokenBalance)
+                .query('UPDATE UserTokenBalance SET Balance = @newTokenBalance WHERE UserID = @userID AND TokenSymbol = @tokenSymbol');
+        } else {
+            await pool.request()
+                .input('userID', sql.Int, userId)
+                .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+                .input('newTokenBalance', sql.Decimal(18, 8), newTokenBalance)
+                .query('INSERT INTO UserTokenBalance (UserID, TokenSymbol, Balance) VALUES (@userID, @tokenSymbol, @newTokenBalance)');
+        }
+
+        // Update OCBCWallet token balance
+        const walletResult = await pool.request()
+            .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+            .query('SELECT Balance FROM OCBCWallet WHERE TokenSymbol = @tokenSymbol');
+
+        if (walletResult.recordset.length === 0) {
+            return res.status(400).json({ message: 'Token not found in OCBC wallet' });
+        }
+
+        const newWalletBalance = parseFloat(walletResult.recordset[0].Balance) - amount;
+
+        await pool.request()
+            .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+            .input('newWalletBalance', sql.Decimal(18, 8), newWalletBalance)
+            .query('UPDATE OCBCWallet SET Balance = @newWalletBalance WHERE TokenSymbol = @tokenSymbol');
+
+        res.status(200).json({ message: 'Token purchase successful' });
+
+    } catch (error) {
+        console.error('Error processing token purchase:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post('/sellToken', async (req, res) => {
+    const { userId, tokenSymbol, amount, price } = req.body;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+
+        // Get user's token balance
+        const userTokenResult = await pool.request()
+            .input('userID', sql.Int, userId)
+            .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+            .query('SELECT Balance FROM UserTokenBalance WHERE UserID = @userID AND TokenSymbol = @tokenSymbol');
+
+        if (userTokenResult.recordset.length === 0 || parseFloat(userTokenResult.recordset[0].Balance) < amount) {
+            return res.status(400).json({ message: 'Insufficient token balance' });
+        }
+
+        const userTokenBalance = parseFloat(userTokenResult.recordset[0].Balance);
+        const usdAmount = amount * price;
+
+        // Update user's token balance
+        const newTokenBalance = userTokenBalance - amount;
+        if (newTokenBalance > 0) {
+            await pool.request()
+                .input('userID', sql.Int, userId)
+                .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+                .input('newTokenBalance', sql.Decimal(18, 8), newTokenBalance)
+                .query('UPDATE UserTokenBalance SET Balance = @newTokenBalance WHERE UserID = @userID AND TokenSymbol = @tokenSymbol');
+        } else {
+            await pool.request()
+                .input('userID', sql.Int, userId)
+                .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+                .query('DELETE FROM UserTokenBalance WHERE UserID = @userID AND TokenSymbol = @tokenSymbol');
+        }
+
+        // Update user's balance
+        const userResult = await pool.request()
+            .input('userID', sql.Int, userId)
+            .query('SELECT balance FROM Users WHERE UserID = @userID');
+
+        if (userResult.recordset.length === 0) {
+            return res.status(400).json({ message: 'User not found' });
+        }
+
+        const userBalance = userResult.recordset[0].balance;
+        const newBalance = userBalance + usdAmount;
+
+        await pool.request()
+            .input('userID', sql.Int, userId)
+            .input('newBalance', sql.Decimal(18, 2), newBalance)
+            .query('UPDATE Users SET balance = @newBalance WHERE UserID = @userID');
+
+        // Update OCBCWallet token balance
+        const walletResult = await pool.request()
+            .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+            .query('SELECT Balance FROM OCBCWallet WHERE TokenSymbol = @tokenSymbol');
+
+        if (walletResult.recordset.length === 0) {
+            return res.status(400).json({ message: 'Token not found in OCBC wallet' });
+        }
+
+        const newWalletBalance = parseFloat(walletResult.recordset[0].Balance) + amount;
+
+        await pool.request()
+            .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+            .input('newWalletBalance', sql.Decimal(18, 8), newWalletBalance)
+            .query('UPDATE OCBCWallet SET Balance = @newWalletBalance WHERE TokenSymbol = @tokenSymbol');
+
+        res.status(200).json({ message: 'Token sale successful' });
+
+    } catch (error) {
+        console.error('Error processing token sale:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post('/transfer', async (req, res) => {
+    const { userId, tokenSymbol, fee, amount } = req.body;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+
+        // Get user's token balance
+        const userTokenResult = await pool.request()
+            .input('userID', sql.Int, userId)
+            .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+            .query('SELECT Balance FROM UserTokenBalance WHERE UserID = @userID AND TokenSymbol = @tokenSymbol');
+
+        if (userTokenResult.recordset.length === 0 || parseFloat(userTokenResult.recordset[0].Balance) < amount) {
+            return res.status(400).json({ message: 'Insufficient token balance' });
+        }
+
+        const userTokenBalance = parseFloat(userTokenResult.recordset[0].Balance);
+        const newTokenBalance = userTokenBalance - amount;
+
+        // Deduct tokens from user's account
+        if (newTokenBalance > 0) {
+            await pool.request()
+                .input('userID', sql.Int, userId)
+                .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+                .input('newTokenBalance', sql.Decimal(18, 8), newTokenBalance)
+                .query('UPDATE UserTokenBalance SET Balance = @newTokenBalance WHERE UserID = @userID AND TokenSymbol = @tokenSymbol');
+        } else {
+            await pool.request()
+                .input('userID', sql.Int, userId)
+                .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+                .query('DELETE FROM UserTokenBalance WHERE UserID = @userID AND TokenSymbol = @tokenSymbol');
+        }
+
+        // Deduct fee from user's balance
+        const userResult = await pool.request()
+            .input('userID', sql.Int, userId)
+            .query('SELECT balance FROM Users WHERE UserID = @userID');
+
+        if (userResult.recordset.length === 0) {
+            return res.status(400).json({ message: 'User not found' });
+        }
+
+        const userBalance = userResult.recordset[0].balance;
+        if (userBalance < fee) {
+            return res.status(400).json({ message: 'Insufficient cash balance for the fee' });
+        }
+
+        const newBalance = userBalance - fee;
+
+        await pool.request()
+            .input('userID', sql.Int, userId)
+            .input('newBalance', sql.Decimal(18, 2), newBalance)
+            .query('UPDATE Users SET balance = @newBalance WHERE UserID = @userID');
+
+        res.status(200).json({ message: 'Token transfer successful, fee deducted' });
+
+    } catch (error) {
+        console.error('Error processing token transfer:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.get('/getTokens/:userId', async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+
+        // Retrieve all tokens and their balances for the user
+        const userTokensResult = await pool.request()
+            .input('userID', sql.Int, userId)
+            .query('SELECT TokenSymbol, balance AS Balance FROM UserTokenBalance WHERE UserID = @userID');
+
+        if (userTokensResult.recordset.length === 0) {
+            return res.status(200).json({ message: 'No tokens found for the user', tokens: [] });
+        }
+
+        res.status(200).json({ tokens: userTokensResult.recordset });
+
+    } catch (error) {
+        console.error('Error retrieving tokens:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.get('/balance/:userId', async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+
+        // Retrieve the user's balance
+        const userResult = await pool.request()
+            .input('userID', sql.Int, userId)
+            .query('SELECT balance AS CashBalance FROM Users WHERE UserID = @userID');
+
+        if (userResult.recordset.length === 0) {
+            return res.status(400).json({ message: 'User not found' });
+        }
+
+        const userCashBalance = userResult.recordset[0].CashBalance;
+
+        res.status(200).json({ balance: userCashBalance });
+
+    } catch (error) {
+        console.error('Error retrieving user balance:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+
 // Start the server
 app.listen(PORT,'0.0.0.0', () => {
   console.log(`Server is running on http://localhost:${PORT}`);
