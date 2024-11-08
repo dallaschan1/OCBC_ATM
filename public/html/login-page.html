@@ -11,7 +11,7 @@
 <style>
     body {
         align-items: center;
-        background-color: #3f4147; 
+        background-color: #f0eeee; 
     }
 
     .container {
@@ -23,6 +23,7 @@
     }
 </style>
 <body>
+    <img src="../images/OcbcLogo.png" alt="Logo" class="logo">
     <div class="container">
         <h1>Welcome to OCBC ATM</h1>
         <p>To start please choose verification method:</p>
@@ -35,18 +36,18 @@
         <button id="fingerprint" class="verification-button">Fingerprint and NRIC</button>
     </div>
 
-
     <script>
+        // Redirect to different pages on button click
         document.getElementById('cardLogin').addEventListener('click', function() {
-            window.location.href = '/login';
+            window.location.href = 'card-login.html'; 
         });
 
         document.getElementById('facialRecognition').addEventListener('click', function() {
-            window.location.href = '/fingerprint';
+            window.location.href = 'facial-recognition.html';
         });
 
         document.getElementById('fingerprint').addEventListener('click', function() {
-            window.location.href = '/faceLogin';
+            window.location.href = 'fingerprint-nric.html'; 
         });
     </script>
 </body>
