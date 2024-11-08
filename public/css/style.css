@@ -291,7 +291,7 @@ hr {
     width: 45%;
     padding-left: 50px;
 
-    padding-top: 60px;
+    padding-top: 20px;
     display: flex;
     flex-direction: column;
     align-items: flex-start; /* Align contents to the left */
@@ -300,9 +300,10 @@ hr {
 
 #Left h1 {
     text-align: left; /* Align text to the left */
-    margin-bottom: 20px;
+    
     width: 100%; /* Ensure the heading takes full width */
     padding-left: 10px; /* Optional: add some padding to match alignment */
+    margin-top: 20px;
 }
 
 #Cash-Container {
@@ -310,7 +311,7 @@ hr {
     flex-direction: column;
     height: auto;
     width: 85%;
-    margin-top: 50px;
+    margin-top: 30px;
  
 }
 
@@ -352,7 +353,7 @@ hr {
 #Right {
     flex: 1; /* Allow #Right to grow */
     padding: 50px;
-    padding-top: 40px;
+    padding-top: 0;
     background-color: #F6EDED;
     padding-bottom: 5px;
     padding-left: 3rem;
@@ -383,7 +384,7 @@ hr {
 
 
 #other-services-container {
-    margin-top:80px; /* Space above the container */
+    margin-top:20px; /* Space above the container */
 }
 #other-services-container h1{
     margin-bottom: 17px; /* Space above the container */

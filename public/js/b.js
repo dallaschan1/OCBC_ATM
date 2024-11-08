@@ -11,7 +11,7 @@ Promise.all([
 
 function startVideo() {
   navigator.getUserMedia(
-    { video: { width: 1280, height: 720} }, // Increase camera resolution for better detection
+    { video: { width: 1280, height: 720} }, 
     stream => video.srcObject = stream,
     err => console.error(err)
   );
@@ -49,11 +49,12 @@ video.addEventListener('play', () => {
       .withFaceExpressions();
 
     const resizedDetections = faceapi.resizeResults(detections, displaySize);
-
+    console.log(resizedDetections.length);
     // Show alert if more than one person is detected
     if (resizedDetections.length > 1) {
       alertBox.classList.add('active');
-    } else {
+    }  
+    else {
       alertBox.classList.remove('active');
     }
 
