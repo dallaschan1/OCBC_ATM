@@ -31,7 +31,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class login extends AppCompatActivity {
-    private static final String LOGIN_URL = "http://192.168.18.70:3001/login";
+//    private static final String LOGIN_URL = "http://192.168.18.70:3001/login";
+    private static final String LOGIN_URL = "https://d94b-153-20-78-96.ngrok-free.app/login";
     private static final String PREFS_NAME = "UserPreferences";
     private static final String KEY_USER_ID = "userId";
     private static final String KEY_USER_NAME = "userName";
@@ -66,10 +67,10 @@ public class login extends AppCompatActivity {
 
     private void loginUser() {
         String nric = nricEditText.getText().toString();
-        String password = passwordEditText.getText().toString();
+        String PasswordHash = passwordEditText.getText().toString();
 
         // Validate inputs
-        if (nric.isEmpty() || password.isEmpty()) {
+        if (nric.isEmpty() || PasswordHash.isEmpty()) {
             Toast.makeText(this, "Please enter both NRIC and password", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -78,7 +79,7 @@ public class login extends AppCompatActivity {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("nric", nric);
-            jsonObject.put("password", password);
+            jsonObject.put("PasswordHash", PasswordHash);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -112,7 +113,7 @@ public class login extends AppCompatActivity {
 
                         // Retrieve user data from the JSON response
                         String userId = user.getString("UserID");
-                        String userName = user.getString("name");
+                        String userName = user.getString("UserName");
                         String userNric = user.getString("nric");
                         String userToken = user.getString("token");
                         String userBalance = user.getString("balance");
