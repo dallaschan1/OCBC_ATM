@@ -9,6 +9,13 @@ body, html {
     width: 100vw;
 }
 
+.logo {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    width: 120px; /* Adjust size as needed */
+    height: auto;
+}
 /* Container styling */
 .container {
     text-align: center;
