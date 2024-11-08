@@ -15,16 +15,40 @@
     }
 
     .container {
+        position: relative; /* Added to position the QR button inside the container */
         text-align: center; /* Center the content inside the container */
+        padding: 20px;
     }
 
     .back-button {
         margin-bottom: 20px; /* Space below the button */
     }
+
+    /* Styling for the QR Code button */
+    .qr-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #ff7f50;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        text-decoration: none;
+    }
+
+    .qr-button:hover {
+        background-color: #ff6347;
+    }
 </style>
 <body>
     <img src="../images/OcbcLogo.png" alt="Logo" class="logo">
     <div class="container">
+        <!-- Button for QR Code navigation -->
+        <a href="/display-qr" class="qr-button">Display QR</a>
+
         <h1>Welcome to OCBC ATM</h1>
         <p>To start please choose verification method:</p>
         
@@ -43,11 +67,11 @@
         });
 
         document.getElementById('facialRecognition').addEventListener('click', function() {
-            window.location.href = 'facial-recognition.html';
+            window.location.href = '/fingerprint';
         });
 
         document.getElementById('fingerprint').addEventListener('click', function() {
-            window.location.href = 'fingerprint-nric.html'; 
+            window.location.href = '/faceLogin';
         });
     </script>
 </body>

@@ -26,8 +26,8 @@ import okhttp3.Response;
 public class RegistrationActivity extends AppCompatActivity {
 
     private static final String TAG = "RegistrationActivity";
-    private static final String SERVER_URL = "http://192.168.18.70:3001/register";
-    //private static final String SERVER_URL = "https://26d8-2406-3003-2005-3fc7-59f4-44fa-5bb4-31f1.ngrok-free.app/register";
+//    private static final String SERVER_URL = "http://192.168.18.70:3001/register";
+    private static final String SERVER_URL = "https://d94b-153-20-78-96.ngrok-free.app/register";
 
     private EditText nricInput;
     private EditText passwordInput;
@@ -48,9 +48,9 @@ public class RegistrationActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 String nric = nricInput.getText().toString().trim();
-                String password = passwordInput.getText().toString().trim();
+                String PasswordHash = passwordInput.getText().toString().trim();
 
-                if (nric.isEmpty() || password.isEmpty()) {
+                if (nric.isEmpty() || PasswordHash.isEmpty()) {
                     Log.d(TAG, "NRIC or Password is empty.");
                     return;
                 }
@@ -67,7 +67,7 @@ public class RegistrationActivity extends AppCompatActivity {
                             Log.d(TAG, "FCM Token: " + token);
 
                             // Send NRIC and Token to the backend
-                            registerUser(nric, password, token);
+                            registerUser(nric, PasswordHash, token);
                         });
             }
         });
@@ -79,13 +79,13 @@ public class RegistrationActivity extends AppCompatActivity {
         });
     }
 
-    private void registerUser(String nric, String password, String token) {
+    private void registerUser(String nric, String PasswordHash, String token) {
         OkHttpClient client = new OkHttpClient();
 
         try {
             JSONObject json = new JSONObject();
             json.put("nric", nric);
-            json.put("password", password); // This is not used in current backend but might be useful for future logic
+            json.put("PasswordHash", PasswordHash); // This is not used in current backend but might be useful for future logic
             json.put("token", token);
 
             RequestBody body = RequestBody.create(
