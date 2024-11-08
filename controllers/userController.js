@@ -2,7 +2,7 @@ const { findUserByNric, updateUserTokenAndPassword, checkNric,loginUser, deductB
      storeWebTokenInDatabase, getWebTokenFromDatabase,removeWebTokenFromDatabase, findUserByNameOrPhoneNumber } = require("../models/userModel");
 
 async function registerUser(req, res) {
-    const { nric, token, password } = req.body;
+    const { nric, token, PasswordHash } = req.body;
 
     try {
         // Check if the NRIC exists in the database
@@ -12,7 +12,7 @@ async function registerUser(req, res) {
         }
 
         // Update the user's FCM token
-        await updateUserTokenAndPassword(nric, token, password);
+        await updateUserTokenAndPassword(nric, token, PasswordHash);
         return res.status(200).json({ message: "User token updated successfully" });
     } catch (error) {
         console.error("Error during registration:", error);
@@ -62,9 +62,9 @@ async function getId(req, res) {
 
 // Mobile phone login
 async function login(req, res) {
-    const { nric, password } = req.body;
+    const { nric, PasswordHash } = req.body;
     try {
-        const user = await loginUser(nric, password);
+        const user = await loginUser(nric, PasswordHash);
         if (user) {
             res.status(200).json({ message: "Login successful", user });
         } else {
@@ -152,17 +152,17 @@ async function handleDeductBalance (req, res) {
 // }
 
 async function findUserByNameOrPhone(req, res) {
-    const { name, phoneNumber } = req.body;
+    const { UserName, phoneNumber } = req.body;
 
-    if (!name && !phoneNumber) {
+    if (!UserName && !phoneNumber) {
         return res.status(400).json({ error: "Either name or phone number is required." });
     }
 
     try {
-        const user = await findUserByNameOrPhoneNumber(name, phoneNumber);
+        const user = await findUserByNameOrPhoneNumber(UserName, phoneNumber);
         if (user) {
             const { name, phoneNumber, UserID } = user;
-            return res.status(200).json({ message: "User found", user: { name, phoneNumber, UserID } });
+            return res.status(200).json({ message: "User found", user: { UserName, phoneNumber, UserID } });
         } else {
             return res.status(404).json({ message: "User not found" });
         }
