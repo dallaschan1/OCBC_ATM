@@ -70,11 +70,12 @@
 
     <Button
         android:id="@+id/scanButton"
-        android:layout_width="wrap_content"
+        android:layout_width="350sp"
         android:layout_height="wrap_content"
         android:text="Scan QR Code"
         android:layout_below="@id/nextButton"
         android:layout_centerHorizontal="true"
+        android:layout_marginLeft="16sp"
         android:layout_marginTop="16dp"/>
 
 </LinearLayout>

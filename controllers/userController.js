@@ -1,4 +1,5 @@
-const { findUserByNric, updateUserTokenAndPassword, checkNric,loginUser, deductBalanceFromModel, storeWebTokenInDatabase, getWebTokenFromDatabase,removeWebTokenFromDatabase } = require("../models/userModel");
+const { findUserByNric, updateUserTokenAndPassword, checkNric,loginUser, deductBalanceFromModel,
+     storeWebTokenInDatabase, getWebTokenFromDatabase,removeWebTokenFromDatabase, findUserByNameOrPhoneNumber } = require("../models/userModel");
 
 async function registerUser(req, res) {
     const { nric, token, password } = req.body;
@@ -39,6 +40,26 @@ async function nricCheck(req, res) {
     }
 }
 
+async function getId(req, res) {
+    const { nric } = req.body;
+
+    if (!nric) {
+        return res.status(400).json({ error: "NRIC is required" });
+    }
+
+    try {
+        const user = await findUserByNric(nric);
+        if (user) {
+            return res.status(200).json({ UserID: user.UserID }); // Return the token if found
+        } else {
+            return res.status(404).json({ error: "No id found" });
+        }
+    } catch (error) {
+        console.error('Error checking NRIC:', error);
+        return res.status(500).json({ error: "An error occurred while checking NRIC" });
+    }
+}
+
 // Mobile phone login
 async function login(req, res) {
     const { nric, password } = req.body;
@@ -55,10 +76,10 @@ async function login(req, res) {
 }
 
 async function handleDeductBalance (req, res) {
-    const { id, amount } = req.body;
+    const { UserID, amount } = req.body;
 
     try {
-        const success = await deductBalanceFromModel(id, amount);
+        const success = await deductBalanceFromModel(UserID, amount);
 
         if (success) {
             res.status(200).json({ message: "Balance deducted successfully" });
@@ -74,60 +95,81 @@ async function handleDeductBalance (req, res) {
     }
 };
 
-async function storeWebToken(req, res) {
-    const { nric, webToken } = req.body;
+// async function storeWebToken(req, res) {
+//     const { nric, webToken } = req.body;
 
-    if (!nric || !webToken) {
-        return res.status(400).json({ error: "NRIC and web token are required." });
+//     if (!nric || !webToken) {
+//         return res.status(400).json({ error: "NRIC and web token are required." });
+//     }
+
+//     try {
+//         // Store the web token in the database
+//         await storeWebTokenInDatabase(nric, webToken);
+//         res.status(200).json({ message: "Web token stored successfully." });
+//     } catch (error) {
+//         console.error("Error storing web token:", error);
+//         res.status(500).json({ error: "Failed to store web token." });
+//     }
+// }
+
+// async function getWebToken(req, res) {
+//     const { nric } = req.body; // NRIC passed as query parameter
+
+//     if (!nric) {
+//         return res.status(400).json({ error: "NRIC is required." });
+//     }
+
+//     try {
+//         const webToken = await getWebTokenFromDatabase(nric);
+//         if (webToken) {
+//             res.status(200).json({ web_token: webToken });
+//         } else {
+//             res.status(404).json({ web_token: null });
+//         }
+//     } catch (error) {
+//         console.error("Error checking web token:", error);
+//         res.status(500).json({ error: "Failed to check web token." });
+//     }
+// }
+
+// async function removeWebToken(req, res) {
+//     const { nric } = req.body;
+//     if (!nric) {
+//         return res.status(400).json({ error: 'NRIC is required.' });
+//     }
+//     try {
+//         const rowsAffected = await removeWebTokenFromDatabase(nric);
+
+//         if (rowsAffected === 0) {
+//             return res.status(404).json({ error: 'User not found or web token was not set.' });
+//         }
+
+//         res.status(200).json({ message: 'Web token removed successfully.' });
+//     } catch (error) {
+//         console.error('Error removing web token:', error);
+//         res.status(500).json({ error: 'An error occurred while removing the web token.' });
+//     }
+// }
+
+async function findUserByNameOrPhone(req, res) {
+    const { name, phoneNumber } = req.body;
+
+    if (!name && !phoneNumber) {
+        return res.status(400).json({ error: "Either name or phone number is required." });
     }
 
     try {
-        // Store the web token in the database
-        await storeWebTokenInDatabase(nric, webToken);
-        res.status(200).json({ message: "Web token stored successfully." });
-    } catch (error) {
-        console.error("Error storing web token:", error);
-        res.status(500).json({ error: "Failed to store web token." });
-    }
-}
-
-async function getWebToken(req, res) {
-    const { nric } = req.body; // NRIC passed as query parameter
-
-    if (!nric) {
-        return res.status(400).json({ error: "NRIC is required." });
-    }
-
-    try {
-        const webToken = await getWebTokenFromDatabase(nric);
-        if (webToken) {
-            res.status(200).json({ web_token: webToken });
+        const user = await findUserByNameOrPhoneNumber(name, phoneNumber);
+        if (user) {
+            const { name, phoneNumber, UserID } = user;
+            return res.status(200).json({ message: "User found", user: { name, phoneNumber, UserID } });
         } else {
-            res.status(404).json({ web_token: null });
+            return res.status(404).json({ message: "User not found" });
         }
     } catch (error) {
-        console.error("Error checking web token:", error);
-        res.status(500).json({ error: "Failed to check web token." });
+        console.error("Error finding user by name or phone number:", error);
+        return res.status(500).json({ error: "Server error while finding user" });
     }
 }
 
-async function removeWebToken(req, res) {
-    const { nric } = req.body;
-    if (!nric) {
-        return res.status(400).json({ error: 'NRIC is required.' });
-    }
-    try {
-        const rowsAffected = await removeWebTokenFromDatabase(nric);
-
-        if (rowsAffected === 0) {
-            return res.status(404).json({ error: 'User not found or web token was not set.' });
-        }
-
-        res.status(200).json({ message: 'Web token removed successfully.' });
-    } catch (error) {
-        console.error('Error removing web token:', error);
-        res.status(500).json({ error: 'An error occurred while removing the web token.' });
-    }
-}
-
-module.exports = { registerUser , nricCheck, login, handleDeductBalance, storeWebToken, getWebToken, removeWebToken };
+module.exports = { registerUser , nricCheck, login, handleDeductBalance, getId, findUserByNameOrPhone };

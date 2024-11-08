@@ -1,9 +1,9 @@
 // Load models and start video feed
 const video = document.getElementById('video');
-const alertBox = document.getElementById('Alert'); 
+const alertBox = document.getElementById('Alert');
 
 Promise.all([
-  faceapi.nets.ssdMobilenetv1.loadFromUri('../face-models'), 
+  faceapi.nets.ssdMobilenetv1.loadFromUri('../face-models'),
   faceapi.nets.faceLandmark68Net.loadFromUri('../face-models'),
   faceapi.nets.faceRecognitionNet.loadFromUri('../face-models'),
   faceapi.nets.faceExpressionNet.loadFromUri('../face-models')
@@ -11,21 +11,21 @@ Promise.all([
 
 function startVideo() {
   navigator.getUserMedia(
-    { video: { width: 200, height: 200 } }, // Increase camera resolution for better detection
+    { video: { width: 1280, height: 720} }, // Increase camera resolution for better detection
     stream => video.srcObject = stream,
     err => console.error(err)
   );
 }
 
 const options = new faceapi.SsdMobilenetv1Options({
-  minConfidence: 0.3, 
-  maxResults: 10 
+  minConfidence: 0.2,
+  maxResults: 10
 });
 
 video.addEventListener('play', () => {
   const canvas = faceapi.createCanvasFromMedia(video);
-  const videoWrapper = document.querySelector('.video-wrapper'); 
-  videoWrapper.append(canvas); 
+  const videoWrapper = document.querySelector('.video-wrapper');
+  videoWrapper.append(canvas);
 
   const displaySize = { width: video.videoWidth, height: video.videoHeight };
   faceapi.matchDimensions(canvas, displaySize);
@@ -50,18 +50,13 @@ video.addEventListener('play', () => {
 
     const resizedDetections = faceapi.resizeResults(detections, displaySize);
 
-    // Draw face detections and landmarks
-    faceapi.draw.drawDetections(canvas, resizedDetections);
-    faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
-    faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
-
-    
-    if (resizedDetections.length > 1 || resizedDetections.length === 0) {
-      alertBox.classList.add('active'); 
+    // Show alert if more than one person is detected
+    if (resizedDetections.length > 1) {
+      alertBox.classList.add('active');
     } else {
       alertBox.classList.remove('active');
     }
 
-    context.restore(); 
-  }, 100); 
+    context.restore();
+  }, 300);
 });

@@ -44,7 +44,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const mostFrequentAmounts = sortedByFrequency.filter(amount => amount !== lowestAmount && amount !== highestAmount);
 
                     // Prepare the final list of unique amounts
-                    const uniqueAmounts = [lowestAmount, highestAmount];
+                    // Prepare the final list of unique amounts
+                    let uniqueAmounts = [...new Set([lowestAmount, highestAmount])]; // Remove duplicates
 
                     // Add the most frequent amounts if available, without duplicates
                     mostFrequentAmounts.forEach(amount => {
@@ -74,6 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         cashButtons[2].textContent = `$${uniqueAmounts[2]}`;
                         cashButtons[3].textContent = `$${uniqueAmounts[3]}`;
                     }
+
                 }
             }
         } catch (error) {
