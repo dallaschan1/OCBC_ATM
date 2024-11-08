@@ -85,9 +85,8 @@
                 </div>
               </div>
               
-            <div class="English-Exit">
-                <img src="../images/English.png" height="100px" id="English">
-                <img src="../images/Exit.png" height="100px" width="100%" id="exit-button" style="cursor:pointer;">
+            <div class="Exit">
+                <img src="../images/Exit.png" height="115px" width="100%" id="exit-button" style="cursor:pointer;">
             </div>
         </div>
 
@@ -106,7 +105,6 @@
             <h4 class="more-services">More Services ></h4>
         </div>
         
-        <!-- Voice Assistant Section -->
         <!-- Voice Assistant Section -->
         <div id="voice-assistant">
             <div class="voice-assistant-content">
@@ -154,7 +152,16 @@
             </div>
         </div>
     </div>
-
+    <div id="data-leak-warning">
+        <div class="modal-content">
+            <h1>⚠️ Data Leak Detected</h1>
+            <p>Please be wary of any suspicious emails or calls that you may receive</p>
+            <div class="button-container">
+                <button class="modal-button cancel" onclick="dismissWarning()">Noted</button>
+            </div>
+        </div>
+    </div>
+    <script src="../js/script.js" defer></script>
     <script src = "../js/HomePage.js"></script>
     
     <script src="../js/session.js"></script>

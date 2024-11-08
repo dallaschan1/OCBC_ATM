@@ -113,3 +113,49 @@ function isNumber(char) {
 function submitInput() {
     alert('Input submitted: ' + enteredValue);
 }
+
+//Exit button
+document.addEventListener("DOMContentLoaded", function() {
+    // Show exit confirmation when exit button is clicked
+    document.getElementById("exit-button").onclick = function() {
+        document.getElementById("exit-confirmation").style.display = "flex";
+    };
+
+    // Confirm exit and show loading animation
+    window.confirmExit = function() {
+        console.log("Exit confirmed."); // Debug message
+        // Hide confirmation text and buttons
+        document.querySelector("#exit-confirmation h1").style.display = "none";
+        document.querySelector("#exit-confirmation p").style.display = "none";
+        document.querySelectorAll(".modal-button").forEach(button => button.style.display = "none");
+
+        // Show loading animation
+        document.getElementById("loading-animation").style.display = "flex";
+
+        // Redirect to login page after 3 seconds
+        setTimeout(function() {
+            console.log("Redirecting to login page."); // Debug message
+            window.location.href = 'login-page.html'; // Redirect to the login page
+        }, 3000);
+    }
+
+    // Cancel exit and hide the modal
+    window.cancelExit = function() {
+        document.getElementById("exit-confirmation").style.display = "none";
+    }
+});
+
+// data leak 
+function showDataLeakWarning() {
+    document.getElementById('data-leak-warning').style.display = 'flex';
+}
+
+
+
+function dismissWarning() {
+    // Hide the warning modal without further action
+    document.getElementById('data-leak-warning').style.display = 'none';
+}
+
+// Show data leak warning after 3 seconds
+setTimeout(showDataLeakWarning, 3000);
