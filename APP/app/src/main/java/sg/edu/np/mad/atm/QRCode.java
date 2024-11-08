@@ -82,50 +82,49 @@ public class QRCode extends AppCompatActivity {
             return;
         }
 
-        String userNric = sharedPreferences.getString(KEY_USER_NRIC, "");
-        checkWebToken(userNric, amount);
+        sendWithdrawalRequestToServer(amount, sharedPreferences.getString(KEY_USER_ID, ""));
     }
 
-    private void checkWebToken(String nric, String amount) {
-        // Assuming you have a URL to check for web_token
-        String checkTokenUrl = "http://192.168.18.70:3001/get-web-token"; // endpoint
-
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("nric", nric);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        RequestBody body = RequestBody.create(
-                jsonObject.toString(),
-                MediaType.get("application/json; charset=utf-8")
-        );
-
-        Request request = new Request.Builder()
-                .url(checkTokenUrl)
-                .post(body)
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                runOnUiThread(() -> Toast.makeText(QRCode.this, "Failed to check token", Toast.LENGTH_SHORT).show());
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String responseBody = response.body() != null ? response.body().string() : "null";
-                Log.e("QRCode", "Response Code: " + response.code() + ", Body: " + responseBody);
-                if (response.isSuccessful()) {
-                    sendWithdrawalRequestToServer(amount, sharedPreferences.getString(KEY_USER_ID, ""));
-                } else {
-                    runOnUiThread(() -> Toast.makeText(QRCode.this, "Not logged in on ATM", Toast.LENGTH_SHORT).show());
-                }
-            }
-        });
-    }
+//    private void checkWebToken(String nric, String amount) {
+//        // Assuming you have a URL to check for web_token
+//        String checkTokenUrl = "http://192.168.18.70:3001/get-web-token"; // endpoint
+//
+//        JSONObject jsonObject = new JSONObject();
+//        try {
+//            jsonObject.put("nric", nric);
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//            return;
+//        }
+//
+//        RequestBody body = RequestBody.create(
+//                jsonObject.toString(),
+//                MediaType.get("application/json; charset=utf-8")
+//        );
+//
+//        Request request = new Request.Builder()
+//                .url(checkTokenUrl)
+//                .post(body)
+//                .build();
+//
+//        client.newCall(request).enqueue(new Callback() {
+//            @Override
+//            public void onFailure(Call call, IOException e) {
+//                runOnUiThread(() -> Toast.makeText(QRCode.this, "Failed to check token", Toast.LENGTH_SHORT).show());
+//            }
+//
+//            @Override
+//            public void onResponse(Call call, Response response) throws IOException {
+//                String responseBody = response.body() != null ? response.body().string() : "null";
+//                Log.e("QRCode", "Response Code: " + response.code() + ", Body: " + responseBody);
+//                if (response.isSuccessful()) {
+//                    sendWithdrawalRequestToServer(amount, sharedPreferences.getString(KEY_USER_ID, ""));
+//                } else {
+//                    runOnUiThread(() -> Toast.makeText(QRCode.this, "Not logged in on ATM", Toast.LENGTH_SHORT).show());
+//                }
+//            }
+//        });
+//    }
 
     private void sendWithdrawalRequestToServer(String amount, String userId) {
         JSONObject jsonObject = new JSONObject();
@@ -218,7 +217,7 @@ public class QRCode extends AppCompatActivity {
     private void deductBalance(String userId, double amount, double currentBalance) {
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("id", userId);
+            jsonObject.put("UserID", userId);
             jsonObject.put("amount", amount);
         } catch (JSONException e) {
             e.printStackTrace();

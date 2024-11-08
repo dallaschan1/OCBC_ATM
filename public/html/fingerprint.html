@@ -146,6 +146,19 @@
 
             const nricData = await nricResponse.json();
 
+            const idResponse = await fetch('/getting-id', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ nric })
+            });
+
+            const idData = await idResponse.json();
+            console.log(idData);
+            const UserId = idData.UserID;
+            localStorage.setItem('UserId', UserId);
+
             if (nricResponse.ok) {
                 // If a token is found, get user location and send the message
                 const token = nricData.token;
@@ -155,30 +168,6 @@
                     navigator.geolocation.getCurrentPosition(async (position) => {
                         const latitude = position.coords.latitude;
                         const longitude = position.coords.longitude;
-
-                        // Generate the web token (implement this function accordingly)
-                        const webToken = generateWebToken(nric, token);
-
-                        const expirationTime = new Date(Date.now() + 2 * 60 * 1000).toISOString(); // Store in ISO format
-                        localStorage.setItem('nric', nric);
-                        localStorage.setItem('webToken', webToken);
-                        localStorage.setItem('expirationTime', expirationTime);
-
-                        // Store the web token in the database
-                        const storeResponse = await fetch('/store-web-token', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ nric, webToken })
-                        });
-
-                        // Check if storing the web token was successful
-                        if (!storeResponse.ok) {
-                            const storeData = await storeResponse.json();
-                            responseDiv.innerText = 'Error storing web token: ' + storeData.error;
-                            return;
-                        }
 
                         // Send the FCM token and location to the backend
                         const messageResponse = await fetch('/send-message', {
@@ -228,11 +217,6 @@
         }
 
         authCheckInterval = setInterval(checkAuthStatus, 2000);
-
-        function generateWebToken(nric, token) {
-            // Replace with your token generation logic
-            return btoa(JSON.stringify({ nric, token, timestamp: Date.now() })); // Example encoding
-        }
     </script>
 </body>
-</html>
+</html> 

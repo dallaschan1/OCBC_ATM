@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Exchange</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+    <link href="../css/more-options.css" rel="stylesheet">
+    <style>
+        /* Styling Code */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { display: flex; flex-direction: column; min-height: 100vh; background-color: #f4f6f9; color: #333; padding-left: 50px; width: 97vw; align-items: start; padding-top: 50px; padding-bottom: 50px; margin: 0; }
+        #top{
+            width: 100%;
+            align-items: self-start;
+        }
+        
+        #container { display: flex; gap: 20px; width:83%; margin-top: 0px; }
+        #userTokensContainer, #exchangeFormContainer, #tokenTableContainer { background-color: transparent; padding: 30px; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); }
+        
+        #userTokensContainer { width: 25%; max-width: 300px; background-color: #fff; }
+        #exchangeFormContainer { flex: 1; }
+        .Camera{position: absolute; right: 130px; top : 150px;}
+        #tokenTableContainer { width: 25%;padding-top: 0; box-shadow:none; padding-left: 0;}
+        .tab-buttons { display: flex; justify-content: space-between; margin-bottom: 25px; gap: 10px; }
+        .tab-buttons button { flex: 1; padding: 16px; font-size: 1.2rem; cursor: pointer; border: none; color: #333; background-color: #e0e7ff; transition: background-color 0.3s, color 0.3s; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .tab-buttons button.active { background-color: #333; color: #fff; }
+        #exchangeForm label { display: block; margin-top: 20px; font-weight: bold; font-size: 1.2rem; color: #555; }
+        #exchangeForm select, #exchangeForm input { width: 100%; padding: 16px; margin-top: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1.2rem; color: #555; background-color: #fafafa; transition: border-color 0.3s; }
+        #exchangeForm select:focus, #exchangeForm input:focus { border-color: #4CAF50; outline: none; }
+        #exchangeForm input.error { border-color: red; }
+        #exchangeButton { width: 100%; padding: 18px; font-size: 1.5rem; font-weight: bold; border: none; border-radius: 8px; background-color: #4CAF50; color: white; cursor: pointer; margin-top: 30px; transition: background-color 0.3s; }
+        #exchangeButton:hover { background-color: #45a049; }
+        #tokenTable { width: 90%; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); margin-top: 0px; }
+        #tokenTable th, #tokenTable td { padding: 20px; text-align: center; border-bottom: 1px solid #ddd; }
+        #tokenTable th { background-color: #333; color: white; font-weight: 600; }
+        #userTokensContainer h3 { font-size: 1.5rem; margin-bottom: 20px; }
+        #userTokensList { list-style: none; padding: 0; }
+        #userTokensList li { padding: 10px 0; font-size: 1.2rem; border-bottom: 1px solid #ddd; }
+        #outputText, #outputsText, #outputssText { font-weight: bold; font-size: 1.2rem; margin-top: 20px; }
+        #userBalance{
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+    </style>
+    <script defer src="../js/face-api.min.js"></script>
+</head>
+<body>
+    <div id = 'top'>
+        <div id = 'yum'>
+          <div class="header">
+        
+            <a href="#" class="back-button">
+              <div class="back-circle">
+                <span class="back-arrow">←</span>
+              </div>
+              <span class="back-text">Back</span>
+            </a>
+            
+            <div id = "Alert">
+              <h3>Shoulder Surfing Warning!</h3>
+          </div>
+        
+            
+            
+          </div>
+        
+        </div>
+        <div id = "test">
+        <div class="Camera">
+          <div class="video-wrapper">
+            <video id="video" class="circular-video" autoplay muted></video>
+          </div>
+        </div>
+        <div class="top-right">
+          
+          <span class="language-selector">English</span>
+         
+          <div class="exit-container">
+            <img src="../images/Exit.png" alt="exit" class="exit-icon">
+           
+          </div>
+        </div>
+    
+        </div>
+      </div>
+    <div id="container">
+        <!-- User's Tokens Container -->
+        <div id="userTokensContainer">
+            <h3>Your Tokens</h3>
+            <ul id="userTokensList">
+                
+            </ul>
+        </div>
+
+        <!-- Exchange Form Container -->
+        <div id="exchangeFormContainer">
+            <div class="tab-buttons">
+                <button id="buyTab" class="active">Buy</button>
+                <button id="sellTab" >Sell</button>
+                <button id="transferTab" >Transfer</button>
+            </div>
+            <form id="exchangeForm">
+                <label for="tokenSymbol">Select Token:</label>
+                <select id="tokenSymbol" name="tokenSymbol" required>
+                    <option value="BTC">Bitcoin (BTC)</option>
+                    <option value="ETH">Ethereum (ETH)</option>
+                    <option value="USDT">Tether (USDT)</option>
+                    <option value="BNB">BinanceCoin (BNB)</option>
+                    <option value="ADA">Cardano (ADA)</option>
+                    <option value="DOGE">Dogecoin (DOGE)</option>
+                    <option value="XRP">Ripple (XRP)</option>
+                    <option value="DOT">Polkadot (DOT)</option>
+                    <option value="LINK">Chainlink (LINK)</option>
+                    <option value="LTC">Litecoin (LTC)</option>
+                </select>
+
+                <div id="buySection">
+                    <label for="sgdAmount">Enter Amount in SGD (Minimum $5):</label>
+                    <input type="text" id="sgdAmount" name="sgdAmount" placeholder="Enter SGD Amount" step="0.00000001">
+                    <p id="feeText" style="margin: 5px 0; font-size: 0.9em;">Fee (1%):</p>
+                    <p id="outputText" style="margin: 5px 0;">You Will Receive:</p>
+                </div>
+                <div id="sellSection" style="display: none; margin-top: 20px;">
+                    <label for="cryptoAmount">Enter Amount in Crypto:</label>
+                    <input type="text" id="cryptoAmount" name="cryptoAmount" placeholder="Enter Crypto Amount" step="0.00000001">
+                    <p id="feeTextSell" style="margin: 5px 0; font-size: 0.9em;">Fee (1%):</p>
+                    <p id="outputsText" style="margin: 5px 0;">You Will Receive:</p>
+                </div>
+                <div id="transferSection" style="display: none; margin-top: 20px;">
+                    <label for="walletAddress">Wallet Address:</label>
+                    <input type="text" id="walletAddress" name="walletAddress" placeholder="Enter Wallet Address">
+                    
+                    <label for="transferAmount">Enter Amount to Transfer:</label>
+                    <input type="text" id="transferAmount" name="transferAmount" placeholder="Enter Amount" step="0.00000001">
+                    <p id="feeTextTransfer" style="margin: 5px 0; font-size: 0.9em;">Fee (1%):</p>
+                    <p id="outputssText" style="margin: 5px 0;">Transfer Fee:</p>
+                </div>
+                <button type="button" id="exchangeButton">BUY</button>
+            </form>
+        </div>
+
+        <!-- Token Price Table -->
+        <div id="tokenTableContainer">
+            <table id="tokenTable">
+                <thead>
+                    <tr>
+                        <th>Token Name</th>
+                        <th>Price (SGD)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <div id="voice-assistant">
+        <div class="voice-assistant-content">
+            <div id="tests">
+                <div id="waveformContainer">
+                    <canvas id="waveform"></canvas>
+                </div>
+                <div id="microphoneContainer">
+                    <img src="../images/microphone.png" alt="Voice Assistant" class="voice-image">
+                </div>
+            </div>
+            <div class="voice-assistant-header">
+                <h3>Voice Assistant</h3>
+                <div class="toggle-container">
+                    <label class="switch">
+                        <input type="checkbox" id="voice-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+      </div>
+<script>
+        document.addEventListener('DOMContentLoaded', async () => {
+    const web3 = new Web3('http://127.0.0.1:7545');
+    const walletAddress = '0x8AfeAD84bb47518900607036a6Ad1c8BFADBC24c'; // Wallet holding cryptos
+
+    const tokenContracts = [
+        { address: '0x38D7a22A658D87d4c9a49A76E03Fdc7C97145f95', name: 'Bitcoin', symbol: 'BTC' },
+        { address: '0x0000000000000000000000000000000000000000', name: 'Ethereum', symbol: 'ETH' },
+        { address: '0xE7f3C353Cc0074C20bC8dDF098C58EAE365325bc', name: 'Tether', symbol: 'USDT' },
+        { address: '0x7Ff9732A5F83e803DA138277d83da20C5b6B4FEE', name: 'BinanceCoin', symbol: 'BNB' },
+        { address: '0x4c6FE8b13BE0b7540DFf2c863b7ad0d328C1CF5F', name: 'Cardano', symbol: 'ADA' },
+        { address: '0x8E552e48a568a868Ba6EC7A16441dBf9E84Da27c', name: 'Dogecoin', symbol: 'DOGE' },
+        { address: '0xcD5184827CDC53BAEa5782B86fBDb2ae07E3F636', name: 'Ripple', symbol: 'XRP' },
+        { address: '0x6250D0D50Ca98D98ac4c089F560Bd9943A2c24dE', name: 'Polkadot', symbol: 'DOT' },
+        { address: '0xEdf264da3ed4b8Cfc829c50D426764160C0a4B31', name: 'Chainlink', symbol: 'LINK' },
+        { address: '0x0d72C4C4C64B0de584C348f7A2e5AE720bf43Cf2', name: 'Litecoin', symbol: 'LTC' }
+    ];
+
+    const erc20ABI = [
+        {
+            "constant": false,
+            "inputs": [
+                { "name": "_to", "type": "address" },
+                { "name": "_value", "type": "uint256" }
+            ],
+            "name": "transfer",
+            "outputs": [{ "name": "", "type": "bool" }],
+            "type": "function"
+        }
+    ];
+
+    let userBalances = {};
+
+    async function yourBalance() {
+            const userId = localStorage.getItem('userId');
+            try {
+                const response = await fetch(`/balance/${userId}`);
+                const data = await response.json();
+                const balanceElement = document.getElementById('userBalance');
+                balanceElement.textContent = `Balance: $${data.balance.toFixed(2)}`;
+            } catch (error) {
+                console.error('Error fetching user balance:', error);
+            }
+        }
+
+        
+        async function fetchUserTokens() {
+        try {
+            const userId = localStorage.getItem('userId');
+            const response = await fetch(`/getTokens/${userId}`);
+            const data = await response.json();
+            mode = document.querySelector('.tab-buttons button.active').id.replace('Tab', '').toLowerCase();
+            const userTokensList = document.getElementById('userTokensList');
+            userTokensList.innerHTML = ''; // Clear previous tokens
+            
+
+            if (data.tokens && data.tokens.length > 0) {
+                data.tokens.forEach(token => {
+                    if (token.TokenSymbol && token.Balance != null) {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${token.TokenSymbol}: ${token.Balance.toFixed(8)}`;
+                        userTokensList.appendChild(listItem);
+                    }
+                });
+            } else {
+                const listItem = document.createElement('li');
+                listItem.textContent = 'No tokens found';
+                userTokensList.appendChild(listItem);
+            }
+            if (mode === 'buy') {
+                updateBUYTokenSelectOptions(data.tokens);
+            } else {
+                updateTokenSelectOptions(data.tokens);
+            }
+            clearFields();
+            await yourBalance();
+        } catch (error) {
+            console.error('Error fetching user tokens:', error);
+        }
+    }
+    function updateTokenSelectOptions(tokens) {
+    const tokenSelect = document.getElementById('tokenSymbol');
+    tokenSelect.innerHTML = ''; // Clear current options
+    
+    userBalances = {}; // Reset user balances
+
+    // Show only tokens that the user has a balance for
+    if (tokens && tokens.length > 0) {
+        tokens.forEach(token => {
+            if (token.TokenSymbol && token.Balance != null) {
+                userBalances[token.TokenSymbol] = parseFloat(token.Balance);
+
+                // Find the matching token in tokenContracts by symbol
+                const matchingContract = tokenContracts.find(contract => contract.symbol === token.TokenSymbol);
+
+                if (matchingContract) {
+                    const option = document.createElement('option');
+                    option.value = token.TokenSymbol;
+                    option.textContent = `${token.TokenSymbol} (${matchingContract.name})`;
+                    tokenSelect.appendChild(option);
+                }
+            }
+        });
+    }
+}
+
+function updateBUYTokenSelectOptions(tokens) {
+    const tokenSelect = document.getElementById('tokenSymbol');
+    tokenSelect.innerHTML = ''; // Clear current options
+    userBalances = {}; // Reset user balances
+    
+        // Show all tokens regardless of the user's balance
+        tokenContracts.forEach(token => {
+            const option = document.createElement('option');
+            option.value = token.symbol;
+            option.textContent = `${token.symbol} (${token.name})`;
+            tokenSelect.appendChild(option);
+        });
+    
+}
+
+
+    function clearFields() {
+        document.getElementById('sgdAmount').value = '';
+        document.getElementById('cryptoAmount').value = '';
+        document.getElementById('transferAmount').value = '';
+        document.getElementById('walletAddress').value = '';
+        document.getElementById('feeText').textContent = 'Fee (1%):';
+        document.getElementById('outputText').textContent = 'You Will Receive:';
+        document.getElementById('feeTextSell').textContent = 'Fee (1%):';
+        document.getElementById('outputsText').textContent = 'You Will Receive:';
+        document.getElementById('feeTextTransfer').textContent = '';
+        document.getElementById('outputssText').textContent = 'Transfer Fee:';
+    }
+
+    document.querySelectorAll('.tab-buttons button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            document.querySelectorAll('.tab-buttons button').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            clearFields();
+            updateConversionDisplay();
+        });
+    });
+
+    document.getElementById('tokenSymbol').addEventListener('change', updateConversionDisplay);
+    document.getElementById('cryptoAmount').addEventListener('input', handleNumericInput);
+    document.getElementById('sgdAmount').addEventListener('input', handleNumericInput);
+    document.getElementById('transferAmount').addEventListener('input', handleNumericInput);
+    document.getElementById('walletAddress').addEventListener('input', updateConversionDisplay);
+
+    function handleNumericInput(e) {
+        e.target.value = e.target.value.replace(/[^0-9.]/g, '');
+        if (e.target.value.includes('.')) {
+            const parts = e.target.value.split('.');
+            if (parts[1].length > 8) {
+                e.target.value = `${parts[0]}.${parts[1].slice(0, 8)}`;
+            }
+        }
+
+        const activeTab = document.querySelector('.tab-buttons button.active').id.replace('Tab', '').toLowerCase();
+        if (activeTab === 'sell' || activeTab === 'transfer') {
+            const tokenSymbol = document.getElementById('tokenSymbol').value;
+            const maxBalance = userBalances[tokenSymbol] || 0;
+            const inputAmount = parseFloat(e.target.value) || 0;
+            if (inputAmount > maxBalance) {
+                e.target.value = maxBalance.toFixed(8);
+            }
+        }
+
+        updateConversionDisplay();
+    }
+
+    async function updateConversionDisplay() {
+        const mode = document.querySelector('.tab-buttons button.active').id.replace('Tab', '').toLowerCase();
+        const tokenSymbol = document.getElementById('tokenSymbol').value;
+        const sgdAmount = parseFloat(document.getElementById('sgdAmount').value) || 0;
+        const cryptoAmount = parseFloat(document.getElementById('cryptoAmount').value) || 0;
+        const transferAmount = parseFloat(document.getElementById('transferAmount').value) || 0;
+        const price = await fetchTokenPrice(tokenSymbol);
+
+        function calculateFee(amount) {
+            return (amount * 0.001).toFixed(2);
+        }
+
+        if (mode === 'buy') {
+            if (sgdAmount >= 5 && price > 0) {
+                const cryptoReceived = (sgdAmount / price).toFixed(8);
+                const fee = calculateFee(sgdAmount);
+                const finalCrypto = (cryptoReceived * 0.999).toFixed(8);
+                document.getElementById('feeText').textContent = `Fee (0.1%): $${fee} SGD`;
+                document.getElementById('outputText').textContent = `You Will Receive: ${finalCrypto} ${tokenSymbol}`;
+            }
+            else if (sgdAmount < 5) {
+                document.getElementById('feeText').textContent = `Fee (0.1%):`;
+                document.getElementById('outputText').textContent = `You Will Receive:`;
+            }
+        } else if (mode === 'sell') {
+            if (cryptoAmount > 0 && price > 0) {
+                const sgdReceived = (cryptoAmount * price).toFixed(2);
+                const fee = calculateFee(sgdReceived);
+                const finalSGD = (sgdReceived * 0.999).toFixed(2);
+                document.getElementById('feeTextSell').textContent = `Fee (0.1%): $${fee} SGD`;
+                document.getElementById('outputsText').textContent = `You Will Receive: $${finalSGD} SGD`;
+            }
+        } else if (mode === 'transfer') {
+            const walletInput = document.getElementById('walletAddress');
+            walletInput.style.outline = '';
+            if (transferAmount > 0) {
+                const isValidAddress = web3.utils.isAddress(walletInput.value);
+                if (isValidAddress) {
+                    try {
+                        const gasFee = await estimateTransferFee(tokenSymbol, transferAmount, walletInput.value);
+                        document.getElementById('feeTextTransfer').textContent = ``;
+                        document.getElementById('outputssText').textContent = `Transfer Fee: ~$${gasFee} SGD`;
+                    } catch (error) {
+                        console.error('Error estimating gas fee:', error);
+                        document.getElementById('feeTextTransfer').textContent = '';
+                        document.getElementById('outputssText').textContent = 'Transfer Fee:';
+                    }
+                } else {
+                    walletInput.style.outline = '2px solid red';
+                }
+            }
+        }
+    }
+
+    
+
+    document.getElementById('exchangeButton').onclick = function() {
+        const mode = document.querySelector('.tab-buttons button.active').id.replace('Tab', '').toLowerCase();
+        if (mode === 'buy') {
+            handleBuy();
+        } else if (mode === 'sell') {
+            handleSell();
+        } else if (mode === 'transfer') {
+            handleTransfer();
+        }
+    };
+
+    async function handleBuy() {
+        const tokenSymbol = document.getElementById('tokenSymbol').value;
+        const sgdAmount = parseFloat(document.getElementById('sgdAmount').value);
+        const userId = localStorage.getItem('userId');
+        const price = await fetchTokenPrice(tokenSymbol);
+
+        if (sgdAmount >= 5 && price > 0) {
+            const amount = (sgdAmount / price).toFixed(8);
+            try {
+                await fetch('/buyToken', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        tokenSymbol: tokenSymbol,
+                        amount: parseFloat(amount),
+                        price: price
+                    })
+                });
+                fetchUserTokens();
+                yourBalance();
+            } catch (error) {
+                console.error('Error buying token:', error);
+            }
+        }
+    }
+
+    async function handleSell() {
+        const tokenSymbol = document.getElementById('tokenSymbol').value;
+        const cryptoAmount = parseFloat(document.getElementById('cryptoAmount').value);
+        const userId = localStorage.getItem('userId');
+        const price = await fetchTokenPrice(tokenSymbol);
+
+        if (cryptoAmount > 0 && price > 0) {
+            try {
+                await fetch('/sellToken', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        tokenSymbol: tokenSymbol,
+                        amount: cryptoAmount,
+                        price: price
+                    })
+                });
+                fetchUserTokens();
+                yourBalance();
+            } catch (error) {
+                console.error('Error selling token:', error);
+            }
+        }
+    }
+
+    async function handleTransfer() {
+    const tokenSymbol = document.getElementById('tokenSymbol').value;
+    const transferAmount = parseFloat(document.getElementById('transferAmount').value);
+    const recipientAddress = document.getElementById('walletAddress').value;
+    const fee = (transferAmount * 0.001).toFixed(2);
+    const userId = localStorage.getItem('userId');
+
+    if (transferAmount > 0 && web3.utils.isAddress(recipientAddress)) {
+        try {
+            if (tokenSymbol === 'ETH') {
+                // Handle ETH transfer directly
+                const transferReceipt = await web3.eth.sendTransaction({
+                    from: walletAddress,
+                    to: recipientAddress,
+                    value: web3.utils.toWei(transferAmount.toString(), 'ether')
+                });
+
+                if (transferReceipt.status) {
+                    // Only call /transfer if the transaction was successful
+                    await fetch('/transfer', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            userId: userId,
+                            tokenSymbol: tokenSymbol,
+                            amount: transferAmount,
+                            fee: parseFloat(fee)
+                        })
+                    });
+                    fetchUserTokens();
+                    yourBalance();
+                }
+            } else {
+                // Handle token transfers via smart contract
+                const token = tokenContracts.find(t => t.symbol === tokenSymbol);
+                if (!token) throw new Error('Token contract not found');
+
+                const tokenContract = new web3.eth.Contract(erc20ABI, token.address);
+                const transferAmountInWei = web3.utils.toWei(transferAmount.toString(), 'ether');
+
+                const transferReceipt = await tokenContract.methods.transfer(recipientAddress, transferAmountInWei).send({ from: walletAddress });
+
+                if (transferReceipt.status) {
+                    // Only call /transfer if the transaction was successful
+                    await fetch('/transfer', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            userId: userId,
+                            tokenSymbol: tokenSymbol,
+                            amount: transferAmount,
+                            fee: parseFloat(fee)
+                        })
+                    });
+                    fetchUserTokens();
+                    yourBalance();
+                }
+            }
+        } catch (error) {
+            console.error('Error transferring token:', error);
+        }
+    }
+}
+
+
+    async function estimateTransferFee(tokenSymbol, amount, userWalletAddress) {
+        try {
+            const gasPrice = await web3.eth.getGasPrice();
+            let gasLimit;
+
+            if (tokenSymbol === 'ETH') {
+                gasLimit = await web3.eth.estimateGas({
+                    to: userWalletAddress,
+                    value: web3.utils.toWei(amount.toString(), 'ether')
+                });
+            } else {
+                const token = tokenContracts.find(t => t.symbol === tokenSymbol);
+                if (!token) throw new Error('Token contract not found');
+
+                const tokenContract = new web3.eth.Contract(erc20ABI, token.address);
+                const transferAmountInWei = web3.utils.toWei(amount.toString(), 'ether');
+                gasLimit = await tokenContract.methods.transfer(userWalletAddress, transferAmountInWei).estimateGas({ from: walletAddress });
+            }
+
+            const gasFeeInWei = BigInt(gasPrice) * BigInt(gasLimit);
+            const gasFeeInEth = web3.utils.fromWei(gasFeeInWei.toString(), 'ether');
+            const ethPriceInSgd = await fetchEthPriceInSgd();
+            return (parseFloat(gasFeeInEth) * ethPriceInSgd).toFixed(2);
+        } catch (error) {
+            console.error('Error estimating gas fee:', error);
+            throw error;
+        }
+    }
+
+    async function fetchEthPriceInSgd() {
+        try {
+            const response = await fetch('https://api.coinbase.com/v2/prices/ETH-SGD/spot');
+            const data = await response.json();
+            return parseFloat(data.data.amount);
+        } catch (error) {
+            console.error('Error fetching ETH price:', error);
+            return 0;
+        }
+    }
+    async function addTokenToTable() {
+        const tableBody = document.querySelector('#tokenTable tbody');
+        const priceUpdates = tokenContracts.map(token => fetchTokenPrice(token.symbol));
+        const prices = await Promise.all(priceUpdates);
+        tableBody.innerHTML = '';
+        tokenContracts.forEach((token, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${token.name}</td><td>$${prices[index].toFixed(2)}</td>`;
+            tableBody.appendChild(row);
+        });
+        updateConversionDisplay();
+    }
+
+    async function fetchTokenPrice(symbol) {
+        try {
+            const response = await fetch(`https://api.coinbase.com/v2/prices/${symbol}-SGD/spot`);
+            const data = await response.json();
+            return parseFloat(data.data.amount) || 0;
+        } catch (error) {
+            console.error('Error fetching token price:', error);
+            return 0;
+        }
+    }
+
+    function toggleTab(mode) {
+    document.getElementById('buyTab').classList.toggle('active', mode === 'buy');
+    document.getElementById('sellTab').classList.toggle('active', mode === 'sell');
+    document.getElementById('transferTab').classList.toggle('active', mode === 'transfer');
+    document.getElementById('buySection').style.display = mode === 'buy' ? 'block' : 'none';
+    document.getElementById('sellSection').style.display = mode === 'sell' ? 'block' : 'none';
+    document.getElementById('transferSection').style.display = mode === 'transfer' ? 'block' : 'none';
+    document.getElementById('outputText').textContent = ''; // Clear output when switching tabs
+    document.getElementById('outputsText').textContent = ''; // Clear output when switching tabs
+    document.getElementById('outputssText').textContent = ''; // Clear output when switching tabs
+    document.getElementById('exchangeButton').textContent = mode === 'buy' ? 'BUY' : mode === 'sell' ? 'SELL' : 'TRANSFER';
+
+    fetchUserTokens();
+}
+
+document.getElementById("buyTab").addEventListener("click", function() {
+    toggleTab('buy');
+});
+document.getElementById("sellTab").addEventListener("click", function() {
+    toggleTab('sell');
+});
+document.getElementById("transferTab").addEventListener("click", function() {
+    toggleTab('transfer');
+});
+
+ const header = document.querySelector('#userTokensContainer h3');
+    header.innerHTML = `<span id="userBalance"></span><br></br>Your Tokens`;
+    await addTokenToTable();
+    await fetchUserTokens();
+    await yourBalance();
+    setInterval(addTokenToTable, 5000);
+});
+
+
+    </script>
+<script src = "../js/b.js" defer></script>
+<script src = "../js/Chatbot.js" defer></script>
+</body>
+</html>
