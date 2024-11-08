@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feedback Rating</title>
-    <link rel="stylesheet" href="style.css">
+    <!-- Link to the shared CSS file -->
+    <link rel="stylesheet" href="../css/normalise.css">
+    <link rel="stylesheet" href="../css/style.css">
     <style>
         /* Basic styling for the page */
         body {
@@ -14,72 +16,10 @@
             height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
+
         }
 
-        .rating-container {
-            text-align: center;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 90%;
-            position: relative;
-        }
-
-        .logo {
-            position: absolute;
-            top: 30px;
-            left: 30px;
-            width: 120px; /* Adjust size as needed */
-            height: auto;
-        }
-
-        h1 {
-            font-size: 24px;
-            margin-bottom: 15px;
-        }
-
-        .stars {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .stars button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 32px;
-            color: #ccc;
-            transition: color 0.3s;
-        }
-
-        .stars button.active,
-        .stars button:hover,
-        .stars button:hover ~ button {
-            color: gold;
-        }
-
-        .submit-btn {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: #4CAF50;
-            color: white;
-            margin-top: 20px;
-        }
-
-        .thank-you {
-            display: none;
-            margin-top: 20px;
-            font-size: 18px;
-            color: #4CAF50;
-        }
+        
     </style>
 </head>
 <body>

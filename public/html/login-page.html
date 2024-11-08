@@ -11,7 +11,7 @@
 <style>
     body {
         align-items: center;
-        background-color: #3f4147; 
+        background-color: #f0eeee; 
     }
 
     .container {
@@ -44,6 +44,7 @@
     }
 </style>
 <body>
+    <img src="../images/OcbcLogo.png" alt="Logo" class="logo">
     <div class="container">
         <!-- Button for QR Code navigation -->
         <a href="/display-qr" class="qr-button">Display QR</a>
@@ -60,16 +61,17 @@
     </div>
 
     <script>
+        // Redirect to different pages on button click
         document.getElementById('cardLogin').addEventListener('click', function() {
-            window.location.href = '/login';
+            window.location.href = 'card-login.html'; 
         });
 
         document.getElementById('facialRecognition').addEventListener('click', function() {
-            window.location.href = '/faceLogin';
+            window.location.href = '/fingerprint';
         });
 
         document.getElementById('fingerprint').addEventListener('click', function() {
-            window.location.href = '/fingerprint';
+            window.location.href = '/faceLogin';
         });
     </script>
 </body>
