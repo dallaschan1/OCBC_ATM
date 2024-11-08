@@ -14,14 +14,14 @@ async function findUserByNric(nric) {
     }
 }
 
-async function updateUserTokenAndPassword(nric, token, password) {
+async function updateUserTokenAndPassword(nric, token, PasswordHash) {
     try {
         let pool = await sql.connect(dbConfig);
         await pool.request()
             .input("nric", sql.VarChar, nric)
             .input("token", sql.VarChar, token)
-            .input("password", sql.VarChar, password)
-            .query("UPDATE Users SET token = @token, password = @password WHERE nric = @nric");
+            .input("PasswordHash", sql.VarChar, PasswordHash)
+            .query("UPDATE Users SET token = @token, PasswordHash = @PasswordHash WHERE nric = @nric");
     } catch (err) {
         console.error("Database error (updateUserTokenAndPassword):", err);
         throw err;
@@ -41,13 +41,13 @@ async function checkNric(nric) {
     }
 }
 
-async function loginUser(nric, password) {
+async function loginUser(nric, PasswordHash) {
     try {
         let pool = await sql.connect(dbConfig);
         let result = await pool.request()
             .input("nric", sql.VarChar, nric)
-            .input("password", sql.VarChar, password)
-            .query("SELECT * FROM Users WHERE nric = @nric AND password = @password");
+            .input("PasswordHash", sql.VarChar, PasswordHash)
+            .query("SELECT * FROM Users WHERE nric = @nric AND PasswordHash = @PasswordHash");
 
         return result.recordset[0]; // Return the user data if credentials are correct
     } catch (err) {
@@ -159,8 +159,8 @@ async function findUserByNameOrPhoneNumber(query) {
         } else {
             // Search by name
             result = await pool.request()
-                .input("name", sql.VarChar, query)
-                .query("SELECT * FROM Users WHERE name = @name");
+                .input("UserName", sql.VarChar, query)
+                .query("SELECT * FROM Users WHERE UserName = @UserName");
         }
 
         return result.recordset[0]; // Return the user if found
