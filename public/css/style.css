@@ -9,6 +9,12 @@ body, html {
     width: 100vw;
 }
 
+.Exit{
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
 /* Container styling */
 .container {
     text-align: center;
@@ -290,7 +296,6 @@ hr {
 #Left {
     width: 45%;
     padding-left: 50px;
-
     padding-top: 60px;
     display: flex;
     flex-direction: column;
@@ -301,7 +306,7 @@ hr {
 #Left h1 {
     text-align: left; /* Align text to the left */
     margin-bottom: 20px;
-    width: 100%; /* Ensure the heading takes full width */
+    width: 600px; /* Ensure the heading takes full width */
     padding-left: 10px; /* Optional: add some padding to match alignment */
 }
 
@@ -353,11 +358,11 @@ hr {
     flex: 1; /* Allow #Right to grow */
     padding: 50px;
     padding-top: 40px;
-    background-color: #F6EDED;
+    background-color: #e0e0e0;
+    box-shadow: inset 10px 0px 20px rgba(0, 0, 0, 0.3);
     padding-bottom: 5px;
     padding-left: 3rem;
-    width: 60rem;
-
+    width: 100rem;
     margin-right: 0
 }
 
@@ -370,17 +375,6 @@ hr {
     padding-bottom: 5px;
     width: 100%;
 }
-
-
-
-.English-Exit {
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-
 
 #other-services-container {
     margin-top:80px; /* Space above the container */
@@ -736,4 +730,74 @@ canvas {
 
 .Camera{
     width: 150px;
+}
+/* Data leaked */
+#data-leak-warning {
+    display: none; /* Initially hidden */
+    justify-content: center; 
+    align-items: center;
+    flex-direction: column;
+    position: fixed; 
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(54, 54, 54, 0.8); /* Semi-transparent red background */
+    z-index: 1001; /* Ensure it appears above other modals */
+}
+#data-leak-warning .modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+
+#data-leak-warning p {
+    font-size: 20px;
+    color: #555; /* Subtle text color */
+    margin-left: 5.4rem;
+    width: 20rem;
+    margin-bottom: 10px;
+}
+
+#data-leak-warning .button-container {
+    display: flex;
+    justify-content: center;
+}
+
+#data-leak-warning .modal-button.cancel {
+    background-color: #d9534f; /* Red button */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#data-leak-warning .modal-button.cancel:hover {
+    background-color: #c9302c; /* Darker red on hover */
+}
+
+/* largeTrasactions.html */
+.proceed-button{
+    background: linear-gradient(45deg, #422EB3, #2E2371);
+    color: white; /* White text color */
+    font-size: 18px; /* Font size for button text */
+    padding: 12px 20px; /* Padding inside the button */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Rounded corners */
+    text-decoration: none; /* Remove underline from links */
+    cursor: pointer; /* Pointer cursor for button */
+    transition: background-color 0.3s; /* Smooth background transition */
+}
+
+.proceed-button:hover {
+    background-color: #45a049; 
+}
+
+#transaction-alert{
+    margin-bottom: 0;
 }
