@@ -11,14 +11,14 @@ Promise.all([
 
 function startVideo() {
   navigator.getUserMedia(
-    { video: { width: 200, height: 200 } }, // Increase camera resolution for better detection
+    { video: { width: 1280, height: 720} }, // Increase camera resolution for better detection
     stream => video.srcObject = stream,
     err => console.error(err)
   );
 }
 
 const options = new faceapi.SsdMobilenetv1Options({
-  minConfidence: 0.3,
+  minConfidence: 0.2,
   maxResults: 10
 });
 
@@ -58,5 +58,5 @@ video.addEventListener('play', () => {
     }
 
     context.restore();
-  }, 100);
+  }, 300);
 });
