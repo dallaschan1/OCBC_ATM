@@ -9,17 +9,19 @@
     <style>
         /* Styling Code */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-        body { display: flex; flex-direction: column; min-height: 100vh; background-color: #f4f6f9; color: #333; padding-left: 50px; width: 99vw; align-items: start; padding-top: 50px; padding-bottom: 50px; margin: 0; }
+        body { display: flex; flex-direction: column; min-height: 100vh; background-color: #f4f6f9; color: #333; padding-left: 50px; width: 97vw; align-items: start; padding-top: 50px; padding-bottom: 50px; margin: 0; }
         #top{
             width: 100%;
             align-items: self-start;
         }
         
-        #container { display: flex; gap: 20px; width:74%; margin-top: -100px; }
+        #container { display: flex; gap: 20px; width:83%; margin-top: 0px; }
         #userTokensContainer, #exchangeFormContainer, #tokenTableContainer { background-color: transparent; padding: 30px; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); }
+        
         #userTokensContainer { width: 25%; max-width: 300px; background-color: #fff; }
         #exchangeFormContainer { flex: 1; }
-        #tokenTableContainer { width: 25%; background-color: #fff; }
+        .Camera{position: absolute; right: 130px; top : 150px;}
+        #tokenTableContainer { width: 25%;padding-top: 0; box-shadow:none; padding-left: 0;}
         .tab-buttons { display: flex; justify-content: space-between; margin-bottom: 25px; gap: 10px; }
         .tab-buttons button { flex: 1; padding: 16px; font-size: 1.2rem; cursor: pointer; border: none; color: #333; background-color: #e0e7ff; transition: background-color 0.3s, color 0.3s; border-top-left-radius: 8px; border-top-right-radius: 8px; }
         .tab-buttons button.active { background-color: #333; color: #fff; }
@@ -29,7 +31,7 @@
         #exchangeForm input.error { border-color: red; }
         #exchangeButton { width: 100%; padding: 18px; font-size: 1.5rem; font-weight: bold; border: none; border-radius: 8px; background-color: #4CAF50; color: white; cursor: pointer; margin-top: 30px; transition: background-color 0.3s; }
         #exchangeButton:hover { background-color: #45a049; }
-        #tokenTable { width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); margin-top: 0px; }
+        #tokenTable { width: 90%; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); margin-top: 0px; }
         #tokenTable th, #tokenTable td { padding: 20px; text-align: center; border-bottom: 1px solid #ddd; }
         #tokenTable th { background-color: #333; color: white; font-weight: 600; }
         #userTokensContainer h3 { font-size: 1.5rem; margin-bottom: 20px; }
