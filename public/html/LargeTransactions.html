@@ -12,52 +12,51 @@
     body {
         align-items: center;
         background-color: #3f4147; 
-        display: flex;
-        justify-content: center;
-        height: 100vh;
-        margin: 0;
-        color: #311919;
-        font-family: Arial, sans-serif;
+    }
+    .container{
+        height:27rem
     }
 
-    .container {
-        text-align: center;
-        max-width: 400px;
-    }
-
-    .exit-button, .cancel-button {
-        display: inline-block;
-        padding: 10px 20px;
-        margin: 10px;
-        font-size: 1.2rem;
-        color: #ffffff;
-        background-color: #d9534f; /* red for the exit button */
-        border: none;
-        border-radius: 8px;
-        text-decoration: none;
-        cursor: pointer;
-    }
-
-    .exit-button:hover {
-        background-color: #c9302c;
-    }
-
-    .cancel-button {
-        background-color: #5bc0de; /* blue for the cancel button */
-    }
-
-    .cancel-button:hover {
-        background-color: #31b0d5;
-    }
 </style>
 <body>
     <div class="container">
-        <h1>Large Transaction Detected</h1>
-        <p> To proceed, please complete facial recognition verification to ensure the security of your transaction.</p>
+        <h1 id="transaction-alert">Large Transaction Detected</h1>
+        <p id="verification-message">To proceed, please complete facial recognition verification to ensure the security of your transaction.</p>
         
-        <!-- "Yes" and "No" buttons for exit confirmation -->
-        <a href="exit.html" class="exit-button">Yes, Exit</a>
-        <a href="homepage.html" class="cancel-button">No, Return</a>
+        <a href="" class="proceed-button">Proceed</a>
     </div>
+
+     <!-- Warning message initially hidden -->
+     <div id="shoulder-surfing-warning" style="display: none;">
+        <h2>⚠️ Potential Shoulder Surfing Detected</h2>
+    </div>
+
+    <!-- Exit confirmation modal (initially hidden) -->
+    <div id="exit-confirmation">
+        <div class="modal-content">
+            <h1>Are you sure you want to exit?</h1>
+            <p>Please confirm if you want to leave the ATM session.</p>
+            <div class="button-container"> <!-- New container for buttons -->
+                <button class="modal-button confirm" onclick="confirmExit()">Yes, Exit</button>
+                <button class="modal-button cancel" onclick="cancelExit()">No, Return</button>
+            </div>
+            
+            <!-- Loading animation container -->
+            <div id="loading-animation">
+                <dotlottie-player src="https://lottie.host/0dfa1e33-853b-4246-927a-8b6b2283449f/lKsMBsVSo2.json" background="transparent" speed="1" style="width: 100px; height: 100px;" loop autoplay></dotlottie-player>
+                <p style="margin-top: 10px; font-size: 18px; color: #555;">Exiting...</p>
+            </div>
+        </div>
+    </div>
+    <div id="data-leak-warning">
+        <div class="modal-content">
+            <h1>⚠️ Data Leak Detected</h1>
+            <p>Please be wary of any suspicious emails or calls that you may receive</p>
+            <div class="button-container">
+                <button class="modal-button cancel" onclick="dismissWarning()">Noted</button>
+            </div>
+        </div>
+    </div>
+    <script src="../js/script.js" defer></script>
 </body>
 </html>

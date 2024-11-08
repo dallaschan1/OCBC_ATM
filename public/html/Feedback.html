@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Rating</title>
+    <!-- Link to the shared CSS file -->
+    <link rel="stylesheet" href="../css/normalise.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        /* Basic styling for the page */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+
+        }
+
+        
+    </style>
+</head>
+<body>
+    <!-- Logo Section -->
+    <img src="../images/OcbcLogo.png" alt="Logo" class="logo">
+    <div class="rating-container">
+        <!-- Rating Content -->
+        <h1>Rate Our Service</h1>
+        <div class="stars">
+            <button onclick="rate(1)">&#9733;</button>
+            <button onclick="rate(2)">&#9733;</button>
+            <button onclick="rate(3)">&#9733;</button>
+            <button onclick="rate(4)">&#9733;</button>
+            <button onclick="rate(5)">&#9733;</button>
+        </div>
+
+        <button class="submit-btn" onclick="submitRating()">Submit</button>
+        <p class="thank-you">Thank you for your feedback!</p>
+    </div>
+
+    <script>
+        // JavaScript to handle rating selection and submission
+        let selectedRating = 0;
+
+        function rate(rating) {
+            selectedRating = rating;
+            const stars = document.querySelectorAll('.stars button');
+            stars.forEach((star, index) => {
+                // Add 'active' class to the selected stars
+                star.classList.toggle('active', index < rating);
+            });
+        }
+
+        function submitRating() {
+            if (selectedRating === 0) {
+                alert('Please select a rating before submitting.');
+                return;
+            }
+
+            // Log the rating
+            console.log('User rating:', selectedRating);
+
+            // Display thank-you message
+            document.querySelector('.thank-you').style.display = 'block';
+
+            // Simulate a delay before redirecting to login page
+            setTimeout(() => {
+                window.location.href = 'login-page.html'; // Replace with the actual login page URL
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

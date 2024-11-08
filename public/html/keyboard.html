@@ -6,11 +6,12 @@
     <title>Custom Keyboard Layout</title>
     <link rel="stylesheet" href="../css/normalise.css">
     <link rel="stylesheet" href="../css/style.css">
+    <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs" type="module"></script>
 </head>
 <style>
     body {
         align-items: center;
-        background-color: #FCECEC; /* Light pink background */
+        background-color: #f0eeee; /* Light grey background */
     }
 
 </style>
@@ -20,7 +21,9 @@
         <div class="header">
             <button class="back-button" onclick="history.back()">← Back</button>
             <h1>Enter your NRIC:</h1>
-            <button class="exit-button" onclick="alert('Exiting')">Exit</button>
+            <div class="Exit">
+                <img src="../images/Exit.png" height="115px" width="100%" id="exit-button" style="cursor:pointer;">
+            </div>
         </div>
         
         <!-- Input Section -->
@@ -86,6 +89,25 @@
             </div>
         </div>
     </div>
+
+    <!-- Exit confirmation modal (initially hidden) -->
+    <div id="exit-confirmation">
+        <div class="modal-content">
+            <h1>Are you sure you want to exit?</h1>
+            <p>Please confirm if you want to leave the ATM session.</p>
+            <div class="button-container"> <!-- New container for buttons -->
+                <button class="modal-button confirm" onclick="confirmExit()">Yes, Exit</button>
+                <button class="modal-button cancel" onclick="cancelExit()">No, Return</button>
+            </div>
+            
+            <!-- Loading animation container -->
+            <div id="loading-animation">
+                <dotlottie-player src="https://lottie.host/0dfa1e33-853b-4246-927a-8b6b2283449f/lKsMBsVSo2.json" background="transparent" speed="1" style="width: 100px; height: 100px;" loop autoplay></dotlottie-player>
+                <p style="margin-top: 10px; font-size: 18px; color: #555;">Exiting...</p>
+            </div>
+        </div>
+    </div>
+
     <script src="../js/script.js" defer></script>
 </body>
 </html>
