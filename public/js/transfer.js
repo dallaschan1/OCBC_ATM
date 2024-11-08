@@ -7,13 +7,13 @@ async function getUserInfo() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ name: accountInput, phoneNumber: accountInput })
+                body: JSON.stringify({ UserName: accountInput, phoneNumber: accountInput })
             });
 
             if (response.ok) {
                 const data = await response.json();
                 if (data.user) {
-                    document.getElementById('user-name').textContent = data.user.name || '--';
+                    document.getElementById('user-name').textContent = data.user.UserName || '--';
                     document.getElementById('user-phone').textContent = data.user.phoneNumber || '--';
 
                     // Now fetch the suspicion score
@@ -104,7 +104,7 @@ async function getUserId(accountInput) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ name: accountInput, phoneNumber: accountInput })
+            body: JSON.stringify({ UserName: accountInput, phoneNumber: accountInput })
         });
 
         if (response.ok) {
