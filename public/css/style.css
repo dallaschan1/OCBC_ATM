@@ -9,6 +9,13 @@ body, html {
     width: 100vw;
 }
 
+.logo {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    width: 120px; /* Adjust size as needed */
+    height: auto;
+}
 /* Container styling */
 .container {
     text-align: center;
@@ -29,7 +36,7 @@ body, html {
 /*card-login.html*/
 /* Styling for the verification buttons (used in page 1) */
 .verification-button {
-    background-color: #6c87a5; /* Light blue background */
+    background-color: #425770; /* Light blue background */
     color: #ffffff;
     font-size: 18px;
     border: none;
@@ -46,7 +53,7 @@ body, html {
 }
 
 .verification-button:hover {
-    background-color: #4c6f92; /* Slightly darker blue on hover */
+    background-color: #546e8d; /* Slightly darker blue on hover */
 }
 
 /* Styling for the "Or" text (used in page 1) */
