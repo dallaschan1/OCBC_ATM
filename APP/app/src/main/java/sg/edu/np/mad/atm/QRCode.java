@@ -40,8 +40,8 @@ public class QRCode extends AppCompatActivity {
     private static final String KEY_USER_NAME = "userName";
     private static final String KEY_USER_NRIC = "userNric";
     private static final String KEY_USER_BALANCE = "userBalance";
-//    private static final String WITHDRAW_URL = "http://192.168.18.70:3001/generate-qr"; // endpoint
-    private static final String WITHDRAW_URL = "https://d94b-153-20-78-96.ngrok-free.app/generate-qr"; // endpoint
+    private static final String WITHDRAW_URL = "http://192.168.18.70:3001/generate-qr"; // endpoint
+//    private static final String WITHDRAW_URL = "https://d94b-153-20-78-96.ngrok-free.app/generate-qr"; // endpoint
     private SharedPreferences sharedPreferences;
     private OkHttpClient client;
     private EditText amountEditText;
@@ -231,8 +231,8 @@ public class QRCode extends AppCompatActivity {
         );
 
         Request request = new Request.Builder()
-//                .url("http://192.168.18.70:3001/deduct-balance") // endpoint
-                .url("https://d94b-153-20-78-96.ngrok-free.app/deduct-balance")
+                .url("http://192.168.18.70:3001/deduct-balance") // endpoint
+//                .url("https://d94b-153-20-78-96.ngrok-free.app/deduct-balance")
                 .post(body)
                 .build();
 

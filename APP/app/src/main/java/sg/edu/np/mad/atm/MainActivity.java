@@ -36,8 +36,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
-//    private static final String SERVER_URL = "http://192.168.18.70:3001/notify-success";
-    private static final String SERVER_URL = "https://d94b-153-20-78-96.ngrok-free.app/notify-success";
+    private static final String SERVER_URL = "http://192.168.18.70:3001/notify-success";
+//    private static final String SERVER_URL = "https://d94b-153-20-78-96.ngrok-free.app/notify-success";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
