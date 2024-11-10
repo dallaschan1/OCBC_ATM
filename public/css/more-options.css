@@ -6,17 +6,11 @@
   }
 
   body {
-    background-color: #fdf2f3;
+    background-color: #f0eeee;
     padding: 24px;
-<<<<<<< HEAD
     margin-left: 90px;
     margin-right: 100px;
     margin-top: 100px;
-=======
-    margin-left: 40px;
-    margin-right: 95px;
-    margin-top: 20px;
->>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
   }
 
   .header {
@@ -134,7 +128,9 @@
 
   .services-section{
     height: 70%;
+    align-items: center;
   }
+
   .services-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -288,11 +284,7 @@ display: flex;
     display: flex;
     justify-content: center;
     flex-direction: column;
-<<<<<<< HEAD
     align-items: center;
-=======
-    margin-left: 85px;
->>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
   }
 #top{
 display: flex;

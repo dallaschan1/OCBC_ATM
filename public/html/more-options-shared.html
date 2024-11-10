@@ -3,8 +3,19 @@
 <head>
   <link rel="stylesheet" href= "../css/more-options.css">
   <script defer src="../js/face-api.min.js"></script>
+
 </head>
+<style>
+  .logo {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    width: 120px; /* Adjust size as needed */
+    height: auto;
+}
+</style>
 <body>
+  <img src="../images/OcbcLogo.png" alt="Logo" class="logo">
   <div id = "containerr">
   
 
@@ -27,7 +38,7 @@
         
         
       </div>
-    <h1 class="greeting">Hello!</h1>
+    <h1 class="greeting">Hello! Welcome to your shared account</h1>
     <h2 class="main-heading">What would you like to do today?</h2>
     </div>
     <div id = "test">
@@ -38,8 +49,7 @@
     </div>
     <div class="top-right">
       
-      <span class="language-selector">English</span>
-     
+      
       <div class="exit-container">
         <img src="../images/Exit.png" alt="exit" class="exit-icon">
        
@@ -52,9 +62,9 @@
       <h2>Other Services</h2>
       
       <div class="services-grid">
-        <div class="service-card">
-          <h3>Convert Currency</h3>
-          <p>Allows for exchange of currency</p>
+        <div class="service-card greyed-out">
+          <h3>Check Transactions</h3>
+          <p>Allows tracking of transactions by all memberd</p>
         </div>
 
         <div class="service-card">
@@ -62,7 +72,7 @@
           <p>Enables you to buy, sell, and transfer your tokens between wallets</p>
         </div>
 
-        <div class="service-card">
+        <div class="service-card greyed-out" >
           <h3>Pay Bills</h3>
           <p>Allow payments for utilities, loans, credit cards, insurance, government fees, town council, school fees, memberships and fines.</p>
         </div>
@@ -77,10 +87,13 @@
           <p>This is the greyed out option ah to show the option not avail</p>
         </div>
 
-        <div class="service-card">
-          <h3>Update Personal Particulars</h3>
-          <p>Enables you to change your contact details and mailing address</p>
-        </div>
+        <a href="EditMembers.html" style="text-decoration: none; color: inherit;">
+          <div class="service-card">
+            <h3>Update Family Particulars</h3>
+            <p>Enables you to add or remove members and change contact details and mailing address</p>
+          </div>
+        </a>
+        
       </div>
     </div>
   </div>
