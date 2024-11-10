@@ -145,17 +145,17 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-// data leak 
-function showDataLeakWarning() {
-    document.getElementById('data-leak-warning').style.display = 'flex';
-}
+// // data leak 
+// function showDataLeakWarning() {
+//     document.getElementById('data-leak-warning').style.display = 'flex';
+// }
 
 
 
-function dismissWarning() {
-    // Hide the warning modal without further action
-    document.getElementById('data-leak-warning').style.display = 'none';
-}
+// function dismissWarning() {
+//     // Hide the warning modal without further action
+//     document.getElementById('data-leak-warning').style.display = 'none';
+// }
 
-// Show data leak warning after 3 seconds
-setTimeout(showDataLeakWarning, 3000);
+// // Show data leak warning after 3 seconds
+// setTimeout(showDataLeakWarning, 3000);

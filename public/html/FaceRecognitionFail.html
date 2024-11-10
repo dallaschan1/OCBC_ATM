@@ -15,16 +15,35 @@
     }
     .container {
         height: 27rem;
+        text-align: center;
+    }
+
+    #transaction-alert {
+        font-size: 30px;
+        margin-bottom: 50px;
+    }
+
+    #verification-message {
+        margin-top: 10px;
+        font-size: 16px;
+        line-height: 1.5;
+        margin: 0; /* Remove gaps between paragraphs */
+    }
+
+    #additional-message {
+        font-size: 16px;
+        line-height: 1.5;
+        margin: 0;
     }
 </style>
 <body>
     <img src="../images/OcbcLogo.png" alt="Logo" class="logo" />
     <div class="container">
-        <h1 id="transaction-alert">Large Transaction Detected</h1>
-        <p id="verification-message">To proceed, please complete facial recognition verification to ensure the security of your transaction.</p>
-        
-        <!-- Proceed button to redirect to another page -->
-        <a href="facialRecog.html" class="proceed-button">Proceed</a> 
+        <h1 id="transaction-alert" style="text-align: center;">Transaction Verification Required</h1>
+        <p id="verification-message">A notification has been sent to the linked phone number for further verification.</p>
+        <p id="additional-message">If this transaction is legitimate, you can authorize it via the notification within</p>
+        <p id="additional-message">the next 5 minutes. Once approved, transactions will be allowed for 5 minutes. If you</p>
+        <p id="additional-message"> did not initiate this transaction, please contact the bank immediately.</p>
     </div>
 
     <!-- Warning message initially hidden -->

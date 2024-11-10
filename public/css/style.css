@@ -16,6 +16,7 @@ body, html {
     width: 120px; /* Adjust size as needed */
     height: auto;
 }
+
 /* Container styling */
 .container {
     text-align: center;
@@ -166,17 +167,6 @@ hr {
     color: #FFF;
 }
 
-.cancel-button {
-    background-color: #FF6B6B;
-}
-
-.clear-button {
-    background-color: #FFD93D; 
-}
-
-.enter-button {
-    background-color: #6BCB77; 
-}
 
 .action-button:hover {
     opacity: 0.8;
@@ -197,7 +187,7 @@ hr {
     align-items: center;
 }
 
-.back-button, .exit-button {
+.back-button, .exit-button{
     background: none;
     border: none;
     font-size: 18px;
@@ -210,7 +200,7 @@ hr {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
-    width: 100%;
+    width: 92%;
 }
 
 #inputField {
@@ -228,7 +218,7 @@ hr {
     border: none;
     font-size: 20px;
     cursor: pointer;
-    margin-left: 10px;
+    margin-left: 40px;
     color: #999;
 }
 
@@ -261,7 +251,7 @@ hr {
 }
 
 .row-4 {
-    grid-template-columns: repeat(8, 1fr) 2fr; /* 8 keys + wider Enter */
+    grid-template-columns: repeat(8, 1fr) ; /* 8 keys + wider Enter */
 }
 
 /* Buttons styling */
@@ -359,7 +349,7 @@ hr {
     flex: 1; /* Allow #Right to grow */
     padding: 50px;
     padding-top: 40px;
-    background-color: #e0e0e0;
+    background-color: #f0eeee;
     box-shadow: inset 10px 0px 20px rgba(0, 0, 0, 0.3);
     padding-bottom: 5px;
     padding-left: 3rem;
