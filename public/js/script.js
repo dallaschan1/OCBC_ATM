@@ -145,6 +145,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
+<<<<<<< HEAD
 // // data leak 
 // function showDataLeakWarning() {
 //     document.getElementById('data-leak-warning').style.display = 'flex';
@@ -159,3 +160,19 @@ document.addEventListener("DOMContentLoaded", function() {
 
 // // Show data leak warning after 3 seconds
 // setTimeout(showDataLeakWarning, 3000);
+=======
+// data leak 
+function showDataLeakWarning() {
+    document.getElementById('data-leak-warning').style.display = 'flex';
+}
+
+
+
+function dismissWarning() {
+    // Hide the warning modal without further action
+    document.getElementById('data-leak-warning').style.display = 'none';
+}
+
+// Show data leak warning after 3 seconds
+setTimeout(showDataLeakWarning, 3000);
+>>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d

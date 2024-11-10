@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Keyboard Layout</title>
+    <link rel="stylesheet" href="../css/normalise.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs" type="module"></script>
+</head>
+<style>
+    body {
+        align-items: center;
+        background-color: #f0eeee; /* Light grey background */
+    }
+
+</style>
+<body>
+    <div class="keyboard-container">
+        <!-- Header Section -->
+        <div class="header">
+            <button class="back-button" onclick="history.back()">← Back</button>
+            <h1>Enter your NRIC:</h1>
+            <div class="Exit">
+                <img src="../images/Exit.png" height="115px" width="100%" id="exit-button" style="cursor:pointer;">
+            </div>
+        </div>
+        
+        <!-- Input Section -->
+        <div class="input-section">
+            <input type="text" id="inputField" readonly maxlength="9">
+            <button class="clear-button" onclick="clearInput()">×</button>
+        </div>
+        
+        <!-- Custom Keypad with the updated layout -->
+        <div class="keypad">
+            <!-- Row 1 (Numbers 1-0) -->
+            <div class="row row-1">
+                <button class="key-button" onclick="addCharacter('1')">1</button>
+                <button class="key-button" onclick="addCharacter('2')">2</button>
+                <button class="key-button" onclick="addCharacter('3')">3</button>
+                <button class="key-button" onclick="addCharacter('4')">4</button>
+                <button class="key-button" onclick="addCharacter('5')">5</button>
+                <button class="key-button" onclick="addCharacter('6')">6</button>
+                <button class="key-button" onclick="addCharacter('7')">7</button>
+                <button class="key-button" onclick="addCharacter('8')">8</button>
+                <button class="key-button" onclick="addCharacter('9')">9</button>
+                <button class="key-button" onclick="addCharacter('0')">0</button>
+            </div>
+            
+            <!-- Row 2 (Letters Q-P) -->
+            <div class="row row-2">
+                <button class="key-button" onclick="addCharacter('Q')">Q</button>
+                <button class="key-button" onclick="addCharacter('W')">W</button>
+                <button class="key-button" onclick="addCharacter('E')">E</button>
+                <button class="key-button" onclick="addCharacter('R')">R</button>
+                <button class="key-button" onclick="addCharacter('T')">T</button>
+                <button class="key-button" onclick="addCharacter('Y')">Y</button>
+                <button class="key-button" onclick="addCharacter('U')">U</button>
+                <button class="key-button" onclick="addCharacter('I')">I</button>
+                <button class="key-button" onclick="addCharacter('O')">O</button>
+                <button class="key-button" onclick="addCharacter('P')">P</button>
+            </div>
+            
+            <!-- Row 3 (Letters A-L + Backspace) -->
+            <div class="row row-3">
+                <button class="key-button" onclick="addCharacter('A')">A</button>
+                <button class="key-button" onclick="addCharacter('S')">S</button>
+                <button class="key-button" onclick="addCharacter('D')">D</button>
+                <button class="key-button" onclick="addCharacter('F')">F</button>
+                <button class="key-button" onclick="addCharacter('G')">G</button>
+                <button class="key-button" onclick="addCharacter('H')">H</button>
+                <button class="key-button" onclick="addCharacter('J')">J</button>
+                <button class="key-button" onclick="addCharacter('K')">K</button>
+                <button class="key-button" onclick="addCharacter('L')">L</button>
+                <button class="key-button backspace-button" onclick="removeLastCharacter()">Backspace</button>
+            </div>
+            
+            <!-- Row 4 (Letters Z-M + Enter) -->
+            <div class="row row-4">
+                <button class="key-button" onclick="addCharacter('Z')">Z</button>
+                <button class="key-button" onclick="addCharacter('X')">X</button>
+                <button class="key-button" onclick="addCharacter('C')">C</button>
+                <button class="key-button" onclick="addCharacter('V')">V</button>
+                <button class="key-button" onclick="addCharacter('B')">B</button>
+                <button class="key-button" onclick="addCharacter('N')">N</button>
+                <button class="key-button" onclick="addCharacter('M')">M</button>
+                <button class="key-button enter-button" onclick="submitInput()">Enter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exit confirmation modal (initially hidden) -->
+    <div id="exit-confirmation">
+        <div class="modal-content">
+            <h1>Are you sure you want to exit?</h1>
+            <p>Please confirm if you want to leave the ATM session.</p>
+            <div class="button-container"> <!-- New container for buttons -->
+                <button class="modal-button confirm" onclick="confirmExit()">Yes, Exit</button>
+                <button class="modal-button cancel" onclick="cancelExit()">No, Return</button>
+            </div>
+            
+            <!-- Loading animation container -->
+            <div id="loading-animation">
+                <dotlottie-player src="https://lottie.host/0dfa1e33-853b-4246-927a-8b6b2283449f/lKsMBsVSo2.json" background="transparent" speed="1" style="width: 100px; height: 100px;" loop autoplay></dotlottie-player>
+                <p style="margin-top: 10px; font-size: 18px; color: #555;">Exiting...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/script.js" defer></script>
+</body>
+</html>

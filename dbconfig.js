@@ -8,4 +8,9 @@ module.exports = {
       port: 1433, // Default SQL Server port
       connectionTimeout: 60000, // Connection timeout in milliseconds
     },
+<<<<<<< HEAD
   };
+=======
+  };
+  
+>>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d

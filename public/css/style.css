@@ -16,7 +16,10 @@ body, html {
     width: 120px; /* Adjust size as needed */
     height: auto;
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
 /* Container styling */
 .container {
     text-align: center;
@@ -167,6 +170,20 @@ hr {
     color: #FFF;
 }
 
+<<<<<<< HEAD
+=======
+.cancel-button {
+    background-color: #FF6B6B;
+}
+
+.clear-button {
+    background-color: #FFD93D; 
+}
+
+.enter-button {
+    background-color: #6BCB77; 
+}
+>>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
 
 .action-button:hover {
     opacity: 0.8;
@@ -187,7 +204,11 @@ hr {
     align-items: center;
 }
 
+<<<<<<< HEAD
 .back-button, .exit-button{
+=======
+.back-button, .exit-button {
+>>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
     background: none;
     border: none;
     font-size: 18px;
@@ -200,7 +221,11 @@ hr {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
+<<<<<<< HEAD
     width: 92%;
+=======
+    width: 100%;
+>>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
 }
 
 #inputField {
@@ -218,7 +243,11 @@ hr {
     border: none;
     font-size: 20px;
     cursor: pointer;
+<<<<<<< HEAD
     margin-left: 40px;
+=======
+    margin-left: 10px;
+>>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
     color: #999;
 }
 
@@ -251,7 +280,11 @@ hr {
 }
 
 .row-4 {
+<<<<<<< HEAD
     grid-template-columns: repeat(8, 1fr) ; /* 8 keys + wider Enter */
+=======
+    grid-template-columns: repeat(8, 1fr) 2fr; /* 8 keys + wider Enter */
+>>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
 }
 
 /* Buttons styling */
@@ -287,7 +320,12 @@ hr {
 #Left {
     width: 45%;
     padding-left: 50px;
+<<<<<<< HEAD
     padding-top: 60px;
+=======
+
+    padding-top: 20px;
+>>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
     display: flex;
     flex-direction: column;
     align-items: flex-start; /* Align contents to the left */
@@ -296,9 +334,16 @@ hr {
 
 #Left h1 {
     text-align: left; /* Align text to the left */
+<<<<<<< HEAD
     margin-bottom: 20px;
     width: 600px; /* Ensure the heading takes full width */
     padding-left: 10px; /* Optional: add some padding to match alignment */
+=======
+    
+    width: 100%; /* Ensure the heading takes full width */
+    padding-left: 10px; /* Optional: add some padding to match alignment */
+    margin-top: 20px;
+>>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
 }
 
 #Cash-Container {
@@ -306,7 +351,11 @@ hr {
     flex-direction: column;
     height: auto;
     width: 85%;
+<<<<<<< HEAD
     margin-top: 50px;
+=======
+    margin-top: 30px;
+>>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
  
 }
 
@@ -348,9 +397,14 @@ hr {
 #Right {
     flex: 1; /* Allow #Right to grow */
     padding: 50px;
+<<<<<<< HEAD
     padding-top: 40px;
     background-color: #f0eeee;
     box-shadow: inset 10px 0px 20px rgba(0, 0, 0, 0.3);
+=======
+    padding-top: 0;
+    background-color: #F6EDED;
+>>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
     padding-bottom: 5px;
     padding-left: 3rem;
     width: 100rem;
@@ -368,7 +422,11 @@ hr {
 }
 
 #other-services-container {
+<<<<<<< HEAD
     margin-top:80px; /* Space above the container */
+=======
+    margin-top:20px; /* Space above the container */
+>>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
 }
 #other-services-container h1{
     margin-bottom: 17px; /* Space above the container */

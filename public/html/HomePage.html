@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<<<<<<< HEAD
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -167,10 +168,146 @@
     <!-- Warning message initially hidden -->
     <div id="shoulder-surfing-warning" style="display: none">
       <h2>⚠️ Potential Shoulder Surfing Detected</h2>
+=======
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+    <link rel="stylesheet" href="../css/normalise.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs" type="module"></script>
+    <script defer src="../js/face-api.min.js"></script>
+    <script defer src="../js/b.js"></script>
+    
+    <style>
+        
+        #exit-confirmation {
+            display: none; 
+            justify-content: center; 
+            align-items: center;
+            flex-direction: column;
+            position: fixed; 
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7); 
+            z-index: 1000; /* Ensure it appears above other content */
+        }
+        .modal-content {
+            background: white; /* Modal background */
+            padding: 20px; /* Modal padding */
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Box shadow for depth */
+            text-align: center; /* Center text */
+        }
+        #loading-animation {
+            display: none; /* Initially hidden */
+            justify-content: center; 
+            align-items: center; 
+            height: 100px; /* Adjust the height if needed */
+            margin-top: 20px; /* Space above the loading animation */
+        }
+        #Alert{
+            padding: 0;
+            margin: 0;
+            
+            width: 90%;
+            background-color: transparent;
+            color: transparent;
+        }
+        #Alert.active {
+        background-color: red;
+        color: black;
+        border-color: black;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="Left">
+        <div id = "Alert">
+            <h3>Shoulder Surfing Warning!</h3>
+        </div>
+        <h1 style="color: #8F8C8C; ">Hello!<br>What would you like to do today?</h1>
+        <div id="Cash-Container">
+            <h1>Get Cash</h1>
+            <div id="Top">
+                <div class="Cash-Holder"><h3>$50</h3></div>
+                <div class="Cash-Holder"><h3>$80</h3></div>
+            </div>
+            <div id="Middle">
+                <div class="Cash-Holder"><h3>$100</h3></div>
+                <div class="Cash-Holder"><h3>$200</h3></div>
+            </div>
+            <div id="Bottom">
+                <h3>Other Cash Amount</h3>
+            </div>
+        </div>
+    </div>
+    <div id="Right">
+        <div class="Top-container">
+            <div class="Camera">
+                <div class="video-wrapper">
+                  <video id="video" class="circular-video" autoplay muted></video>
+                </div>
+              </div>
+              
+            <div class="Exit">
+                <img src="../images/Exit.png" height="115px" width="100%" id="exit-button" style="cursor:pointer;">
+            </div>
+        </div>
+
+        <div id="other-services-container">
+            <h1>Other Services</h1>
+            <div class="services-row">
+                <div class="Other-Service-Holder" id="Deposit-Cash"> 
+                    <img src="../images/AccountBalanceImage.png" alt="Deposit Cash" class="service-image">
+                    <h3>Deposit Cash</h3>
+                </div>
+                <div class="Other-Service-Holder" id="Account-Balance">
+                    <img src="../images/depositCashImage.png" alt="Account Balance" class="service-image">
+                    <h3>Account Balance</h3>
+                </div>
+            </div>
+            <h4 class="more-services"><a href="/More-options">More Services ></a></h4>
+        </div>
+        
+        <!-- Voice Assistant Section -->
+        <div id="voice-assistant">
+            <div class="voice-assistant-content">
+                <div id="test">
+                    <div id="waveformContainer">
+                        <canvas id="waveform"></canvas>
+                    </div>
+                    <div id="microphoneContainer">
+                        <img src="../images/microphone.png" alt="Voice Assistant" class="voice-image">
+                    </div>
+                </div>
+                <div class="voice-assistant-header">
+                    <h3>Voice Assistant</h3>
+                    <div class="toggle-container">
+                        <label class="switch">
+                            <input type="checkbox" id="voice-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Warning message initially hidden -->
+    <div id="shoulder-surfing-warning" style="display: none;">
+        <h2>⚠️ Potential Shoulder Surfing Detected</h2>
+>>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
     </div>
 
     <!-- Exit confirmation modal (initially hidden) -->
     <div id="exit-confirmation">
+<<<<<<< HEAD
       <div class="modal-content">
         <h1>Are you sure you want to exit?</h1>
         <p>Please confirm if you want to leave the ATM session.</p>
@@ -218,4 +355,35 @@
 
     <script src="../js/session.js"></script>
   </body>
+=======
+        <div class="modal-content">
+            <h1>Are you sure you want to exit?</h1>
+            <p>Please confirm if you want to leave the ATM session.</p>
+            <div class="button-container"> <!-- New container for buttons -->
+                <button class="modal-button confirm" onclick="confirmExit()">Yes, Exit</button>
+                <button class="modal-button cancel" onclick="cancelExit()">No, Return</button>
+            </div>
+            
+            <!-- Loading animation container -->
+            <div id="loading-animation">
+                <dotlottie-player src="https://lottie.host/0dfa1e33-853b-4246-927a-8b6b2283449f/lKsMBsVSo2.json" background="transparent" speed="1" style="width: 100px; height: 100px;" loop autoplay></dotlottie-player>
+                <p style="margin-top: 10px; font-size: 18px; color: #555;">Exiting...</p>
+            </div>
+        </div>
+    </div>
+    <div id="data-leak-warning">
+        <div class="modal-content">
+            <h1>⚠️ Data Leak Detected</h1>
+            <p>Please be wary of any suspicious emails or calls that you may receive</p>
+            <div class="button-container">
+                <button class="modal-button cancel" onclick="dismissWarning()">Noted</button>
+            </div>
+        </div>
+    </div>
+    <script src="../js/script.js" defer></script>
+    <script src = "../js/HomePage.js"></script>
+    
+    <script src="../js/session.js"></script>
+</body>
+>>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
 </html>

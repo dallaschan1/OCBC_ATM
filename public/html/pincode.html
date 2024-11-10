@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<<<<<<< HEAD
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -68,4 +69,52 @@
     </div>
     <script src="../js/script.js"></script>
   </body>
+=======
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIN Pad</title>
+    <link rel="stylesheet" href="../css/normalise.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<style>
+    body {
+        align-items: center;
+        background-color: #f0eeee; /* Light grey background */
+    }
+</style>
+<body>
+    <img src="../images/OcbcLogo.png" alt="Logo" class="logo">
+    <div class="pinpad-container">
+        <!-- Display for entered PIN with Checkbox inside -->
+        <div class="pin-display-container">
+            <div class="pin-display" id="pinDisplay"></div>
+            <input type="checkbox" id="showPinCheckbox" onchange="togglePinVisibility()">
+        </div>
+        <hr>
+        <!-- \PIN Pad buttons -->
+        <div class="pinpad-grid">
+            <button class="pin-button" onclick="addDigit('1')">1</button>
+            <button class="pin-button" onclick="addDigit('2')">2</button>
+            <button class="pin-button" onclick="addDigit('3')">3</button>
+            <button class="action-button cancel-button" onclick="cancelInput()">Cancel</button>
+            
+            <button class="pin-button" onclick="addDigit('4')">4</button>
+            <button class="pin-button" onclick="addDigit('5')">5</button>
+            <button class="pin-button" onclick="addDigit('6')">6</button>
+            <button class="action-button clear-button" onclick="clearInput()">Clear</button>
+            
+            <button class="pin-button" onclick="addDigit('7')">7</button>
+            <button class="pin-button" onclick="addDigit('8')">8</button>
+            <button class="pin-button" onclick="addDigit('9')">9</button>
+            <button class="action-button enter-button" onclick="enterPin()">Enter</button>
+            
+            <button class="pin-button" onclick="addDigit('*')">*</button>
+            <button class="pin-button" onclick="addDigit('0')">0</button>
+            <button class="pin-button" onclick="addDigit('#')">#</button>
+        </div>
+    </div>
+    <script src="../js/script.js"></script>
+</body>
+>>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
 </html>
