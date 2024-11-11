@@ -7,6 +7,8 @@ const cors = require('cors');
 const { sendFcmMessage } = require('./controllers/fcmController')
 const { registerUser, nricCheck, notifySuccess, login, handleDeductBalance, storeWebToken, getWebToken, removeWebToken, getId,findUserByNameOrPhone } = require('./controllers/userController');
 const chatbot = require("./controllers/chatBotController.js");
+const { adminlogin } = require("./controllers/adminController.js");
+const { fetchATMs,handleATMStatusUpdate, handleUserSuspicionUpdate,getUserSuspicion } = require("./controllers/atmController.js");
 const axios = require('axios');
 const {loginUserByFace, updateUserFace} = require("./models/facialModel.js");
 const { PythonShell } = require('python-shell');
@@ -256,6 +258,26 @@ app.post('/check-suspicion', async (req, res) => {
 app.get('/transfer', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/html/transfer-fund.html'))
 })
+
+app.post('/admin-login', adminlogin);
+
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/admin.html'))
+})
+
+app.get('/adminHome', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/adminHome.html'))
+})
+
+app.get('/atms', fetchATMs);
+
+app.post('/update-atm-status', handleATMStatusUpdate);
+app.post('/update-user-suspicion', handleUserSuspicionUpdate);
+app.post('/get-user-suspicion', getUserSuspicion);
+
+app.get('/feedback', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/feedback.html'))
+});
 
 //Facial Login
 app.get('/faceLogin', (req, res) => {

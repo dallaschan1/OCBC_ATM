@@ -135,7 +135,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // Redirect to login page after 3 seconds
         setTimeout(function() {
             console.log("Redirecting to login page."); // Debug message
-            window.location.href = 'login-page.html'; // Redirect to the login page
+            window.location.href = '/feedback'; // Redirect to the login page
         }, 3000);
     }
 
