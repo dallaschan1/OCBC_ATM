@@ -51,7 +51,7 @@ video.addEventListener('play', () => {
     const resizedDetections = faceapi.resizeResults(detections, displaySize);
 
     // Show alert if more than one person is detected
-    if (resizedDetections.length > 1) {
+    if (resizedDetections.length == 0) {
       alertBox.classList.add('active');
     } else {
       alertBox.classList.remove('active');

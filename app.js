@@ -289,6 +289,7 @@ app.post("/homePageChat", chatbot.startChatForHomePage);
 app.post("/fingerPrintChat", chatbot.startChatForFingerPrint);
 app.post("/loginPageChat", chatbot.startChatForLoginPage);
 app.post("/moreServicesChat", chatbot.startChatForMoreServices);
+app.post("/transferFund", chatbot.startChatForTransferFund);
 
 app.post('/PasswordLogin', Password.login);
 app.post('/withdraw', Withdraw.withdraw);
