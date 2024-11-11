@@ -285,7 +285,10 @@ app.get('/faceLogin', (req, res) => {
 })
 
 // Chatbot API
-app.post("/chat", chatbot.startChatForUser);
+app.post("/homePageChat", chatbot.startChatForHomePage);
+app.post("/fingerPrintChat", chatbot.startChatForFingerPrint);
+app.post("/loginPageChat", chatbot.startChatForLoginPage);
+app.post("/moreServicesChat", chatbot.startChatForMoreServices);
 
 app.post('/PasswordLogin', Password.login);
 app.post('/withdraw', Withdraw.withdraw);

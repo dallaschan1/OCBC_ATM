@@ -11,11 +11,7 @@ Promise.all([
 
 function startVideo() {
   navigator.getUserMedia(
-<<<<<<< HEAD
     { video: { width: 1280, height: 720} }, // Increase camera resolution for better detection
-=======
-    { video: { width: 1280, height: 720} }, 
->>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
     stream => video.srcObject = stream,
     err => console.error(err)
   );
@@ -53,20 +49,11 @@ video.addEventListener('play', () => {
       .withFaceExpressions();
 
     const resizedDetections = faceapi.resizeResults(detections, displaySize);
-<<<<<<< HEAD
 
     // Show alert if more than one person is detected
     if (resizedDetections.length > 1) {
       alertBox.classList.add('active');
     } else {
-=======
-    console.log(resizedDetections.length);
-    // Show alert if more than one person is detected
-    if (resizedDetections.length > 1) {
-      alertBox.classList.add('active');
-    }  
-    else {
->>>>>>> fb1ebe4ff84ee7a0da4a8d5a4a12eb07f93e450d
       alertBox.classList.remove('active');
     }
 

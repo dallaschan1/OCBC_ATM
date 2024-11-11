@@ -112,6 +112,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Biometric Authentication</title>
     <link rel="stylesheet" href="../css/fingerprint.css"></link>
+    <link rel="stylesheet" href="../css/chatbot.css"></link>
+    <link rel="stylesheet" href="../css/style.css"></link>
 </head>
 <body>
     <div class="card">
@@ -124,6 +126,32 @@
         </div>        
     </div>
 
+    <div id="voice-assistant">
+        <div class="voice-assistant-content">
+          <div id="test">
+            <div id="waveformContainer">
+              <canvas id="waveform"></canvas>
+            </div>
+            <div id="microphoneContainer">
+              <img
+                src="../images/microphone.png"
+                alt="Voice Assistant"
+                class="voice-image"
+              />
+            </div>
+          </div>
+          <div class="voice-assistant-header">
+            <h3>Voice Assistant</h3>
+            <div class="toggle-container">
+              <label class="switch">
+                <input type="checkbox" id="voice-toggle" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <script src="../js/session.js"></script>
     <script>
         document.getElementById('triggerButton').addEventListener('click', async () => {

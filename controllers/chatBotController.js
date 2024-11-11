@@ -1,63 +1,75 @@
-const geminiChatModel = require("../homePageGeminiChatConfig.js");
+const geminiChatModels = {
+    homePage: require("../homePageGeminiChatConfig.js"),
+    fingerPrint: require("../fingerPrintGeminiChatConfig.js"),
+    loginPage: require("../LoginPageGeminiConfig.js"),
+    moreServices: require("../more-servicesGeminiChatConfig.js"),
+};
 
-let history = [];
+let sharedHistory = [];
 
-async function startChatForUser(req, res) {
+async function startChat(req, res, modelKey) {
     let userChat = req.body.userInput;
+    let geminiChatModel = geminiChatModels[modelKey];
 
     try {
         let geminiChat;
-        console.log(history);
-        if (history.length > 0) {
-            
+        console.log(sharedHistory);
+        if (sharedHistory.length > 0) {
             geminiChat = geminiChatModel.startChat({
-                history: history,
+                history: sharedHistory,
             });
         } else {
-            
-            geminiChat = geminiChatModel.startChat({ 
-                history: [
-                    {
-                      role: "user",
-                      parts: [{ text: "Hello" }],
-                    },
-                    {
-                      role: "model",
-                      parts: [{ text: "Nice to meet you! What would you like to do today?" }],
-                    },
-                  ],
-            });
+            // Provide an initial history or leave it empty
+            geminiChat = geminiChatModel.startChat({ history: [] });
         }
-        
+
         let result = await geminiChat.sendMessageStream(userChat);
         let responseText = '';
-        for await (const chunk of result.stream){
+        for await (const chunk of result.stream) {
             const chunkText = chunk.text();
             process.stdout.write(chunkText);
-            responseText += chunkText
+            responseText += chunkText;
         }
-       
-  
 
         if (responseText !== '') {
-            history.push({
+            sharedHistory.push({
                 role: "user",
-                parts: [{text: userChat}], 
+                parts: [{ text: userChat }],
             });
-    
-            history.push({
+
+            sharedHistory.push({
                 role: "model",
-                parts: [{text: responseText}], 
+                parts: [{ text: responseText }],
             });
         }
-        
+
         return res.status(200).json({ responseText });
     } catch (error) {
-        console.error('Error starting chat for user:', error);
+        console.error('Error starting chat:', error);
         return res.status(500).json({ error: "Internal Server Error" });
     }
 }
 
+// Example route handlers
+async function startChatForHomePage(req, res) {
+    return startChat(req, res, 'homePage');
+}
+
+async function startChatForFingerPrint(req, res) {
+    return startChat(req, res, 'fingerPrint');
+}
+
+async function startChatForLoginPage(req, res) {
+    return startChat(req, res, 'loginPage');
+}
+
+async function startChatForMoreServices(req, res) {
+    return startChat(req, res, 'moreServices');
+}
+
 module.exports = {
-    startChatForUser,
+    startChatForHomePage,
+    startChatForFingerPrint,
+    startChatForLoginPage,
+    startChatForMoreServices,
 };
