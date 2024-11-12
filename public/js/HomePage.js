@@ -108,6 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
 
                     alert('Withdrawal successful');
+                    window.reload();
                 } catch (error) {
                     console.error('Withdrawal failed:', error);
                 }
