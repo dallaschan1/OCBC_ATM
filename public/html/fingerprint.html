@@ -174,19 +174,6 @@
 
             const nricData = await nricResponse.json();
 
-            const idResponse = await fetch('/getting-id', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ nric })
-            });
-
-            const idData = await idResponse.json();
-            console.log(idData);
-            const UserId = idData.UserID;
-            localStorage.setItem('UserId', UserId);
-
             if (nricResponse.ok) {
                 // If a token is found, get user location and send the message
                 const token = nricData.token;
@@ -230,12 +217,26 @@
 
         let authCheckInterval;
 
+        // Continuously check authentication status
         async function checkAuthStatus() {
             try {
                 const response = await fetch('/check-auth-status');
                 const data = await response.json();
                 
                 if (data.authenticated) {
+                    const nric = document.getElementById('nricInput').value.trim();
+                    const idResponse = await fetch(`/getting-id?nric=${encodeURIComponent(nric)}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const idData = await idResponse.json();
+                    console.log(idData);
+                    const UserId = idData.UserID;
+                    localStorage.setItem('UserId', UserId);
+
                     clearInterval(authCheckInterval);
                     window.location.href = '/Home';
                 }
@@ -244,6 +245,7 @@
             }
         }
 
+        // Start the interval to check auth status
         authCheckInterval = setInterval(checkAuthStatus, 2000);
     </script>
     <script src="../js/fingerPrintChatbot.js"></script>

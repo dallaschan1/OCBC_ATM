@@ -40,8 +40,28 @@ async function nricCheck(req, res) {
     }
 }
 
+// async function getId(req, res) {
+//     const { nric } = req.body;
+
+//     if (!nric) {
+//         return res.status(400).json({ error: "NRIC is required" });
+//     }
+
+//     try {
+//         const user = await findUserByNric(nric);
+//         if (user) {
+//             return res.status(200).json({ UserID: user.UserID }); // Return the token if found
+//         } else {
+//             return res.status(404).json({ error: "No id found" });
+//         }
+//     } catch (error) {
+//         console.error('Error checking NRIC:', error);
+//         return res.status(500).json({ error: "An error occurred while checking NRIC" });
+//     }
+// }
+
 async function getId(req, res) {
-    const { nric } = req.body;
+    const nric = req.query.nric;
 
     if (!nric) {
         return res.status(400).json({ error: "NRIC is required" });
@@ -49,10 +69,11 @@ async function getId(req, res) {
 
     try {
         const user = await findUserByNric(nric);
+
         if (user) {
-            return res.status(200).json({ UserID: user.UserID }); // Return the token if found
+            return res.status(200).json({ UserID: user.UserID });
         } else {
-            return res.status(404).json({ error: "No id found" });
+            return res.status(404).json({ error: "No ID found" });
         }
     } catch (error) {
         console.error('Error checking NRIC:', error);
