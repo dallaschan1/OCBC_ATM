@@ -1,3 +1,6 @@
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const dotenv = require("dotenv");
+dotenv.config();
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -12,7 +15,6 @@ const { fetchATMs,handleATMStatusUpdate, handleUserSuspicionUpdate,getUserSuspic
 const axios = require('axios');
 const {loginUserByFace, updateUserFace} = require("./models/facialModel.js");
 const { PythonShell } = require('python-shell');
-const env = require('dotenv').config();
 const API_KEY = process.env.GEMINI_API_KEY;
 const app = express();
 const PORT = 3001;
@@ -22,6 +24,9 @@ const fs = require('fs');
 const dbConfig = require("./dbconfig.js");
 const Password = require('./controllers/PasswordController');
 const Withdraw = require('./controllers/withdrawalController');
+
+const genAI = new GoogleGenerativeAI(API_KEY); // Replace with your actual API key
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 // Middleware setup
 app.use(bodyParser.json());
@@ -489,86 +494,133 @@ app.get('/get-transaction-data', (req, res) => {
   
     // Read CSV data
     fs.createReadStream(csvFilePath)
-    .pipe(csv())
-    .on('data', (row) => {
-        transactionData.push(row);
-    })
-    .on('end', () => {
-        res.json(transactionData); // Send all transaction data
-    });
+        .pipe(csv())
+        .on('data', (row) => {
+            transactionData.push(row);
+        })
+        .on('end', () => {
+            res.json(transactionData); // Send all transaction data
+        });
 });
 
-app.post('/get-financial-tips', (req, res) => {
+app.post('/get-financial-tips', async (req, res) => {
     const transactionData = req.body.transactions;
-    
-    const tips = generateFinancialTips(transactionData);
-    res.json({ tips });
+
+    // Constructing the prompt for generating tips with explanations
+    const prompt = createPromptFromTransactions(transactionData);
+
+    try {
+        // Call Gemini AI to generate financial tips
+        const result = await model.generateContent(prompt);
+        
+        // Clean the result: Remove asterisks and other markdown-style formatting
+        let tips = result.response.text().split('\n').filter(tip => tip.trim() !== ''); // Split by newlines and remove empty entries
+
+        // Remove the ** from each tip (for Markdown bold formatting)
+        tips = tips.map(tip => tip.replace(/\*\*/g, '').trim());
+
+        // Ensure we only return exactly 3 tips
+        tips = tips.slice(0, 3);
+
+        // Send the cleaned tips
+        res.json({ tips: tips });
+    } catch (error) {
+        console.error("Error fetching financial tips from Gemini AI:", error);
+        res.status(500).json({ error: "Error fetching financial tips" });
+    }
 });
 
-function generateFinancialTips(transactionData) {
+function createPromptFromTransactions(transactionData) {
+    let prompt = "Based on the transaction data, provide **exactly 3 brief financial tips**. Do not focus on specific areas like spending, income management, or saving, but provide general advice based on the overall situation. Include **short explanations**. Do not include any additional text or headers.\n";
+    
+    // Summarize the total income and outgoing
     let totalIncome = 0;
-    let totalExpenses = 0;
-    let tips = new Set(); // Use a Set to prevent duplicate tips
-
+    let totalOutgoing = 0;
+    
     transactionData.forEach(transaction => {
-      totalIncome += parseFloat(transaction.IncomingTransactionAmount || 0);
-      totalExpenses += parseFloat(transaction.OutgoingTransactionAmount || 0);
-
-      // Tip for late-night transactions
-      if (parseInt(transaction.TransactionTime.split(':')[0]) > 22) {
-        tips.add("You have late-night transactions. Try to avoid unnecessary purchases at night.");
-      }
-
-      // Tip based on high-value transactions
-      if (parseFloat(transaction.MaxIncomingAmount) > 1000) {
-        tips.add("You often receive large transactions. Ensure you are budgeting effectively.");
-      }
-
-      if (parseFloat(transaction.MaxOutgoingAmount) > 1000) {
-        tips.add("You are spending large amounts. Review your expenses to avoid overspending.");
-      }
+        totalIncome += parseFloat(transaction.IncomingTransactionAmount || 0);
+        totalOutgoing += parseFloat(transaction.OutgoingTransactionAmount || 0);
     });
 
-    // Analyze income vs expenses and add tips
-    if (totalExpenses > totalIncome) {
-      tips.add("You're spending more than you're earning. Consider reducing expenses and saving more.");
-    }
+    prompt += `Total Income: $${totalIncome.toFixed(2)}\n`;
+    prompt += `Total Outgoing: $${totalOutgoing.toFixed(2)}\n`;
 
-    // Additional tips based on your 5 requested tips:
-    // 1. Frequent Small Transactions
-    let smallTransactionCount = transactionData.filter(t => parseFloat(t.IncomingTransactionAmount || 0) < 100).length
-      + transactionData.filter(t => parseFloat(t.OutgoingTransactionAmount || 0) < 100).length;
+    // Request for general tips based on the overall financial situation
+    prompt += "\nGive me exactly 3 general financial tips based on this transaction data, considering the overall income and expenses.";
 
-    if (smallTransactionCount > 5) { // Threshold can be adjusted
-      tips.add("You often make small transactions. Consider consolidating them to save on fees or manage your budget more effectively.");
-    }
-
-    // 2. Unusual Frequency of Transactions (based on time)
-    let timeWindowInMinutes = 60; // Time window (in minutes) to check for unusual frequency (e.g., 60 minutes)
-    let transactionTimestamps = transactionData.map(transaction => new Date(transaction.TransactionDate).getTime());
-
-    // Sort transaction timestamps in ascending order
-    transactionTimestamps.sort((a, b) => a - b);
-
-    // Check the time difference between consecutive transactions
-    for (let i = 1; i < transactionTimestamps.length; i++) {
-    let timeDiffInMinutes = (transactionTimestamps[i] - transactionTimestamps[i - 1]) / (1000 * 60);
-    if (timeDiffInMinutes < timeWindowInMinutes) {
-        tips.add("You make a lot of transactions in a short period. Be mindful of your spending habits and track your spending frequency.");
-        break;
-    }
-    }
-
-    // 3. Regular Large Outgoing Transactions
-    let largeOutgoingCount = transactionData.filter(t => parseFloat(t.OutgoingTransactionAmount || 0) > 500).length;
-    if (largeOutgoingCount > 3) { // Adjust the count threshold as needed
-      tips.add("You regularly make large outgoing transactions. Ensure you have a clear purpose for these expenses, such as investment or savings.");
-    }
-
-    // Convert the Set to an array and return
-    return Array.from(tips);
+    return prompt;
 }
 
+// app.post('/get-financial-tips', (req, res) => {
+//     const transactionData = req.body.transactions;
+    
+//     const tips = generateFinancialTips(transactionData);
+//     res.json({ tips });
+// });
+
+// function generateFinancialTips(transactionData) {
+//     let totalIncome = 0; 
+//     let totalExpenses = 0;
+//     let tips = new Set(); // Use a Set to prevent duplicate tips
+
+//     transactionData.forEach(transaction => {
+//       totalIncome += parseFloat(transaction.IncomingTransactionAmount || 0);
+//       totalExpenses += parseFloat(transaction.OutgoingTransactionAmount || 0);
+
+//       // Tip for late-night transactions
+//       if (parseInt(transaction.TransactionTime.split(':')[0]) > 22) {
+//         tips.add("You have late-night transactions. Try to avoid unnecessary purchases at night.");
+//       }
+
+//       // Tip based on high-value transactions
+//       if (parseFloat(transaction.MaxIncomingAmount) > 1000) {
+//         tips.add("You often receive large transactions. Ensure you are budgeting effectively.");
+//       }
+
+//       if (parseFloat(transaction.MaxOutgoingAmount) > 1000) {
+//         tips.add("You are spending large amounts. Review your expenses to avoid overspending.");
+//       }
+//     });
+
+//     // Analyze income vs expenses and add tips
+//     if (totalExpenses > totalIncome) {
+//       tips.add("You're spending more than you're earning. Consider reducing expenses and saving more.");
+//     }
+
+//     // Additional tips based on your 5 requested tips:
+//     // 1. Frequent Small Transactions
+//     let smallTransactionCount = transactionData.filter(t => parseFloat(t.IncomingTransactionAmount || 0) < 100).length
+//       + transactionData.filter(t => parseFloat(t.OutgoingTransactionAmount || 0) < 100).length;
+
+//     if (smallTransactionCount > 5) { // Threshold can be adjusted
+//       tips.add("You often make small transactions. Consider consolidating them to save on fees or manage your budget more effectively.");
+//     }
+
+//     // 2. Unusual Frequency of Transactions (based on time)
+//     let timeWindowInMinutes = 60; // Time window (in minutes) to check for unusual frequency (e.g., 60 minutes)
+//     let transactionTimestamps = transactionData.map(transaction => new Date(transaction.TransactionDate).getTime());
+
+//     // Sort transaction timestamps in ascending order
+//     transactionTimestamps.sort((a, b) => a - b);
+
+//     // Check the time difference between consecutive transactions
+//     for (let i = 1; i < transactionTimestamps.length; i++) {
+//     let timeDiffInMinutes = (transactionTimestamps[i] - transactionTimestamps[i - 1]) / (1000 * 60);
+//     if (timeDiffInMinutes < timeWindowInMinutes) {
+//         tips.add("You make a lot of transactions in a short period. Be mindful of your spending habits and track your spending frequency.");
+//         break;
+//     }
+//     }
+
+//     // 3. Regular Large Outgoing Transactions
+//     let largeOutgoingCount = transactionData.filter(t => parseFloat(t.OutgoingTransactionAmount || 0) > 500).length;
+//     if (largeOutgoingCount > 3) { // Adjust the count threshold as needed
+//       tips.add("You regularly make large outgoing transactions. Ensure you have a clear purpose for these expenses, such as investment or savings.");
+//     }
+
+//     // Convert the Set to an array and return
+//     return Array.from(tips);
+// }
 
 app.get('/data-visual', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/html/data.html'));
