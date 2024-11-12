@@ -18,7 +18,7 @@ function startVideo() {
 }
 
 const options = new faceapi.SsdMobilenetv1Options({
-  minConfidence: 0.2,
+  minConfidence: 0.6,
   maxResults: 10
 });
 

@@ -161,9 +161,10 @@ hr {
 /* Action Buttons Styling */
 .action-button {
     font-size: 16px;
-    padding: 20px;
+    padding: 15px;
     font-weight: bold;
     color: #FFF;
+    border: none;
 }
 
 
@@ -215,10 +216,9 @@ hr {
 .clear-button {
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 16px;
     cursor: pointer;
-    margin-left: 40px;
-    color: #999;
+    color: #ffffff;
 }
 
 .clear-button:hover {

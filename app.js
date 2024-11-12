@@ -223,7 +223,7 @@ app.get('/More-Options', (req, res) => {
 // Crypto API
 app.post('/buyToken', async (req, res) => {
     const { userId, tokenSymbol, amount, price } = req.body;
-
+    console.log("Buy Token Request:", req.body);
     try {
         const pool = await sql.connect(dbConfig);
 
@@ -436,7 +436,7 @@ app.post('/transfer', async (req, res) => {
 
 app.get('/getTokens/:userId', async (req, res) => {
     const { userId } = req.params;
-
+    console.log("User ID:", userId);
     try {
         const pool = await sql.connect(dbConfig);
 
