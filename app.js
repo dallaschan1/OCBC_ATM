@@ -5,6 +5,7 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const admin = require('firebase-admin');
+const web3 = require('web3');
 const QRCode = require('qrcode');
 const cors = require('cors');
 const { sendFcmMessage } = require('./controllers/fcmController')
@@ -656,6 +657,182 @@ app.get('/download-pdf/:UserID', async (req, res) => {
       res.status(500).json({ message: 'Error fetching the PDF from the database.' });
     }
 });
+
+
+const web3 = new Web3('http://localhost:7545'); 
+
+
+const serverWalletAddress = '0x8AfeAD84bb47518900607036a6Ad1c8BFADBC24c'; 
+
+// Token contracts
+const tokenContracts = [
+    { address: '0x38D7a22A658D87d4c9a49A76E03Fdc7C97145f95', name: 'Bitcoin', symbol: 'BTC' },
+    { address: '0x0000000000000000000000000000000000000000', name: 'Ethereum', symbol: 'ETH' },
+    { address: '0xE7f3C353Cc0074C20bC8dDF098C58EAE365325bc', name: 'Tether', symbol: 'USDT' },
+    { address: '0x7Ff9732A5F83e803DA138277d83da20C5b6B4FEE', name: 'BinanceCoin', symbol: 'BNB' },
+    { address: '0x4c6FE8b13BE0b7540DFf2c863b7ad0d328C1CF5F', name: 'Cardano', symbol: 'ADA' },
+    { address: '0x8E552e48a568a868Ba6EC7A16441dBf9E84Da27c', name: 'Dogecoin', symbol: 'DOGE' },
+    { address: '0xcD5184827CDC53BAEa5782B86fBDb2ae07E3F636', name: 'Ripple', symbol: 'XRP' },
+    { address: '0x6250D0D50Ca98D98ac4c089F560Bd9943A2c24dE', name: 'Polkadot', symbol: 'DOT' },
+    { address: '0xEdf264da3ed4b8Cfc829c50D426764160C0a4B31', name: 'Chainlink', symbol: 'LINK' },
+    { address: '0x0d72C4C4C64B0de584C348f7A2e5AE720bf43Cf2', name: 'Litecoin', symbol: 'LTC' }
+];
+
+
+const erc20ABI = [
+    // balanceOf
+    {
+        "constant": true,
+        "inputs": [{ "name": "_owner", "type": "address" }],
+        "name": "balanceOf",
+        "outputs": [{ "name": "balance", "type": "uint256" }],
+        "type": "function"
+    },
+    // decimals
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "decimals",
+        "outputs": [{ "name": "", "type": "uint8" }],
+        "type": "function"
+    },
+    // symbol
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "symbol",
+        "outputs": [{ "name": "", "type": "string" }],
+        "type": "function"
+    },
+    // transfer
+    {
+        "constant": false,
+        "inputs": [
+            { "name": "_to", "type": "address" },
+            { "name": "_value", "type": "uint256" }
+        ],
+        "name": "transfer",
+        "outputs": [{ "name": "", "type": "bool" }],
+        "type": "function"
+    }
+];
+
+app.post('/receive', async (req, res) => {
+    const { walletAddress, amount, tokenName } = req.body;
+
+    
+    if (!web3.utils.isAddress(walletAddress)) {
+        return res.status(400).json({ message: 'Invalid wallet address' });
+    }
+
+    if (!amount || isNaN(amount) || amount <= 0) {
+        return res.status(400).json({ message: 'Invalid amount' });
+    }
+
+   
+    const token = tokenContracts.find(t => t.name.toLowerCase() === tokenName.toLowerCase());
+    if (!token) {
+        return res.status(400).json({ message: 'Token not found' });
+    }
+
+   
+    if (token.address === '0x0000000000000000000000000000000000000000') {
+        try {
+            const weiAmount = web3.utils.toWei(amount.toString(), 'ether');
+
+          
+            const serverBalanceBefore = await web3.eth.getBalance(serverWalletAddress);
+
+           
+            const senderBalance = await web3.eth.getBalance(walletAddress);
+            const serverBalance = await web3.eth.getBalance(serverWalletAddress);
+
+            
+            const receivedAmount = web3.utils.toBN(serverBalance).sub(web3.utils.toBN(serverBalanceBefore));
+
+            if (!receivedAmount.eq(web3.utils.toBN(weiAmount))) {
+                return res.status(400).json({ message: 'No matching ETH transaction found' });
+            }
+
+            
+            await updateOCBCWallet('ETH', amount);
+
+            res.status(200).json({ message: 'ETH received and balance updated' });
+
+        } catch (error) {
+            console.error('Error processing ETH receive:', error);
+            res.status(500).json({ message: 'Internal server error' });
+        }
+        return;
+    }
+
+    const tokenContract = new web3.eth.Contract(erc20ABI, token.address);
+
+    try {
+      
+        const decimals = await tokenContract.methods.decimals().call();
+
+       
+        const tokenAmount = web3.utils.toBN(amount).mul(web3.utils.toBN(10).pow(web3.utils.toBN(decimals)));
+
+        
+        const serverTokenBalanceBefore = await tokenContract.methods.balanceOf(serverWalletAddress).call();
+        const senderTokenBalanceBefore = await tokenContract.methods.balanceOf(walletAddress).call();
+
+        
+
+       
+        const serverTokenBalanceAfter = await tokenContract.methods.balanceOf(serverWalletAddress).call();
+
+        
+        const receivedTokenAmount = web3.utils.toBN(serverTokenBalanceAfter).sub(web3.utils.toBN(serverTokenBalanceBefore));
+
+        if (!receivedTokenAmount.eq(tokenAmount)) {
+            return res.status(400).json({ message: 'No matching token transfer found' });
+        }
+
+       
+        await updateOCBCWallet(token.symbol, amount);
+
+        res.status(200).json({ message: 'Token received and balance updated' });
+
+    } catch (error) {
+        console.error('Error processing token receive:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Function to update the OCBCWallet balance
+async function updateOCBCWallet(tokenSymbol, amount) {
+    try {
+        const pool = await sql.connect(dbConfig);
+
+        
+        const walletResult = await pool.request()
+            .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+            .query('SELECT Balance FROM OCBCWallet WHERE TokenSymbol = @tokenSymbol');
+
+        if (walletResult.recordset.length === 0) {
+            
+            await pool.request()
+                .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+                .input('newBalance', sql.Decimal(18, 8), amount)
+                .query('INSERT INTO OCBCWallet (TokenSymbol, Balance) VALUES (@tokenSymbol, @newBalance)');
+        } else {
+           
+            const currentBalance = parseFloat(walletResult.recordset[0].Balance);
+            const newBalance = currentBalance + parseFloat(amount);
+
+            await pool.request()
+                .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+                .input('newBalance', sql.Decimal(18, 8), newBalance)
+                .query('UPDATE OCBCWallet SET Balance = @newBalance WHERE TokenSymbol = @tokenSymbol');
+        }
+    } catch (error) {
+        throw error;
+    }
+}
+
 
 // Start the server
 app.listen(PORT,'0.0.0.0', () => {
