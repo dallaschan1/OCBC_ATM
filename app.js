@@ -21,15 +21,17 @@ const PORT = 3001;
 const sql = require('mssql');
 const csv = require('csv-parser');
 const fs = require('fs');
+const multer = require('multer');
 const dbConfig = require("./dbconfig.js");
 const Password = require('./controllers/PasswordController');
 const Withdraw = require('./controllers/withdrawalController');
+const dbconfig = require('./dbconfig.js');
 
 const genAI = new GoogleGenerativeAI(API_KEY); // Replace with your actual API key
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 // Middleware setup
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 
@@ -551,81 +553,109 @@ function createPromptFromTransactions(transactionData) {
     return prompt;
 }
 
-// app.post('/get-financial-tips', (req, res) => {
-//     const transactionData = req.body.transactions;
-    
-//     const tips = generateFinancialTips(transactionData);
-//     res.json({ tips });
-// });
-
-// function generateFinancialTips(transactionData) {
-//     let totalIncome = 0; 
-//     let totalExpenses = 0;
-//     let tips = new Set(); // Use a Set to prevent duplicate tips
-
-//     transactionData.forEach(transaction => {
-//       totalIncome += parseFloat(transaction.IncomingTransactionAmount || 0);
-//       totalExpenses += parseFloat(transaction.OutgoingTransactionAmount || 0);
-
-//       // Tip for late-night transactions
-//       if (parseInt(transaction.TransactionTime.split(':')[0]) > 22) {
-//         tips.add("You have late-night transactions. Try to avoid unnecessary purchases at night.");
-//       }
-
-//       // Tip based on high-value transactions
-//       if (parseFloat(transaction.MaxIncomingAmount) > 1000) {
-//         tips.add("You often receive large transactions. Ensure you are budgeting effectively.");
-//       }
-
-//       if (parseFloat(transaction.MaxOutgoingAmount) > 1000) {
-//         tips.add("You are spending large amounts. Review your expenses to avoid overspending.");
-//       }
-//     });
-
-//     // Analyze income vs expenses and add tips
-//     if (totalExpenses > totalIncome) {
-//       tips.add("You're spending more than you're earning. Consider reducing expenses and saving more.");
-//     }
-
-//     // Additional tips based on your 5 requested tips:
-//     // 1. Frequent Small Transactions
-//     let smallTransactionCount = transactionData.filter(t => parseFloat(t.IncomingTransactionAmount || 0) < 100).length
-//       + transactionData.filter(t => parseFloat(t.OutgoingTransactionAmount || 0) < 100).length;
-
-//     if (smallTransactionCount > 5) { // Threshold can be adjusted
-//       tips.add("You often make small transactions. Consider consolidating them to save on fees or manage your budget more effectively.");
-//     }
-
-//     // 2. Unusual Frequency of Transactions (based on time)
-//     let timeWindowInMinutes = 60; // Time window (in minutes) to check for unusual frequency (e.g., 60 minutes)
-//     let transactionTimestamps = transactionData.map(transaction => new Date(transaction.TransactionDate).getTime());
-
-//     // Sort transaction timestamps in ascending order
-//     transactionTimestamps.sort((a, b) => a - b);
-
-//     // Check the time difference between consecutive transactions
-//     for (let i = 1; i < transactionTimestamps.length; i++) {
-//     let timeDiffInMinutes = (transactionTimestamps[i] - transactionTimestamps[i - 1]) / (1000 * 60);
-//     if (timeDiffInMinutes < timeWindowInMinutes) {
-//         tips.add("You make a lot of transactions in a short period. Be mindful of your spending habits and track your spending frequency.");
-//         break;
-//     }
-//     }
-
-//     // 3. Regular Large Outgoing Transactions
-//     let largeOutgoingCount = transactionData.filter(t => parseFloat(t.OutgoingTransactionAmount || 0) > 500).length;
-//     if (largeOutgoingCount > 3) { // Adjust the count threshold as needed
-//       tips.add("You regularly make large outgoing transactions. Ensure you have a clear purpose for these expenses, such as investment or savings.");
-//     }
-
-//     // Convert the Set to an array and return
-//     return Array.from(tips);
-// }
-
 app.get('/data-visual', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/html/data.html'));
 });
 
+const storage = multer.memoryStorage();  // Storing files in memory for easy processing
+const upload = multer({ storage: storage });
+
+// Save the PDF to the database
+app.post('/save-pdf', upload.single('pdf'), async (req, res) => {
+    try {
+      const { UserID } = req.body;  // UserID still comes from the form data
+      const pdf = req.file;  // The PDF file sent as form data
+  
+      if (!UserID || !pdf) {
+        return res.status(400).json({ message: 'UserID and PDF are required.' });
+      }
+  
+      // Now pdf.buffer contains the PDF binary data from the Blob
+      const buffer = pdf.buffer;
+  
+      // Establish a database connection
+      const pool = await sql.connect(dbconfig);
+  
+      // Create the query to insert the PDF into the UserReports table
+      const query = `
+        INSERT INTO [dbo].[UserReports] (UserID, ReportName, ReportData)
+        VALUES (@UserID, @ReportName, @ReportData);
+      `;
+  
+      // Prepare the query parameters
+      await pool.request()
+        .input('UserID', sql.Int, UserID)
+        .input('ReportName', sql.VarChar, 'Financial Dashboard Report') // You can customize this if needed
+        .input('ReportData', sql.VarBinary, buffer)
+        .query(query);
+  
+      // Close the database connection
+      pool.close();
+  
+      // Respond with a success message
+      res.status(200).json({ message: 'PDF saved successfully!' });
+    } catch (error) {
+      console.error('Error saving PDF:', error);
+      res.status(500).json({ message: 'Error saving the PDF to the database.' });
+    }
+});  
+
+
+app.get('/download-pdf/:UserID', async (req, res) => {
+    const { UserID } = req.params;
+  
+    try {
+      // Establish a database connection
+      const pool = await sql.connect(dbconfig);
+  
+      // Corrected query to fetch the most recent PDF for the given UserID
+      const query = `SELECT TOP 1 ReportData, ReportName FROM [dbo].[UserReports] WHERE UserID = @UserID ORDER BY ReportID DESC;`;
+  
+      // Get the report from the database
+      const result = await pool.request()
+        .input('UserID', sql.Int, UserID)
+        .query(query);
+  
+      // Check if the report exists
+      if (result.recordset.length > 0) {
+        const report = result.recordset[0];
+  
+        // Check if the response has already been sent
+        if (res.headersSent) {
+          console.log('Response has already been sent.');
+          return;
+        }
+  
+        // Set the correct content type for a PDF file
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${report.ReportName}.pdf"`);
+        console.log(report.ReportData);
+  
+        // Send the PDF file (as binary data) to the client
+        res.send(report.ReportData);
+      } else {
+        if (res.headersSent) {
+          console.log('Response has already been sent.');
+          return;
+        }
+  
+        res.status(404).json({ message: 'PDF not found for this user.' });
+      }
+  
+      // Close the database connection
+      pool.close();
+      
+    } catch (error) {
+      // If the response has already been sent, don't send another one
+      if (res.headersSent) {
+        console.log('Response has already been sent due to an error.');
+        return;
+      }
+  
+      console.error('Error downloading PDF:', error);
+      res.status(500).json({ message: 'Error fetching the PDF from the database.' });
+    }
+});
 
 // Start the server
 app.listen(PORT,'0.0.0.0', () => {

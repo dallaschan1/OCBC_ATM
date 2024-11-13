@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Financial Dashboard</title>
+  <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     /* Layout adjustments for 2x2 grid */
     body {
@@ -96,22 +96,9 @@
     h1 {
       color: white;
     }
-    #qrcodeModal {
-      display: none;
-      background-color: rgba(0, 0, 0, 0.5);
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      justify-content: center;
-      align-items: center;
-    }
 
-    #qrcode {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
+    #qrCodeContainer {
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -164,11 +151,13 @@
     <ul id="financialTips"></ul>
   </div>
 
-  <button id="generateQRCodeButton">Generate QR Code to Download Report</button>
+  <button id="generatePdfButton" style="margin: 20px; padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer;">
+    Generate PDF Report
+  </button>
 
-  <div id="qrcodeModal" style="display:none;">
+  <div id="qrCodeContainer">
+    <h3>Scan QR Code to Download PDF</h3>
     <div id="qrcode"></div>
-    <button id="closeModalButton">Close</button>
   </div>
 
   <script>
@@ -347,56 +336,100 @@
       financialTipsModal.classList.toggle('open'); // Toggle the 'open' class to show/hide the modal
     });
 
-    // Function to generate PDF of the dashboard
-    function generateReport() {
-      const element = document.body; // You can adjust this to select a specific part of the page
-      html2pdf()
-        .from(element)
-        .save('financial_dashboard_report.pdf'); // This saves the file in the user's browser
-    }
+    // Existing event listener for generating the PDF
+    document.getElementById('generatePdfButton').addEventListener('click', async () => {
+      const { jsPDF } = window.jspdf; // Access jsPDF from the global object
 
-    function uploadReport(pdfData) {
-      const formData = new FormData();
-      formData.append('file', pdfData, 'financial_dashboard_report.pdf');
-      
-      // Replace this with the actual API endpoint to upload the PDF
-      fetch('/upload-pdf', {
-        method: 'POST',
-        body: formData,
-      })
-      .then(response => response.json())
-      .then(data => {
-        // This should return a URL to the uploaded PDF
-        console.log("Uploaded PDF URL:", data.url);
-        generateQRCode(data.url); // Now we can generate the QR code with the URL of the uploaded file
-      })
-      .catch(error => console.error("Error uploading PDF:", error));
-    }
+      const pdf = new jsPDF();
+      const pageWidth = pdf.internal.pageSize.width;  // Page width
+      const pageHeight = pdf.internal.pageSize.height; // Page height
 
-    
-    // Function to generate QR Code for downloading the report
-    function generateQRCode() {
-      const downloadURL = 'path_to_your_report.pdf'; // Replace this with the actual URL where the PDF is stored
-      QRCode.toDataURL(downloadURL, function (err, url) {
-        if (err) {
-          console.error("Error generating QR code:", err);
-        } else {
-          // Display the QR code in the modal
-          document.getElementById('qrcode').innerHTML = `<img src="${url}" alt="QR Code" />`;
-        }
+      // Title for the PDF
+      pdf.setFontSize(18);
+      pdf.text('Financial Dashboard Report', 10, 20);
+
+      // Section: Financial Tips
+      const financialTips = Array.from(document.querySelectorAll('#financialTips li')).map(li => li.textContent);
+      pdf.setFontSize(14);
+      pdf.text('Financial Tips:', 10, 30);
+      financialTips.forEach((tip, index) => {
+        pdf.text(`${index + 1}. ${tip}`, 10, 40 + index * 10);
       });
+
+      // Section: Charts
+      const charts = document.querySelectorAll('canvas');
+
+      charts.forEach((chart, index) => {
+        const chartImage = chart.toDataURL('image/png');
+        
+        // Add a new page for each chart if it's not the first one
+        if (index > 0) {
+          pdf.addPage();
+        }
+
+        // Calculate the position to center the chart on the page
+        const chartWidth = 160;  // New width (smaller)
+        const chartHeight = 120; // New height (smaller)
+        const xPosition = (pageWidth - chartWidth) / 2; // Center horizontally
+        const yPosition = (pageHeight - chartHeight) / 2; // Center vertically
+
+        // Add the chart image to the PDF, centered on the page
+        pdf.addImage(chartImage, 'PNG', xPosition, yPosition, chartWidth, chartHeight);
+      });
+
+      const pdfBlob = pdf.output('blob'); // Get the PDF as a Blob (binary data)
+
+      // Create a FormData object to send the Blob to the server
+      const formData = new FormData();
+      formData.append('UserID', localStorage.getItem('UserId'));
+      formData.append('pdf', pdfBlob, 'dashboard-report.pdf'); // Attach the Blob with a filename
+
+      // Send the Blob to the server
+      const response = await fetch('/save-pdf', {
+        method: 'POST',
+        body: formData // Use FormData to send the Blob
+      });
+
+      if (response.ok) {
+        alert('PDF generated and saved on the server!');
+
+        // Get the download URL for the PDF
+        const UserID = localStorage.getItem('UserId');
+        const downloadUrl = `https://ec67-2406-3003-2005-3fc7-e17d-78b8-257e-a76f.ngrok-free.app/download-pdf/${UserID}`;
+
+        // Generate the QR Code with the download URL
+        const qrCodeContainer = document.getElementById('qrcode');
+        qrCodeContainer.innerHTML = ''; // Clear any previous QR code
+        new QRCode(qrCodeContainer, {
+          text: downloadUrl,
+          width: 128,
+          height: 128
+        });
+      } else {
+        alert('Error saving the PDF on the server');
+      }
+    });
+
+    // Fetch and handle the Blob for downloading the PDF
+    async function downloadPDF() {
+      const UserID = localStorage.getItem('UserId');
+      const response = await fetch(`/download-pdf/${UserID}`);
+      
+      if (response.ok) {
+        const blob = await response.blob();  // Get the response as a Blob
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);  // Create a URL for the Blob
+
+        link.href = url;
+        link.download = 'dashboard-report.pdf';  // Specify the filename for download
+        link.click();  // Trigger the download
+
+        URL.revokeObjectURL(url);  // Clean up the created URL object
+      } else {
+        alert('Failed to download the PDF');
+      }
     }
 
-    document.getElementById('generateQRCodeButton').addEventListener('click', function() {
-      generateReport();  // Generate the PDF report
-      generateQRCode();  // Generate and show the QR code in the modal
-      document.getElementById('qrcodeModal').style.display = 'block'; // Show the modal
-    });
-
-    // Close the modal when the close button is clicked
-    document.getElementById('closeModalButton').addEventListener('click', function() {
-      document.getElementById('qrcodeModal').style.display = 'none'; // Hide the modal
-    });
 
   </script>
 </body>
