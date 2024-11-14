@@ -41,7 +41,7 @@ Convert Currency: Allows for exchange of currency.
 Crypto Currency Services: Enables you to buy, sell, and transfer your tokens between wallets.
 Pay Bills: Allows payments for utilities, loans, credit cards, insurance, government fees, town council, school fees, memberships, and fines.
 Transfer Fund: Allows transfer of money between your accounts or to other bank accounts.
-Savings or Loan Details: Note: This option is currently unavailable and is greyed out.
+Savings or Loan Details: Manage Saving and loan details.
 Update Personal Particulars: Enables you to change your contact details and mailing address.
 Back: Returns to the previous menu.
 Exit: Allows you to exit the session.

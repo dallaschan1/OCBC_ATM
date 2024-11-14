@@ -202,7 +202,7 @@ async function processUserInput(input) {
     }
 
     try {
-        const response = await fetch('http://localhost:3001/moreServicesChat', {
+        const response = await fetch('/moreServicesChat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userInput: input })

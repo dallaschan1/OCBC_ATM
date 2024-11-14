@@ -146,9 +146,9 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // data leak 
-function showDataLeakWarning() {
-    document.getElementById('data-leak-warning').style.display = 'flex';
-}
+// function showDataLeakWarning() {
+//     document.getElementById('data-leak-warning').style.display = 'flex';
+// }
 
 
 

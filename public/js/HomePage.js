@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
 
                     alert('Withdrawal successful');
-                    window.reload();
+                    location.reload();
                 } catch (error) {
                     console.error('Withdrawal failed:', error);
                 }
@@ -140,6 +140,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
 
                     alert('Withdrawal successful');
+                    location.reload();
                 } catch (error) {
                     console.error('Withdrawal failed:', error);
                 }
@@ -426,6 +427,7 @@ async function initiateWithdraw(amount) {
       }
 
       console.log('Withdrawal successful');
+      location.reload();
       await speakResponse(`You have successfully withdrawn $${amount}.`);
     } catch (error) {
       console.error('Withdrawal failed:', error);
