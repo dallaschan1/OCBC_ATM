@@ -1071,6 +1071,10 @@ app.get('/getTransactionCount', async (req, res) => {
 });
 
 //
+app.get('/EditMembers', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/EditMembers.html'));
+  });
+
 app.use(bodyParser.json());
 app.use(cors());
 
