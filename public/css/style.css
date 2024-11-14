@@ -5,6 +5,7 @@ body, html {
     display: flex;
     font-family: Arial, sans-serif;
     justify-content: center;
+    background-color: #f0eeee; 
     height: 100vh;
     width: 100vw;
 }
@@ -16,6 +17,13 @@ body, html {
     width: 120px; /* Adjust size as needed */
     height: auto;
 }
+
+.Exit{
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
 /* Container styling */
 .container {
     text-align: center;
@@ -186,7 +194,7 @@ hr {
     align-items: center;
 }
 
-.back-button, .exit-button{
+.back-button{
     background: none;
     border: none;
     font-size: 18px;
