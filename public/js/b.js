@@ -1,62 +1,104 @@
-// Load models and start video feed
-const video = document.getElementById('video');
-const alertBox = document.getElementById('Alert');
+// Ensure the DOM is fully loaded before executing the script
+document.addEventListener('DOMContentLoaded', () => {
+  // Get video and alert elements
+  const video = document.getElementById('video');
+  const alertBox = document.getElementById('Alert');
 
-Promise.all([
-  faceapi.nets.ssdMobilenetv1.loadFromUri('../face-models'),
-  faceapi.nets.faceLandmark68Net.loadFromUri('../face-models'),
-  faceapi.nets.faceRecognitionNet.loadFromUri('../face-models'),
-  faceapi.nets.faceExpressionNet.loadFromUri('../face-models')
-]).then(startVideo);
+  // Load face-api models
+  Promise.all([
+    faceapi.nets.tinyFaceDetector.loadFromUri('../face-models'),
+    faceapi.nets.faceLandmark68Net.loadFromUri('../face-models'),
+    faceapi.nets.faceRecognitionNet.loadFromUri('../face-models'),
+    faceapi.nets.faceExpressionNet.loadFromUri('../face-models')
+  ]).then(startVideo).catch(err => console.error('Model loading error:', err));
 
-function startVideo() {
-  navigator.getUserMedia(
-    { video: { width: 1280, height: 720} }, // Increase camera resolution for better detection
-    stream => video.srcObject = stream,
-    err => console.error(err)
-  );
-}
+  // Start the video stream
+  function startVideo() {
+    navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } })
+      .then(stream => {
+        video.srcObject = stream;
+        video.play();
+      })
+      .catch(err => console.error('Error accessing webcam:', err));
+  }
 
-const options = new faceapi.SsdMobilenetv1Options({
-  minConfidence: 0.2,
-  maxResults: 10
-});
+  // Define detection options with adjusted parameters
+  const detectionOptions = new faceapi.TinyFaceDetectorOptions({
+    inputSize: 320,      // Higher value for better accuracy
+    scoreThreshold: 0.4  // Lowered to increase sensitivity
+  });
 
-video.addEventListener('play', () => {
-  const canvas = faceapi.createCanvasFromMedia(video);
-  const videoWrapper = document.querySelector('.video-wrapper');
-  videoWrapper.append(canvas);
+  // Handle video loadeddata event to ensure video is ready
+  video.addEventListener('loadeddata', () => {
+    // Create and append a canvas matching the video dimensions
+    const canvas = faceapi.createCanvasFromMedia(video);
+    canvas.width = 250; // Set your desired canvas width
+    canvas.height = 200; // Set your desired canvas height
+    const videoWrapper = document.querySelector('.video-wrapper');
+    videoWrapper.appendChild(canvas);
 
-  const displaySize = { width: video.videoWidth, height: video.videoHeight };
-  faceapi.matchDimensions(canvas, displaySize);
+    // Define display size based on canvas dimensions
+    const displaySize = { width: canvas.width, height: canvas.height };
+    faceapi.matchDimensions(canvas, displaySize);
 
-  setInterval(async () => {
-    const context = canvas.getContext('2d', { willReadFrequently: true });
+    // Debouncing variables
+    let alertTimeout;
+    const DEBOUNCE_DELAY = 1000; // 1 second
 
-    // Clear previous drawings
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    // Function to process each video frame
+    async function onPlay() {
+      try {
+        // Perform face detection within the canvas area
+        const detections = await faceapi.detectAllFaces(video, detectionOptions)
+          .withFaceLandmarks()
+          .withFaceExpressions();
 
-    // Apply circular clipping mask
-    context.save();
-    context.beginPath();
-    const radius = canvas.width / 2;
-    context.arc(radius, radius, radius, 0, Math.PI * 2); // Use same width and height for perfect circle
-    context.clip();
+        // Resize detections to match display size
+        const resizedDetections = faceapi.resizeResults(detections, displaySize);
 
-    // Perform face detection
-    const detections = await faceapi.detectAllFaces(video, options)
-      .withFaceLandmarks()
-      .withFaceExpressions();
+        // Clear the canvas for new drawings
+        const context = canvas.getContext('2d');
+        context.clearRect(0, 0, canvas.width, canvas.height);
 
-    const resizedDetections = faceapi.resizeResults(detections, displaySize);
+        // Apply circular clipping mask (if desired)
+        context.save();
+        context.beginPath();
+        const radius = Math.min(canvas.width, canvas.height) / 2;
+        context.arc(radius, radius, radius, 0, Math.PI * 2);
+        context.clip();
 
-    // Show alert if more than one person is detected
-    if (resizedDetections.length == 0) {
-      alertBox.classList.add('active');
-    } else {
-      alertBox.classList.remove('active');
+        // Draw detections (boxes, landmarks, expressions)
+        // faceapi.draw.drawDetections(canvas, resizedDetections);
+        // faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+        // faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
+
+        context.restore();
+
+        // Log the number of faces detected
+        const numberOfFaces = resizedDetections.length;
+        console.log('Number of faces detected:', numberOfFaces);
+
+        // Handle alert display based on number of faces
+        if (numberOfFaces > 1) {
+          if (!alertBox.classList.contains('active')) {
+            alertBox.classList.add('active');
+          }
+          clearTimeout(alertTimeout);
+          alertTimeout = setTimeout(() => {
+            alertBox.classList.remove('active');
+          }, DEBOUNCE_DELAY);
+        } else {
+          alertBox.classList.remove('active');
+        }
+      } catch (error) {
+        console.error('Error during face detection:', error);
+      }
+
+      // Continue processing the next frame
+      requestAnimationFrame(onPlay);
     }
 
-    context.restore();
-  }, 300);
+    // Start processing frames
+    onPlay();
+  });
 });

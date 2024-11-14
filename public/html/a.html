@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Token Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #tokens-display, #receive-result {
+            margin-top: 20px;
+        }
+
+        .token-item {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Wallet Token Information</h1>
+        <div id="wallet-info">
+            <p>Wallet Address: <strong>0xa6D157b342d46D91d0645b93301190e01e3fC956</strong></p>
+            <button id="fetch-button">Fetch Token Balances</button>
+            <div id="tokens-display"></div>
+        </div>
+        <h2>Call /receive Endpoint</h2>
+        <form id="receive-form">
+            <label for="walletAddress">Wallet Address:</label>
+            <input type="text" id="walletAddress" value="0xa6D157b342d46D91d0645b93301190e01e3fC956" readonly>
+            <label for="amount">Amount:</label>
+            <input type="number" id="amount" step="0.0001" placeholder="Enter amount">
+            <label for="tokenName">Token Name:</label>
+            <input type="text" id="tokenName" placeholder="Enter token name">
+            <button type="submit">Submit</button>
+        </form>
+        <div id="receive-result"></div>
+    </div>
+
+    <!-- Include Web3.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
+    <script>
+        const walletAddress = '0xa6D157b342d46D91d0645b93301190e01e3fC956';
+        const tokenContracts = [
+            { address: '0x38D7a22A658D87d4c9a49A76E03Fdc7C97145f95', name: 'Bitcoin', symbol: 'BTC' },
+            { address: '0x0000000000000000000000000000000000000000', name: 'Ethereum', symbol: 'ETH' },
+            { address: '0xE7f3C353Cc0074C20bC8dDF098C58EAE365325bc', name: 'Tether', symbol: 'USDT' },
+            { address: '0x7Ff9732A5F83e803DA138277d83da20C5b6B4FEE', name: 'BinanceCoin', symbol: 'BNB' },
+            { address: '0x4c6FE8b13BE0b7540DFf2c863b7ad0d328C1CF5F', name: 'Cardano', symbol: 'ADA' },
+            { address: '0x8E552e48a568a868Ba6EC7A16441dBf9E84Da27c', name: 'Dogecoin', symbol: 'DOGE' },
+            { address: '0xcD5184827CDC53BAEa5782B86fBDb2ae07E3F636', name: 'Ripple', symbol: 'XRP' },
+            { address: '0x6250D0D50Ca98D98ac4c089F560Bd9943A2c24dE', name: 'Polkadot', symbol: 'DOT' },
+            { address: '0xEdf264da3ed4b8Cfc829c50D426764160C0a4B31', name: 'Chainlink', symbol: 'LINK' },
+          
+        ];
+
+        const erc20ABI = [
+            {
+                "constant": true,
+                "inputs": [{ "name": "_owner", "type": "address" }],
+                "name": "balanceOf",
+                "outputs": [{ "name": "balance", "type": "uint256" }],
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "decimals",
+                "outputs": [{ "name": "", "type": "uint8" }],
+                "type": "function"
+            }
+        ];
+
+        async function loadWeb3() {
+            if (window.ethereum) {
+                window.web3 = new Web3(window.ethereum);
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+            } else if (window.web3) {
+                window.web3 = new Web3(window.web3.currentProvider);
+            } else {
+                alert('Please install MetaMask!');
+            }
+        }
+
+        async function fetchTokenBalances() {
+            await loadWeb3();
+            const web3 = window.web3;
+
+            try {
+                // Fetch ETH balance
+                const ethBalance = await web3.eth.getBalance(walletAddress);
+                const ethBalanceFormatted = web3.utils.fromWei(ethBalance, 'ether');
+
+                // Display ETH balance
+                const tokensDisplay = document.getElementById('tokens-display');
+                tokensDisplay.innerHTML = `<p><strong>ETH</strong>: ${ethBalanceFormatted}</p>`;
+
+                // Fetch ERC20 token balances
+                for (const token of tokenContracts) {
+                    if (token.address === '0x0000000000000000000000000000000000000000') continue; // Skip ETH in ERC20 fetching
+
+                    const tokenContract = new web3.eth.Contract(erc20ABI, token.address);
+                    const balance = await tokenContract.methods.balanceOf(walletAddress).call();
+                    const decimals = await tokenContract.methods.decimals().call();
+                    const balanceFormatted = web3.utils.toBN(balance).div(web3.utils.toBN(10).pow(web3.utils.toBN(decimals)));
+
+                    tokensDisplay.innerHTML += `
+                        <div class="token-item">
+                            <strong>${token.name} (${token.symbol})</strong>: ${balanceFormatted.toString()}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error fetching token balances:', error);
+                document.getElementById('tokens-display').innerHTML = `<p class="error">Failed to fetch token balances.</p>`;
+            }
+        }
+
+        document.getElementById('fetch-button').addEventListener('click', fetchTokenBalances);
+
+        document.getElementById('receive-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const amount = document.getElementById('amount').value;
+            const tokenName = document.getElementById('tokenName').value;
+
+            try {
+                const response = await fetch('/receive', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ walletAddress, amount, tokenName })
+                });
+
+                const result = await response.json();
+                document.getElementById('receive-result').innerText = result.message;
+            } catch (error) {
+                console.error('Error calling /receive:', error);
+                document.getElementById('receive-result').innerText = 'Failed to call /receive.';
+            }
+        });
+    </script>
+</body>
+</html>

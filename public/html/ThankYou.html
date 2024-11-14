@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Exit</title>
+    <!-- Link to the shared CSS file -->
+    <link rel="stylesheet" href="../css/normalise.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script
+    src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs"
+    type="module"
+  ></script>
+</head>
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f0eeee;
+        margin: 0;
+        font-family: Arial, sans-serif;
+    }
+    .container {
+        text-align: center;
+        height: 27rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    /* Styling for the Lottie animation container */
+    .loading-animation {
+        display: none; /* Hidden initially */
+        width: 100px;
+        height: 100px;
+        margin-top: 20px;
+    }
+</style>
+<body>
+    <img src="../images/OcbcLogo.png" alt="Logo" class="logo" />
+    <div class="container">
+        <h1 id="thankYouHeader">Thank You for Banking with OCBC.</h1>        
+        <!-- Loading animation container initially hidden -->
+        <div id="loading-animation" style="display: none;">
+            <dotlottie-player
+              src="https://lottie.host/0dfa1e33-853b-4246-927a-8b6b2283449f/lKsMBsVSo2.json"
+              background="transparent"
+              speed="1"
+              style="width: 100px; height: 100px"
+              loop
+              autoplay
+            ></dotlottie-player>
+        </div>
+        <p id="redirectMessage">You will now be directed back to the log in page.</p>
+        <script src="../js/script.js" defer></script>
+</body>
+</html>

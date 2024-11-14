@@ -5,6 +5,7 @@ body, html {
     display: flex;
     font-family: Arial, sans-serif;
     justify-content: center;
+    background-color: #f0eeee; 
     height: 100vh;
     width: 100vw;
 }
@@ -16,6 +17,13 @@ body, html {
     width: 120px; /* Adjust size as needed */
     height: auto;
 }
+
+.Exit{
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
 /* Container styling */
 .container {
     text-align: center;
@@ -161,9 +169,10 @@ hr {
 /* Action Buttons Styling */
 .action-button {
     font-size: 16px;
-    padding: 20px;
+    padding: 15px;
     font-weight: bold;
     color: #FFF;
+    border: none;
 }
 
 
@@ -186,7 +195,7 @@ hr {
     align-items: center;
 }
 
-.back-button, .exit-button{
+.back-button{
     background: none;
     border: none;
     font-size: 18px;
@@ -215,10 +224,9 @@ hr {
 .clear-button {
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 16px;
     cursor: pointer;
-    margin-left: 40px;
-    color: #999;
+    color: #ffffff;
 }
 
 .clear-button:hover {
@@ -286,7 +294,7 @@ hr {
 #Left {
     width: 45%;
     padding-left: 50px;
-    padding-top: 60px;
+    
     display: flex;
     flex-direction: column;
     align-items: flex-start; /* Align contents to the left */
@@ -305,7 +313,7 @@ hr {
     flex-direction: column;
     height: auto;
     width: 85%;
-    margin-top: 50px;
+    margin-top: 3px;
  
 }
 
@@ -346,8 +354,8 @@ hr {
 
 #Right {
     flex: 1; /* Allow #Right to grow */
-    padding: 50px;
-    padding-top: 40px;
+        padding: 50px;
+        padding-top: 0;    
     background-color: #f0eeee;
     box-shadow: inset 10px 0px 20px rgba(0, 0, 0, 0.3);
     padding-bottom: 5px;
@@ -366,9 +374,6 @@ hr {
     width: 100%;
 }
 
-#other-services-container {
-    margin-top:80px; /* Space above the container */
-}
 #other-services-container h1{
     margin-bottom: 17px; /* Space above the container */
 }
@@ -797,16 +802,12 @@ canvas {
 .rating-container {
     text-align: center;
     background-color: #fff;
-    padding: 20px;
-    margin:40rem;
+    padding: 20px 100px 20px 100px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     max-width: 400px;
-
     position: relative;
 }
-
-
 
 .stars {
     display: flex;
@@ -819,14 +820,21 @@ canvas {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 32px;
+    font-size: 50px;
     color: #ccc;
     transition: color 0.3s;
 }
 
-.stars button.active,
-.stars button:hover,
-.stars button:hover ~ button {
+.stars button {
+    color: f0eeee;
+}
+
+/* Active stars (selected) */
+.stars button.active {
+    color: gold;
+}
+
+.stars button:hover{
     color: gold;
 }
 
@@ -836,14 +844,35 @@ canvas {
     cursor: pointer;
     border: none;
     border-radius: 5px;
-    background-color: #4CAF50;
+    background-color: #10075b;
     color: white;
-    margin-top: 20px;
+    margin-top: 10px;
+    margin-bottom: 20px;
 }
 
 .thank-you {
     display: none;
     margin-top: 20px;
     font-size: 18px;
-    color: #4CAF50;
+    color: #10075b;
 }
+
+.please-submit {
+    display: none;
+    margin-top: 20px;
+    font-size: 18px;
+    color: #ff0000;
+}
+
+/*ThankYou*/
+#thankYouHeader {
+    font-weight: bold;
+    font-size:28px;
+    margin-bottom: 2rem;
+}
+
+#redirectMessage {
+    font-size: 18px;
+    margin-top: 20px;
+}
+

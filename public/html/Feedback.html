@@ -37,40 +37,11 @@
         </div>
 
         <button class="submit-btn" onclick="submitRating()">Submit</button>
+        <p class="please-submit">Please select a rating before submitting.</p>
         <p class="thank-you">Thank you for your feedback!</p>
     </div>
+    
 
-    <script src="../js/exit.js"></script>
-    <script>
-        // JavaScript to handle rating selection and submission
-        let selectedRating = 0;
-
-        function rate(rating) {
-            selectedRating = rating;
-            const stars = document.querySelectorAll('.stars button');
-            stars.forEach((star, index) => {
-                // Add 'active' class to the selected stars
-                star.classList.toggle('active', index < rating);
-            });
-        }
-
-        function submitRating() {
-            if (selectedRating === 0) {
-                alert('Please select a rating before submitting.');
-                return;
-            }
-
-            // Log the rating
-            console.log('User rating:', selectedRating);
-
-            // Display thank-you message
-            document.querySelector('.thank-you').style.display = 'block';
-
-            // Simulate a delay before redirecting to login page
-            setTimeout(() => {
-                window.location.href = 'login-page.html'; // Replace with the actual login page URL
-            }, 2000);
-        }
-    </script>
+<script src="../js/script.js" defer></script>
 </body>
 </html>

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -62,5 +63,12 @@ public class dashboard extends AppCompatActivity {
             Intent intent = new Intent(dashboard.this, QRCode.class);
             startActivity(intent);
         });
+
+        ImageView notificationButton = findViewById(R.id.notificationButton);
+        notificationButton.setOnClickListener(v -> {
+            Intent intent = new Intent(dashboard.this, Notifications.class);
+            startActivity(intent);
+        });
+
     }
 }
