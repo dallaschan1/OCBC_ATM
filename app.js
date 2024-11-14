@@ -31,7 +31,6 @@ const dbconfig = require('./dbconfig.js');
 
 const genAI = new GoogleGenerativeAI(API_KEY); // Replace with your actual API key
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-const multer = require('multer')
 
 // Middleware setup
 app.use(bodyParser.json({ limit: '50mb' }));
