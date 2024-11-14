@@ -5,7 +5,7 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const admin = require('firebase-admin');
-const web3 = require('web3');
+const Web3 = require('web3').default;
 const QRCode = require('qrcode');
 const cors = require('cors');
 const { sendFcmMessage } = require('./controllers/fcmController')
@@ -35,7 +35,7 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-
+app.get('/a', (req, res) => { res.sendFile(path.join(__dirname, 'public/html/a.html')); });
 app.get('/Home', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/html/HomePage.html'));
 });
@@ -490,6 +490,46 @@ app.get('/balance/:userId', async (req, res) => {
     }
 });
 
+app.post('/receiveToken', async (req, res) => {
+    const { userId, tokenSymbol, amount } = req.body;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+
+        // Get the user's current token balance
+        const userTokenResult = await pool.request()
+            .input('userID', sql.Int, userId)
+            .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+            .query('SELECT Balance FROM UserTokenBalance WHERE UserID = @userID AND TokenSymbol = @tokenSymbol');
+
+        let newTokenBalance = amount;
+
+        if (userTokenResult.recordset.length > 0) {
+            // User already has some balance of this token, add to it
+            newTokenBalance += parseFloat(userTokenResult.recordset[0].Balance);
+            await pool.request()
+                .input('userID', sql.Int, userId)
+                .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+                .input('newTokenBalance', sql.Decimal(18, 8), newTokenBalance)
+                .query('UPDATE UserTokenBalance SET Balance = @newTokenBalance WHERE UserID = @userID AND TokenSymbol = @tokenSymbol');
+        } else {
+            // User doesn't have this token yet, create a new entry
+            await pool.request()
+                .input('userID', sql.Int, userId)
+                .input('tokenSymbol', sql.NVarChar(10), tokenSymbol)
+                .input('newTokenBalance', sql.Decimal(18, 8), newTokenBalance)
+                .query('INSERT INTO UserTokenBalance (UserID, TokenSymbol, Balance) VALUES (@userID, @tokenSymbol, @newTokenBalance)');
+        }
+
+        res.status(200).json({ message: 'Token received and balance updated successfully' });
+
+    } catch (error) {
+        console.error('Error processing token reception:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
 const csvFilePath = path.join(__dirname, 'python/synthetic_transactions_updated.csv');
 
 app.get('/get-transaction-data', (req, res) => {
@@ -720,7 +760,6 @@ const erc20ABI = [
 app.post('/receive', async (req, res) => {
     const { walletAddress, amount, tokenName } = req.body;
 
-    
     if (!web3.utils.isAddress(walletAddress)) {
         return res.status(400).json({ message: 'Invalid wallet address' });
     }
@@ -729,32 +768,41 @@ app.post('/receive', async (req, res) => {
         return res.status(400).json({ message: 'Invalid amount' });
     }
 
-   
     const token = tokenContracts.find(t => t.name.toLowerCase() === tokenName.toLowerCase());
     if (!token) {
         return res.status(400).json({ message: 'Token not found' });
     }
 
-   
     if (token.address === '0x0000000000000000000000000000000000000000') {
         try {
             const weiAmount = web3.utils.toWei(amount.toString(), 'ether');
 
-          
             const serverBalanceBefore = await web3.eth.getBalance(serverWalletAddress);
+            const senderBalanceBefore = await web3.eth.getBalance(walletAddress);
 
-           
-            const senderBalance = await web3.eth.getBalance(walletAddress);
-            const serverBalance = await web3.eth.getBalance(serverWalletAddress);
+            const transaction = await web3.eth.sendTransaction({
+                from: walletAddress,
+                to: serverWalletAddress,
+                value: weiAmount,
+                gas: 21000
+            });
 
-            
-            const receivedAmount = web3.utils.toBN(serverBalance).sub(web3.utils.toBN(serverBalanceBefore));
+            const receipt = await web3.eth.getTransactionReceipt(transaction.transactionHash);
+            const gasUsed = receipt.gasUsed;
+            const txDetails = await web3.eth.getTransaction(transaction.transactionHash);
+            const gasPrice = txDetails.gasPrice;
+            const gasCost = web3.utils.toBN(gasUsed).mul(web3.utils.toBN(gasPrice));
 
-            if (!receivedAmount.eq(web3.utils.toBN(weiAmount))) {
-                return res.status(400).json({ message: 'No matching ETH transaction found' });
+            const senderBalanceAfter = await web3.eth.getBalance(walletAddress);
+
+            const actualETHSent = web3.utils.toBN(senderBalanceBefore).sub(web3.utils.toBN(senderBalanceAfter)).sub(gasCost);
+
+            if (!actualETHSent.eq(web3.utils.toBN(weiAmount))) {
+                return res.status(400).json({
+                    message: `Expected ${web3.utils.fromWei(weiAmount, 'ether')} ETH but transferred ${web3.utils.fromWei(actualETHSent, 'ether')} ETH`
+                });
             }
 
-            
             await updateOCBCWallet('ETH', amount);
 
             res.status(200).json({ message: 'ETH received and balance updated' });
@@ -769,38 +817,37 @@ app.post('/receive', async (req, res) => {
     const tokenContract = new web3.eth.Contract(erc20ABI, token.address);
 
     try {
-      
         const decimals = await tokenContract.methods.decimals().call();
-
-       
-        const tokenAmount = web3.utils.toBN(amount).mul(web3.utils.toBN(10).pow(web3.utils.toBN(decimals)));
-
-        
-        const serverTokenBalanceBefore = await tokenContract.methods.balanceOf(serverWalletAddress).call();
-        const senderTokenBalanceBefore = await tokenContract.methods.balanceOf(walletAddress).call();
-
-        
-
-       
-        const serverTokenBalanceAfter = await tokenContract.methods.balanceOf(serverWalletAddress).call();
-
-        
-        const receivedTokenAmount = web3.utils.toBN(serverTokenBalanceAfter).sub(web3.utils.toBN(serverTokenBalanceBefore));
-
-        if (!receivedTokenAmount.eq(tokenAmount)) {
-            return res.status(400).json({ message: 'No matching token transfer found' });
+        const tokenAmount = BigInt(amount) * (BigInt(10) ** BigInt(decimals));
+    
+        const serverTokenBalanceBefore = BigInt(await tokenContract.methods.balanceOf(serverWalletAddress).call());
+        const senderTokenBalanceBefore = BigInt(await tokenContract.methods.balanceOf(walletAddress).call());
+    
+        const transfer = await tokenContract.methods.transfer(serverWalletAddress, tokenAmount).send({
+            from: walletAddress,
+            gas: 200000
+        });
+    
+        const serverTokenBalanceAfter = BigInt(await tokenContract.methods.balanceOf(serverWalletAddress).call());
+        const receivedTokenAmount = serverTokenBalanceAfter - serverTokenBalanceBefore;
+    
+        if (receivedTokenAmount !== tokenAmount) {
+            return res.status(400).json({
+                message: `Expected ${amount} tokens but transferred ${(receivedTokenAmount / (BigInt(10) ** BigInt(decimals))).toString()} tokens`
+            });
         }
-
-       
+    
         await updateOCBCWallet(token.symbol, amount);
-
+    
         res.status(200).json({ message: 'Token received and balance updated' });
-
+    
     } catch (error) {
         console.error('Error processing token receive:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
+    
 });
+
 
 // Function to update the OCBCWallet balance
 async function updateOCBCWallet(tokenSymbol, amount) {

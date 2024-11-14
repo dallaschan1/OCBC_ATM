@@ -146,7 +146,7 @@
                 <button id="receiveTab">Receive Token</button>
             </div>
             <form id="exchangeForm">
-                <label for="tokenSymbol">Select Token:</label>
+                <label for="tokenSymbol" id = "tokenLabel">Select Token:</label>
                 <select id="tokenSymbol" name="tokenSymbol" required>
                     <option value="BTC">Bitcoin (BTC)</option>
                     <option value="ETH">Ethereum (ETH)</option>
@@ -185,6 +185,11 @@
                     
                     
                     <button type="button" id="receiveButton" style="margin-top: 20px; width: 100%; padding: 18px; font-size: 1.5rem; font-weight: bold; border: none; border-radius: 8px; background-color: #4CAF50; color: white; cursor: pointer;">Generate Address</button>
+                    <div id = "receiveNumber" style="margin-top: 20px; display: none;">
+                        <h3>Token Received: <span id = "receiveTokenType"></span></h3>
+                        <br>
+                        <p>Amount Received: <span id = "receiveTokenAmount"></span></p>
+                    </div>
                     <div id="walletDisplay" style="display: none;">
                         <p>Your Wallet Address:</p>
                         <p id="displayedWalletAddress" style="word-break: break-all; font-weight: bold;"></p>
@@ -245,7 +250,7 @@
         { address: '0xcD5184827CDC53BAEa5782B86fBDb2ae07E3F636', name: 'Ripple', symbol: 'XRP' },
         { address: '0x6250D0D50Ca98D98ac4c089F560Bd9943A2c24dE', name: 'Polkadot', symbol: 'DOT' },
         { address: '0xEdf264da3ed4b8Cfc829c50D426764160C0a4B31', name: 'Chainlink', symbol: 'LINK' },
-        { address: '0x0d72C4C4C64B0de584C348f7A2e5AE720bf43Cf2', name: 'Litecoin', symbol: 'LTC' }
+        
     ];
 
     const erc20ABI = [
@@ -327,7 +332,11 @@
 
             if (mode === 'buy') {
                 updateBUYTokenSelectOptions(data.tokens);
-            } else {
+            }else if (mode ==='receive') {
+                updateReceiveTokenSelectOptions(data.tokens);
+
+            } 
+            else {
                 updateTokenSelectOptions(data.tokens);
             }
             clearFields();
@@ -340,7 +349,11 @@
     function updateTokenSelectOptions(tokens) {
         const tokenSelect = document.getElementById('tokenSymbol');
         tokenSelect.innerHTML = ''; // Clear current options
-
+        tokenLabel = document.getElementById('tokenLabel');
+        const receiveNumber = document.getElementById('receiveNumber');
+        receiveNumber.style.display = 'none';
+        tokenSelect.style.display = 'block';
+        tokenLabel.style.display = 'block';
         userBalances = {}; // Reset user balances
 
         // Show only tokens that the user has a balance for
@@ -364,7 +377,12 @@
     }
 
     function updateBUYTokenSelectOptions(tokens) {
+        tokenLabel = document.getElementById('tokenLabel');
+        tokenLabel.style.display = 'block';
+        const receiveNumber = document.getElementById('receiveNumber');
+        receiveNumber.style.display = 'none';
         const tokenSelect = document.getElementById('tokenSymbol');
+        tokenSelect.style.display = 'block';
         tokenSelect.innerHTML = ''; // Clear current options
         userBalances = {}; // Reset user balances
 
@@ -375,6 +393,13 @@
             option.textContent = `${token.symbol} (${token.name})`;
             tokenSelect.appendChild(option);
         });
+    }
+    function updateReceiveTokenSelectOptions(tokens) {
+        const tokenSelect = document.getElementById('tokenSymbol');
+        
+        tokenLabel = document.getElementById('tokenLabel');
+        tokenLabel.style.display = 'none';
+        tokenSelect.style.display = 'none'; // Clear current options
     }
 
     function clearFields() {
@@ -400,13 +425,19 @@
 
     // Event listeners for tab buttons
     document.querySelectorAll('.tab-buttons button').forEach(button => {
-        button.addEventListener('click', (e) => {
-            document.querySelectorAll('.tab-buttons button').forEach(btn => btn.classList.remove('active'));
-            e.target.classList.add('active');
-            clearFields();
-            updateConversionDisplay();
-        });
+    button.addEventListener('click', (e) => {
+        stopCheckingDeposits(); // Stop checking deposits
+        document.querySelectorAll('.tab-buttons button').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        clearFields();
+        updateConversionDisplay();
     });
+});
+
+function stopCheckingDeposits() {
+    clearInterval(checkingDepositsInterval);
+    document.getElementById('walletDisplay').style.display = 'none';
+}
 
     // Event listeners for inputs
     document.getElementById('tokenSymbol').addEventListener('change', updateConversionDisplay);
@@ -602,7 +633,7 @@
                     const transferAmountInWei = web3.utils.toWei(transferAmount.toString(), 'ether');
 
                     const transferReceipt = await tokenContract.methods.transfer(recipientAddress, transferAmountInWei).send({ from: walletAddress });
-
+                    console.log('Transfer receipt:', transferReceipt);
                     if (transferReceipt.status) {
                         // Only call /transfer if the transaction was successful
                         await fetch('/transfer', {
@@ -741,68 +772,112 @@
 
     // Implement the deposit monitoring functions
     async function getBalances(address) {
-        let balances = {};
+    let balances = {};
+    try {
         // Get ETH balance
         const ethBalanceWei = await web3.eth.getBalance(address);
-        const ethBalance = web3.utils.fromWei(ethBalanceWei, 'ether');
-        balances['ETH'] = parseFloat(ethBalance);
+        const ethBalance = parseFloat(web3.utils.fromWei(ethBalanceWei, 'ether'));
+        balances['ETH'] = parseFloat(ethBalance.toFixed(8));
+
+        console.log(`ETH balance: ${balances['ETH']}`);
 
         // Get token balances
         for (const token of tokenContracts) {
+            if (token.symbol === 'ETH') continue;
             const tokenContract = new web3.eth.Contract(erc20ABI, token.address);
+            const decimals = await tokenContract.methods.decimals().call(); // Get the actual decimals
             const balance = await tokenContract.methods.balanceOf(address).call();
-            const decimals = await tokenContract.methods.decimals().call();
-            const tokenBalance = balance / (10 ** decimals);
-            balances[token.symbol] = parseFloat(tokenBalance);
+            const tokenBalance = balance / (10 ** decimals); // Divide by the correct decimal places
+            balances[token.symbol] = parseFloat(tokenBalance.toFixed(8)); // Adjust decimal places as needed
+
+            console.log(`${token.symbol} balance: ${balances[token.symbol]}`);
         }
-        return balances;
+    } catch (error) {
+        console.error('Error fetching balances:', error);
     }
+    return balances;
+}
+
+
 
     function startCheckingDeposits() {
         getBalances(walletAddress).then(balances => {
             initialBalances = balances;
+            console.log('Initial balances:', initialBalances);
             checkingDepositsInterval = setInterval(checkForDeposits, 5000); // Every 5 seconds
         });
     }
+    let type;
 
     async function checkForDeposits() {
         const balances = await getBalances(walletAddress);
+        
         let deposited = false;
         let depositDetails = '';
 
         if (balances['ETH'] > initialBalances['ETH']) {
             const amountDeposited = balances['ETH'] - initialBalances['ETH'];
+            console.log('h');
             depositDetails += `Received ${amountDeposited.toFixed(8)} ETH\n`;
+            type = 'ETH';
             deposited = true;
+            
         }
 
         for (const symbol of Object.keys(balances)) {
+            console.log(symbol);
             if (symbol === 'ETH') continue;
             if (balances[symbol] > initialBalances[symbol]) {
+                console.log('g');
                 const amountDeposited = balances[symbol] - initialBalances[symbol];
+                type = symbol;
                 depositDetails += `Received ${amountDeposited.toFixed(8)} ${symbol}\n`;
                 deposited = true;
             }
         }
 
         if (deposited) {
+            const userId = localStorage.getItem('UserId');
+            console.log(initialBalances, balances);
             // Display the amount deposited in the walletDisplay section
             const depositInfo = document.createElement('p');
             depositInfo.id = 'depositInfo';
             depositInfo.textContent = depositDetails;
             document.getElementById('walletDisplay').appendChild(depositInfo);
-
+            const receiveNumber = document.getElementById('receiveNumber');
+            receiveNumber.style.display = 'block';
+            const receiveTokenType = document.getElementById('receiveTokenType');
+            const receiveTokenAmount = document.getElementById('receiveTokenAmount');
+            receiveTokenType.textContent = type;
+            receiveTokenAmount.textContent = (balances[type] - initialBalances[type]).toFixed(4);
             // Stop checking
             clearInterval(checkingDepositsInterval);
 
             // Hide the waiting icon
             document.getElementById('waitingIcon').style.display = 'none';
-
+            await receiveToken(userId, type, (balances[type] - initialBalances[type]).toFixed(18));
             // Update user's tokens
             fetchUserTokens();
         }
     }
-
+    async function receiveToken(userId, type, amount){
+        try{
+            const success = await fetch('/receiveToken', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    tokenSymbol: type,
+                    amount: parseFloat(amount)
+                })
+            });
+        }
+        catch (error) {
+            console.error('Error receiving token:', error);
+        }
+    }
     // Handle the cancel button
     document.getElementById('cancelButton').addEventListener('click', function() {
         document.getElementById('walletDisplay').style.display = 'none';
