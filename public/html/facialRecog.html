@@ -35,6 +35,7 @@
 
   <script>
     const video = document.getElementById('video');
+    <h1>Facial Authenticatoin</h1>
     const canvas = document.getElementById('canvas');
     const context = canvas.getContext('2d');
 
@@ -55,6 +56,14 @@
           body: formData
         })
         .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('Login successful');
+            
+          } else {
+            alert('Face not recognized');
+          }
+        })
         .catch(console.error);
       });
   });

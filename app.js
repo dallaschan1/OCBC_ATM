@@ -245,10 +245,8 @@ app.post('/faceLogin/authenticate', use.single('faceData'), async (req, res) => 
 
         if (isMatch) {
             res.send({ success: true, message: 'Face recognized, login successful.' });
-            res.redirect('/public/html/HomePage.html')
         } else {
             res.send({ success: false, message: 'Face not recognized.' });
-            res.redirect('/public/html/login-page.html')
         }
     } catch (error) {
         console.error('Error during face authentication:', error);
@@ -275,9 +273,7 @@ app.post('/faceRegist/upload-face', use.single('faceData'), async (req, res) => 
         const result = await sql.query`
             update Users SET Face_Data = ${binaryData} WHERE nric = 'S1234567A'
         `;
-
         res.send('Face data saved to SQL Server.');
-        res.redirect('/public/html/HomePage.html')
     } catch (error) {
         console.error('Error saving to SQL Server:', error);
         res.status(500).send('Error saving face data to SQL Server.');
