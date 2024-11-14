@@ -31,6 +31,7 @@ const dbconfig = require('./dbconfig.js');
 
 const genAI = new GoogleGenerativeAI(API_KEY); // Replace with your actual API key
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const multer = require('multer')
 
 // Middleware setup
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -211,9 +212,78 @@ app.get('/feedback', (req, res) => {
 });
 
 //Facial Login
+const store = multer.memoryStorage();
+const use = multer({ store });
+
 app.get('/faceLogin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/html/facialRecog.html'))
 })
+
+app.post('/faceLogin/authenticate', use.single('faceData'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).send({ success: false, message: 'No face data received.' });
+    }
+
+    const capturedData = req.file.buffer; // Binary face data sent for login
+
+    try {
+        // Connect to SQL Server
+        await sql.connect(dbConfig);
+
+        // Retrieve the stored face data from SQL Server
+        const result = await sql.query`
+            SELECT Face_Data FROM Users WHERE nric = 'S1234567A'
+        `;
+        
+        if (result.recordset.length === 0) {
+            return res.status(404).send({ success: false, message: 'No face data found for this user.' });
+        }
+
+        const storedFaceData = result.recordset[0].Face_Data; // Binary data from the database
+        // For simplicity, comparing buffer equality as a placeholder
+        // You can replace this with a more sophisticated comparison method
+        const isMatch = Buffer.compare(capturedData, storedFaceData) === 0;
+
+        if (isMatch) {
+            res.send({ success: true, message: 'Face recognized, login successful.' });
+            res.redirect('/public/html/HomePage.html')
+        } else {
+            res.send({ success: false, message: 'Face not recognized.' });
+            res.redirect('/public/html/login-page.html')
+        }
+    } catch (error) {
+        console.error('Error during face authentication:', error);
+        res.status(500).send({ success: false, message: 'Error during face authentication.' });
+    }
+});
+
+app.get('/faceRegist', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/facialRegistration.html'));
+});
+
+app.post('/faceRegist/upload-face', use.single('faceData'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).send('No face data received.');
+    }
+
+    const binaryData = req.file.buffer; // Binary image data
+
+    try {
+        // Connect to SQL Server
+        await sql.connect(dbConfig);
+
+        // Insert binary data into FaceData table
+        const result = await sql.query`
+            update Users SET Face_Data = ${binaryData} WHERE nric = 'S1234567A'
+        `;
+
+        res.send('Face data saved to SQL Server.');
+        res.redirect('/public/html/HomePage.html')
+    } catch (error) {
+        console.error('Error saving to SQL Server:', error);
+        res.status(500).send('Error saving face data to SQL Server.');
+    }
+}); 
 
 // Chatbot API
 app.post("/homePageChat", chatbot.startChatForHomePage);
