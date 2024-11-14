@@ -42,6 +42,49 @@
             font-size: 1.3rem;
             margin-bottom: 20px;
         }
+
+        #waitingIcon {
+            width: 50px;
+            height: 50px;
+            border: 6px solid #ccc;
+            border-top: 6px solid #1d72b8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-top: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Additional styling for wallet display */
+        #walletDisplay {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        #walletDisplay p {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        #cancelButton {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            background-color: #ff4d4d;
+            color: white;
+            cursor: pointer;
+        }
+
+        #cancelButton:hover {
+            background-color: #e60000;
+        }
     </style>
     <script defer src="../js/face-api.min.js"></script>
 </head>
@@ -100,9 +143,10 @@
                 <button id="buyTab" class="active">Buy</button>
                 <button id="sellTab" >Sell</button>
                 <button id="transferTab" >Transfer</button>
+                <button id="receiveTab">Receive Token</button>
             </div>
             <form id="exchangeForm">
-                <label for="tokenSymbol">Select Token:</label>
+                <label for="tokenSymbol" id = "tokenLabel">Select Token:</label>
                 <select id="tokenSymbol" name="tokenSymbol" required>
                     <option value="BTC">Bitcoin (BTC)</option>
                     <option value="ETH">Ethereum (ETH)</option>
@@ -136,6 +180,22 @@
                     <input type="text" id="transferAmount" name="transferAmount" placeholder="Enter Amount" step="0.00000001">
                     <p id="feeTextTransfer" style="margin: 5px 0; font-size: 0.9em;">Fee (1%):</p>
                     <p id="outputssText" style="margin: 5px 0;">Transfer Fee:</p>
+                </div>
+                <div id="receiveSection" style="display: none; margin-top: 20px;">
+                    
+                    
+                    <button type="button" id="receiveButton" style="margin-top: 20px; width: 100%; padding: 18px; font-size: 1.5rem; font-weight: bold; border: none; border-radius: 8px; background-color: #4CAF50; color: white; cursor: pointer;">Generate Address</button>
+                    <div id = "receiveNumber" style="margin-top: 20px; display: none;">
+                        <h3>Token Received: <span id = "receiveTokenType"></span></h3>
+                        <br>
+                        <p>Amount Received: <span id = "receiveTokenAmount"></span></p>
+                    </div>
+                    <div id="walletDisplay" style="display: none;">
+                        <p>Your Wallet Address:</p>
+                        <p id="displayedWalletAddress" style="word-break: break-all; font-weight: bold;"></p>
+                        <div id="waitingIcon"></div>
+                        <button type="button" id="cancelButton">Cancel</button>
+                    </div>
                 </div>
                 <button type="button" id="exchangeButton">BUY</button>
             </form>
@@ -176,7 +236,7 @@
         </div>
       </div>
 <script>
-        document.addEventListener('DOMContentLoaded', async () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     const web3 = new Web3('http://127.0.0.1:7545');
     const walletAddress = '0x8AfeAD84bb47518900607036a6Ad1c8BFADBC24c'; // Wallet holding cryptos
 
@@ -190,10 +250,35 @@
         { address: '0xcD5184827CDC53BAEa5782B86fBDb2ae07E3F636', name: 'Ripple', symbol: 'XRP' },
         { address: '0x6250D0D50Ca98D98ac4c089F560Bd9943A2c24dE', name: 'Polkadot', symbol: 'DOT' },
         { address: '0xEdf264da3ed4b8Cfc829c50D426764160C0a4B31', name: 'Chainlink', symbol: 'LINK' },
-        { address: '0x0d72C4C4C64B0de584C348f7A2e5AE720bf43Cf2', name: 'Litecoin', symbol: 'LTC' }
+        
     ];
 
     const erc20ABI = [
+        // balanceOf
+        {
+            "constant": true,
+            "inputs": [{ "name": "_owner", "type": "address" }],
+            "name": "balanceOf",
+            "outputs": [{ "name": "balance", "type": "uint256" }],
+            "type": "function"
+        },
+        // decimals
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "decimals",
+            "outputs": [{ "name": "", "type": "uint8" }],
+            "type": "function"
+        },
+        // symbol
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "symbol",
+            "outputs": [{ "name": "", "type": "string" }],
+            "type": "function"
+        },
+        // transfer
         {
             "constant": false,
             "inputs": [
@@ -208,28 +293,28 @@
 
     let userBalances = {};
 
+    // Function to get user's balance in SGD
     async function yourBalance() {
-            const userId = localStorage.getItem('userId');
-            try {
-                const response = await fetch(`/balance/${userId}`);
-                const data = await response.json();
-                const balanceElement = document.getElementById('userBalance');
-                balanceElement.textContent = `Balance: $${data.balance.toFixed(2)}`;
-            } catch (error) {
-                console.error('Error fetching user balance:', error);
-            }
-        }
-
-        
-        async function fetchUserTokens() {
+        const userId = localStorage.getItem('UserId');
         try {
-            const userId = localStorage.getItem('userId');
+            const response = await fetch(`/balance/${userId}`);
+            const data = await response.json();
+            const balanceElement = document.getElementById('userBalance');
+            balanceElement.textContent = `Balance: $${data.balance.toFixed(2)}`;
+        } catch (error) {
+            console.error('Error fetching user balance:', error);
+        }
+    }
+
+    // Function to fetch user's tokens
+    async function fetchUserTokens() {
+        try {
+            const userId = localStorage.getItem('UserId');
             const response = await fetch(`/getTokens/${userId}`);
             const data = await response.json();
-            mode = document.querySelector('.tab-buttons button.active').id.replace('Tab', '').toLowerCase();
+            const mode = document.querySelector('.tab-buttons button.active').id.replace('Tab', '').toLowerCase();
             const userTokensList = document.getElementById('userTokensList');
             userTokensList.innerHTML = ''; // Clear previous tokens
-            
 
             if (data.tokens && data.tokens.length > 0) {
                 data.tokens.forEach(token => {
@@ -244,9 +329,14 @@
                 listItem.textContent = 'No tokens found';
                 userTokensList.appendChild(listItem);
             }
+
             if (mode === 'buy') {
                 updateBUYTokenSelectOptions(data.tokens);
-            } else {
+            }else if (mode ==='receive') {
+                updateReceiveTokenSelectOptions(data.tokens);
+
+            } 
+            else {
                 updateTokenSelectOptions(data.tokens);
             }
             clearFields();
@@ -255,37 +345,47 @@
             console.error('Error fetching user tokens:', error);
         }
     }
+
     function updateTokenSelectOptions(tokens) {
-    const tokenSelect = document.getElementById('tokenSymbol');
-    tokenSelect.innerHTML = ''; // Clear current options
-    
-    userBalances = {}; // Reset user balances
+        const tokenSelect = document.getElementById('tokenSymbol');
+        tokenSelect.innerHTML = ''; // Clear current options
+        tokenLabel = document.getElementById('tokenLabel');
+        const receiveNumber = document.getElementById('receiveNumber');
+        receiveNumber.style.display = 'none';
+        tokenSelect.style.display = 'block';
+        tokenLabel.style.display = 'block';
+        userBalances = {}; // Reset user balances
 
-    // Show only tokens that the user has a balance for
-    if (tokens && tokens.length > 0) {
-        tokens.forEach(token => {
-            if (token.TokenSymbol && token.Balance != null) {
-                userBalances[token.TokenSymbol] = parseFloat(token.Balance);
+        // Show only tokens that the user has a balance for
+        if (tokens && tokens.length > 0) {
+            tokens.forEach(token => {
+                if (token.TokenSymbol && token.Balance != null) {
+                    userBalances[token.TokenSymbol] = parseFloat(token.Balance);
 
-                // Find the matching token in tokenContracts by symbol
-                const matchingContract = tokenContracts.find(contract => contract.symbol === token.TokenSymbol);
+                    // Find the matching token in tokenContracts by symbol
+                    const matchingContract = tokenContracts.find(contract => contract.symbol === token.TokenSymbol);
 
-                if (matchingContract) {
-                    const option = document.createElement('option');
-                    option.value = token.TokenSymbol;
-                    option.textContent = `${token.TokenSymbol} (${matchingContract.name})`;
-                    tokenSelect.appendChild(option);
+                    if (matchingContract) {
+                        const option = document.createElement('option');
+                        option.value = token.TokenSymbol;
+                        option.textContent = `${token.TokenSymbol} (${matchingContract.name})`;
+                        tokenSelect.appendChild(option);
+                    }
                 }
-            }
-        });
+            });
+        }
     }
-}
 
-function updateBUYTokenSelectOptions(tokens) {
-    const tokenSelect = document.getElementById('tokenSymbol');
-    tokenSelect.innerHTML = ''; // Clear current options
-    userBalances = {}; // Reset user balances
-    
+    function updateBUYTokenSelectOptions(tokens) {
+        tokenLabel = document.getElementById('tokenLabel');
+        tokenLabel.style.display = 'block';
+        const receiveNumber = document.getElementById('receiveNumber');
+        receiveNumber.style.display = 'none';
+        const tokenSelect = document.getElementById('tokenSymbol');
+        tokenSelect.style.display = 'block';
+        tokenSelect.innerHTML = ''; // Clear current options
+        userBalances = {}; // Reset user balances
+
         // Show all tokens regardless of the user's balance
         tokenContracts.forEach(token => {
             const option = document.createElement('option');
@@ -293,32 +393,53 @@ function updateBUYTokenSelectOptions(tokens) {
             option.textContent = `${token.symbol} (${token.name})`;
             tokenSelect.appendChild(option);
         });
-    
-}
-
+    }
+    function updateReceiveTokenSelectOptions(tokens) {
+        const tokenSelect = document.getElementById('tokenSymbol');
+        
+        tokenLabel = document.getElementById('tokenLabel');
+        tokenLabel.style.display = 'none';
+        tokenSelect.style.display = 'none'; // Clear current options
+    }
 
     function clearFields() {
         document.getElementById('sgdAmount').value = '';
         document.getElementById('cryptoAmount').value = '';
         document.getElementById('transferAmount').value = '';
         document.getElementById('walletAddress').value = '';
-        document.getElementById('feeText').textContent = 'Fee (1%):';
+        document.getElementById('feeText').textContent = 'Fee (0.1%):';
         document.getElementById('outputText').textContent = 'You Will Receive:';
-        document.getElementById('feeTextSell').textContent = 'Fee (1%):';
+        document.getElementById('feeTextSell').textContent = 'Fee (0.1%):';
         document.getElementById('outputsText').textContent = 'You Will Receive:';
         document.getElementById('feeTextTransfer').textContent = '';
         document.getElementById('outputssText').textContent = 'Transfer Fee:';
+        document.getElementById('walletDisplay').style.display = 'none';
+        // Hide waiting icon
+        document.getElementById('waitingIcon').style.display = 'block';
+        // Remove any deposit info
+        const depositInfo = document.getElementById('depositInfo');
+        if (depositInfo) {
+            depositInfo.remove();
+        }
     }
 
+    // Event listeners for tab buttons
     document.querySelectorAll('.tab-buttons button').forEach(button => {
-        button.addEventListener('click', (e) => {
-            document.querySelectorAll('.tab-buttons button').forEach(btn => btn.classList.remove('active'));
-            e.target.classList.add('active');
-            clearFields();
-            updateConversionDisplay();
-        });
+    button.addEventListener('click', (e) => {
+        stopCheckingDeposits(); // Stop checking deposits
+        document.querySelectorAll('.tab-buttons button').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        clearFields();
+        updateConversionDisplay();
     });
+});
 
+function stopCheckingDeposits() {
+    clearInterval(checkingDepositsInterval);
+    document.getElementById('walletDisplay').style.display = 'none';
+}
+
+    // Event listeners for inputs
     document.getElementById('tokenSymbol').addEventListener('change', updateConversionDisplay);
     document.getElementById('cryptoAmount').addEventListener('input', handleNumericInput);
     document.getElementById('sgdAmount').addEventListener('input', handleNumericInput);
@@ -366,8 +487,7 @@ function updateBUYTokenSelectOptions(tokens) {
                 const finalCrypto = (cryptoReceived * 0.999).toFixed(8);
                 document.getElementById('feeText').textContent = `Fee (0.1%): $${fee} SGD`;
                 document.getElementById('outputText').textContent = `You Will Receive: ${finalCrypto} ${tokenSymbol}`;
-            }
-            else if (sgdAmount < 5) {
+            } else if (sgdAmount < 5) {
                 document.getElementById('feeText').textContent = `Fee (0.1%):`;
                 document.getElementById('outputText').textContent = `You Will Receive:`;
             }
@@ -401,8 +521,7 @@ function updateBUYTokenSelectOptions(tokens) {
         }
     }
 
-    
-
+    // Handle exchange button click
     document.getElementById('exchangeButton').onclick = function() {
         const mode = document.querySelector('.tab-buttons button.active').id.replace('Tab', '').toLowerCase();
         if (mode === 'buy') {
@@ -417,7 +536,7 @@ function updateBUYTokenSelectOptions(tokens) {
     async function handleBuy() {
         const tokenSymbol = document.getElementById('tokenSymbol').value;
         const sgdAmount = parseFloat(document.getElementById('sgdAmount').value);
-        const userId = localStorage.getItem('userId');
+        const userId = localStorage.getItem('UserId');
         const price = await fetchTokenPrice(tokenSymbol);
 
         if (sgdAmount >= 5 && price > 0) {
@@ -446,7 +565,7 @@ function updateBUYTokenSelectOptions(tokens) {
     async function handleSell() {
         const tokenSymbol = document.getElementById('tokenSymbol').value;
         const cryptoAmount = parseFloat(document.getElementById('cryptoAmount').value);
-        const userId = localStorage.getItem('userId');
+        const userId = localStorage.getItem('UserId');
         const price = await fetchTokenPrice(tokenSymbol);
 
         if (cryptoAmount > 0 && price > 0) {
@@ -472,73 +591,72 @@ function updateBUYTokenSelectOptions(tokens) {
     }
 
     async function handleTransfer() {
-    const tokenSymbol = document.getElementById('tokenSymbol').value;
-    const transferAmount = parseFloat(document.getElementById('transferAmount').value);
-    const recipientAddress = document.getElementById('walletAddress').value;
-    const fee = (transferAmount * 0.001).toFixed(2);
-    const userId = localStorage.getItem('userId');
+        const tokenSymbol = document.getElementById('tokenSymbol').value;
+        const transferAmount = parseFloat(document.getElementById('transferAmount').value);
+        const recipientAddress = document.getElementById('walletAddress').value;
+        const fee = (transferAmount * 0.001).toFixed(2);
+        const userId = localStorage.getItem('UserId');
 
-    if (transferAmount > 0 && web3.utils.isAddress(recipientAddress)) {
-        try {
-            if (tokenSymbol === 'ETH') {
-                // Handle ETH transfer directly
-                const transferReceipt = await web3.eth.sendTransaction({
-                    from: walletAddress,
-                    to: recipientAddress,
-                    value: web3.utils.toWei(transferAmount.toString(), 'ether')
-                });
-
-                if (transferReceipt.status) {
-                    // Only call /transfer if the transaction was successful
-                    await fetch('/transfer', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            userId: userId,
-                            tokenSymbol: tokenSymbol,
-                            amount: transferAmount,
-                            fee: parseFloat(fee)
-                        })
+        if (transferAmount > 0 && web3.utils.isAddress(recipientAddress)) {
+            try {
+                if (tokenSymbol === 'ETH') {
+                    // Handle ETH transfer directly
+                    const transferReceipt = await web3.eth.sendTransaction({
+                        from: walletAddress,
+                        to: recipientAddress,
+                        value: web3.utils.toWei(transferAmount.toString(), 'ether')
                     });
-                    fetchUserTokens();
-                    yourBalance();
+
+                    if (transferReceipt.status) {
+                        // Only call /transfer if the transaction was successful
+                        await fetch('/transfer', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                userId: userId,
+                                tokenSymbol: tokenSymbol,
+                                amount: transferAmount,
+                                fee: parseFloat(fee)
+                            })
+                        });
+                        fetchUserTokens();
+                        yourBalance();
+                    }
+                } else {
+                    // Handle token transfers via smart contract
+                    const token = tokenContracts.find(t => t.symbol === tokenSymbol);
+                    if (!token) throw new Error('Token contract not found');
+
+                    const tokenContract = new web3.eth.Contract(erc20ABI, token.address);
+                    const transferAmountInWei = web3.utils.toWei(transferAmount.toString(), 'ether');
+
+                    const transferReceipt = await tokenContract.methods.transfer(recipientAddress, transferAmountInWei).send({ from: walletAddress });
+                    console.log('Transfer receipt:', transferReceipt);
+                    if (transferReceipt.status) {
+                        // Only call /transfer if the transaction was successful
+                        await fetch('/transfer', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                userId: userId,
+                                tokenSymbol: tokenSymbol,
+                                amount: transferAmount,
+                                fee: parseFloat(fee)
+                            })
+                        });
+                        fetchUserTokens();
+                        yourBalance();
+                    }
                 }
-            } else {
-                // Handle token transfers via smart contract
-                const token = tokenContracts.find(t => t.symbol === tokenSymbol);
-                if (!token) throw new Error('Token contract not found');
-
-                const tokenContract = new web3.eth.Contract(erc20ABI, token.address);
-                const transferAmountInWei = web3.utils.toWei(transferAmount.toString(), 'ether');
-
-                const transferReceipt = await tokenContract.methods.transfer(recipientAddress, transferAmountInWei).send({ from: walletAddress });
-
-                if (transferReceipt.status) {
-                    // Only call /transfer if the transaction was successful
-                    await fetch('/transfer', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            userId: userId,
-                            tokenSymbol: tokenSymbol,
-                            amount: transferAmount,
-                            fee: parseFloat(fee)
-                        })
-                    });
-                    fetchUserTokens();
-                    yourBalance();
-                }
+            } catch (error) {
+                console.error('Error transferring token:', error);
             }
-        } catch (error) {
-            console.error('Error transferring token:', error);
         }
     }
-}
-
 
     async function estimateTransferFee(tokenSymbol, amount, userWalletAddress) {
         try {
@@ -579,6 +697,7 @@ function updateBUYTokenSelectOptions(tokens) {
             return 0;
         }
     }
+
     async function addTokenToTable() {
         const tableBody = document.querySelector('#tokenTable tbody');
         const priceUpdates = tokenContracts.map(token => fetchTokenPrice(token.symbol));
@@ -604,38 +723,175 @@ function updateBUYTokenSelectOptions(tokens) {
     }
 
     function toggleTab(mode) {
-    document.getElementById('buyTab').classList.toggle('active', mode === 'buy');
-    document.getElementById('sellTab').classList.toggle('active', mode === 'sell');
-    document.getElementById('transferTab').classList.toggle('active', mode === 'transfer');
-    document.getElementById('buySection').style.display = mode === 'buy' ? 'block' : 'none';
-    document.getElementById('sellSection').style.display = mode === 'sell' ? 'block' : 'none';
-    document.getElementById('transferSection').style.display = mode === 'transfer' ? 'block' : 'none';
-    document.getElementById('outputText').textContent = ''; // Clear output when switching tabs
-    document.getElementById('outputsText').textContent = ''; // Clear output when switching tabs
-    document.getElementById('outputssText').textContent = ''; // Clear output when switching tabs
-    document.getElementById('exchangeButton').textContent = mode === 'buy' ? 'BUY' : mode === 'sell' ? 'SELL' : 'TRANSFER';
+        document.getElementById('buyTab').classList.toggle('active', mode === 'buy');
+        document.getElementById('sellTab').classList.toggle('active', mode === 'sell');
+        document.getElementById('transferTab').classList.toggle('active', mode === 'transfer');
+        document.getElementById('receiveTab').classList.toggle('active', mode === 'receive');
+        document.getElementById('buySection').style.display = mode === 'buy' ? 'block' : 'none';
+        document.getElementById('sellSection').style.display = mode === 'sell' ? 'block' : 'none';
+        document.getElementById('transferSection').style.display = mode === 'transfer' ? 'block' : 'none';
+        document.getElementById('receiveSection').style.display = mode === 'receive' ? 'block' : 'none';
+        document.getElementById('outputText').textContent = ''; // Clear output when switching tabs
+        document.getElementById('outputsText').textContent = ''; // Clear output when switching tabs
+        document.getElementById('outputssText').textContent = ''; // Clear output when switching tabs
 
-    fetchUserTokens();
+        if (mode === 'receive') {
+            document.getElementById('exchangeButton').style.display = 'none';
+        } else {
+            document.getElementById('exchangeButton').style.display = 'block';
+            document.getElementById('exchangeButton').textContent = mode.toUpperCase();
+        }
+
+        fetchUserTokens();
+        clearFields();
+    }
+
+    document.getElementById("buyTab").addEventListener("click", function() {
+        toggleTab('buy');
+    });
+    document.getElementById("sellTab").addEventListener("click", function() {
+        toggleTab('sell');
+    });
+    document.getElementById("transferTab").addEventListener("click", function() {
+        toggleTab('transfer');
+    });
+    document.getElementById("receiveTab").addEventListener("click", function() {
+        toggleTab('receive');
+    });
+
+    // Variables for deposit monitoring
+    let checkingDepositsInterval;
+    let initialBalances = {};
+
+    // Modify the receiveButton click handler
+    document.getElementById('receiveButton').addEventListener('click', function() {
+        document.getElementById('displayedWalletAddress').textContent = walletAddress;
+        document.getElementById('walletDisplay').style.display = 'block';
+        startCheckingDeposits(); // Start monitoring for deposits
+    });
+
+    // Implement the deposit monitoring functions
+    async function getBalances(address) {
+    let balances = {};
+    try {
+        // Get ETH balance
+        const ethBalanceWei = await web3.eth.getBalance(address);
+        const ethBalance = parseFloat(web3.utils.fromWei(ethBalanceWei, 'ether'));
+        balances['ETH'] = parseFloat(ethBalance.toFixed(8));
+
+        console.log(`ETH balance: ${balances['ETH']}`);
+
+        // Get token balances
+        for (const token of tokenContracts) {
+            if (token.symbol === 'ETH') continue;
+            const tokenContract = new web3.eth.Contract(erc20ABI, token.address);
+            const decimals = await tokenContract.methods.decimals().call(); // Get the actual decimals
+            const balance = await tokenContract.methods.balanceOf(address).call();
+            const tokenBalance = balance / (10 ** decimals); // Divide by the correct decimal places
+            balances[token.symbol] = parseFloat(tokenBalance.toFixed(8)); // Adjust decimal places as needed
+
+            console.log(`${token.symbol} balance: ${balances[token.symbol]}`);
+        }
+    } catch (error) {
+        console.error('Error fetching balances:', error);
+    }
+    return balances;
 }
 
-document.getElementById("buyTab").addEventListener("click", function() {
-    toggleTab('buy');
-});
-document.getElementById("sellTab").addEventListener("click", function() {
-    toggleTab('sell');
-});
-document.getElementById("transferTab").addEventListener("click", function() {
-    toggleTab('transfer');
-});
 
- const header = document.querySelector('#userTokensContainer h3');
+
+    function startCheckingDeposits() {
+        getBalances(walletAddress).then(balances => {
+            initialBalances = balances;
+            console.log('Initial balances:', initialBalances);
+            checkingDepositsInterval = setInterval(checkForDeposits, 5000); // Every 5 seconds
+        });
+    }
+    let type;
+
+    async function checkForDeposits() {
+        const balances = await getBalances(walletAddress);
+        
+        let deposited = false;
+        let depositDetails = '';
+
+        if (balances['ETH'] > initialBalances['ETH']) {
+            const amountDeposited = balances['ETH'] - initialBalances['ETH'];
+            console.log('h');
+            depositDetails += `Received ${amountDeposited.toFixed(8)} ETH\n`;
+            type = 'ETH';
+            deposited = true;
+            
+        }
+
+        for (const symbol of Object.keys(balances)) {
+            console.log(symbol);
+            if (symbol === 'ETH') continue;
+            if (balances[symbol] > initialBalances[symbol]) {
+                console.log('g');
+                const amountDeposited = balances[symbol] - initialBalances[symbol];
+                type = symbol;
+                depositDetails += `Received ${amountDeposited.toFixed(8)} ${symbol}\n`;
+                deposited = true;
+            }
+        }
+
+        if (deposited) {
+            const userId = localStorage.getItem('UserId');
+            console.log(initialBalances, balances);
+            // Display the amount deposited in the walletDisplay section
+            const depositInfo = document.createElement('p');
+            depositInfo.id = 'depositInfo';
+            depositInfo.textContent = depositDetails;
+            document.getElementById('walletDisplay').appendChild(depositInfo);
+            const receiveNumber = document.getElementById('receiveNumber');
+            receiveNumber.style.display = 'block';
+            const receiveTokenType = document.getElementById('receiveTokenType');
+            const receiveTokenAmount = document.getElementById('receiveTokenAmount');
+            receiveTokenType.textContent = type;
+            receiveTokenAmount.textContent = (balances[type] - initialBalances[type]).toFixed(4);
+            // Stop checking
+            clearInterval(checkingDepositsInterval);
+
+            // Hide the waiting icon
+            document.getElementById('waitingIcon').style.display = 'none';
+            await receiveToken(userId, type, (balances[type] - initialBalances[type]).toFixed(18));
+            // Update user's tokens
+            fetchUserTokens();
+        }
+    }
+    async function receiveToken(userId, type, amount){
+        try{
+            const success = await fetch('/receiveToken', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    tokenSymbol: type,
+                    amount: parseFloat(amount)
+                })
+            });
+        }
+        catch (error) {
+            console.error('Error receiving token:', error);
+        }
+    }
+    // Handle the cancel button
+    document.getElementById('cancelButton').addEventListener('click', function() {
+        document.getElementById('walletDisplay').style.display = 'none';
+        clearInterval(checkingDepositsInterval);
+    });
+
+    // Initialize the page
+    const header = document.querySelector('#userTokensContainer h3');
     header.innerHTML = `<span id="userBalance"></span><br></br>Your Tokens`;
     await addTokenToTable();
     await fetchUserTokens();
     await yourBalance();
     setInterval(addTokenToTable, 5000);
 });
-
 
     </script>
 <script src = "../js/b.js" defer></script>

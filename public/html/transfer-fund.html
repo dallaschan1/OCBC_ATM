@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Funds Transfer</title>
     <link rel="stylesheet" href="../css/transfer.css">
-    <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
     <img src="../images/OcbcLogo.png" alt="Logo" class="logo">
@@ -32,20 +31,265 @@
         <a href="/home" class="back-link">Go Back</a>
     </div>
 
+    <!-- Suspicion Modal -->
     <div id="suspicion-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
             <h3>This account has been involved in suspicious activity</h3>
             <p>Do you want to continue?</p>
-            <button class="btn-close" onclick="closeModal()">Close</button>
+            <button class="btn-close" id="btn-close" onclick="closeModal()">Close</button>
             <button class="btn-confirm" id="confirm-btn">Confirm</button>
         </div>
     </div>
 
+    <!-- Waiting Modal -->
+    <div id="waiting-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeWaitingModal()">&times;</span>
+            <h3>Transfer Request Pending</h3>
+            <p>Your account is under review. Please wait for further information before proceeding with the transfer.</p>
+            <button class="btn-close" id="close-waiting-btn" onclick="closeWaitingModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- Toast Message -->
     <div id="toast" class="toast" style="display: none;">Transfer Successful!</div>
 
-    <script src="../js/transfer.js">
+    <script>
+        // Fetch user info based on the input (Account name or number)
+        async function getUserInfo() {
+            const accountInput = document.getElementById('account').value.trim();
+            if (accountInput.length > 3) {
+                try {
+                    const response = await fetch('/get-user', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ UserName: accountInput, phoneNumber: accountInput })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.user) {
+                            document.getElementById('user-name').textContent = data.user.UserName || '--';
+                            document.getElementById('user-phone').textContent = data.user.phoneNumber || '--';
+                            // Now fetch the suspicion score
+                            const userId = data.user.UserID;
+                            await checkSuspicion(userId);
+                        } else {
+                            resetUserInfo();
+                        }
+                    } else {
+                        resetUserInfo();
+                    }
+                } catch (error) {
+                    console.error('Error fetching user info:', error);
+                    resetUserInfo();
+                }
+            } else {
+                resetUserInfo();
+            }
+        }
+
+        // Check the suspicion score
+        async function checkSuspicion(userId) {
+            try {
+                const response = await fetch('/check-suspicion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: userId })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const score = data.score !== null && data.score !== undefined ? data.score : '--';
+                    document.getElementById('user-score').textContent = score;
+                    console.log('Suspicion score:', score);
+                    return score;
+                } else {
+                    console.error('Error fetching suspicion score');
+                    document.getElementById('user-score').textContent = '--';
+                }
+            } catch (error) {
+                console.error('Error checking suspicion score:', error);
+                document.getElementById('user-score').textContent = '--';
+            }
+            return null;
+        }
+
+        // Reset user info if no user found
+        function resetUserInfo() {
+            document.getElementById('user-name').textContent = '--';
+            document.getElementById('user-phone').textContent = '--';
+            document.getElementById('user-score').textContent = '--';
+        }
+
+        // Transfer button click handler
+        document.querySelector('.btn').addEventListener('click', async function() {
+            const accountInput = document.getElementById('account').value.trim();
+            const amountInput = document.getElementById('amount').value.trim();
+
+            if (accountInput && amountInput) {
+                const userId = await getUserId(accountInput);
+                if (userId) {
+                    const suspicionScore = await checkSuspicion(userId);
+                    const threshold = 50; // Set your threshold for suspicious score here
+
+                    if (suspicionScore && suspicionScore > threshold) {
+                        document.getElementById('suspicion-modal').style.display = 'block';
+
+                        // If suspicion score > 100, update the suspicion status and open waiting modal when Confirm is clicked
+                        if (suspicionScore > 100) {
+                            // Update UserSuspicion status in the backend
+                            await updateSuspicionStatus(userId, 1); // Set suspicion to 1 (true)
+                        }
+
+                        // Handle Confirm button click
+                        document.getElementById('confirm-btn').onclick = function() {
+                            if (suspicionScore > 100) {
+                                openWaitingModal();
+                                startPollingForSuspicionStatus();
+                            } else {
+                                closeModal();
+                                showToast('Transfer Successful!');
+                            }
+                        };
+                    } else {
+                        showToast('Transfer Successful!');
+                    }
+                }
+            } else {
+                alert("Please fill in all fields.");
+            }
+        });
+
+        // Fetch user ID based on account input
+        async function getUserId(accountInput) {
+            try {
+                const response = await fetch('/get-user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ UserName: accountInput, phoneNumber: accountInput })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.user.UserID;
+                }
+            } catch (error) {
+                console.error('Error fetching user ID:', error);
+            }
+            return null;
+        }
+
+        // Update the suspicion status of the user
+        async function updateSuspicionStatus(userId, suspicionStatus) {
+            try {
+                const response = await fetch('/update-user-suspicion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ATMID: 1,
+                        UserSuspicion: suspicionStatus
+                    })
+                });
+
+                if (response.ok) {
+                    console.log(`User suspicion status updated to ${suspicionStatus}.`);
+                } else {
+                    console.error('Error updating suspicion status.');
+                }
+            } catch (error) {
+                console.error('Error during suspicion update:', error);
+            }
+        }
+
+        let pollingInterval;
+
+        // Function to start polling for suspicion status
+        async function startPollingForSuspicionStatus() {
+            pollingInterval = setInterval(async () => {
+                try {
+                    const response = await fetch('/get-user-suspicion', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ ATMID: 1 }) // Use actual ATMID or UserID
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const suspicionStatus = data.UserSuspicion;
+                        console.log('Suspicion status:', suspicionStatus);
+
+                        // Handle different suspicion statuses
+                        if (suspicionStatus === 0) {
+                            // Approved by admin
+                            clearInterval(pollingInterval);
+                            closeWaitingModal();
+                            closeModal();
+                            showToast('Transfer Successful!');
+                        } else if (suspicionStatus === 2) {
+                            // Rejected by admin
+                            clearInterval(pollingInterval);
+                            closeWaitingModal();
+                            closeModal();
+                            showToast('Transaction Failed due to suspicious activity.');
+                        } else if (suspicionStatus === 1) {
+                            // Still under review, keep polling
+                            console.log('Transaction is still under review...');
+                        }
+                    } else {
+                        console.error('Error fetching user suspicion status');
+                    }
+                } catch (error) {
+                    console.error('Error during suspicion status polling:', error);
+                }
+            }, 3000); // Poll every 3 seconds
+        }
+
+
+        // Open the waiting modal
+        function openWaitingModal() {
+            document.getElementById('waiting-modal').style.display = 'block';
+        }
+
+        // Close the suspicion modal
+        function closeModal() {
+            const userId = document.getElementById('account').value.trim();
+            if (userId) {
+                updateSuspicionStatus(userId, 0);  // Set suspicion status back to 0 when modal is closed
+            }
+            document.getElementById('suspicion-modal').style.display = 'none';
+        }
+
+        // Close the waiting modal
+        function closeWaitingModal() {
+            document.getElementById('waiting-modal').style.display = 'none';
+        }
+
+        // Display a toast message
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            toast.style.opacity = '1';
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 500);
+            }, 3000);
+        }
     </script>
-    
 </body>
 </html>

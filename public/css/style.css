@@ -169,9 +169,10 @@ hr {
 /* Action Buttons Styling */
 .action-button {
     font-size: 16px;
-    padding: 20px;
+    padding: 15px;
     font-weight: bold;
     color: #FFF;
+    border: none;
 }
 
 
@@ -223,10 +224,9 @@ hr {
 .clear-button {
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 16px;
     cursor: pointer;
-    margin-left: 40px;
-    color: #999;
+    color: #ffffff;
 }
 
 .clear-button:hover {
@@ -294,7 +294,7 @@ hr {
 #Left {
     width: 45%;
     padding-left: 50px;
-    padding-top: 60px;
+    
     display: flex;
     flex-direction: column;
     align-items: flex-start; /* Align contents to the left */
@@ -313,7 +313,7 @@ hr {
     flex-direction: column;
     height: auto;
     width: 85%;
-    margin-top: 50px;
+    margin-top: 3px;
  
 }
 
@@ -354,8 +354,8 @@ hr {
 
 #Right {
     flex: 1; /* Allow #Right to grow */
-    padding: 50px;
-    padding-top: 40px;
+        padding: 50px;
+        padding-top: 0;    
     background-color: #f0eeee;
     box-shadow: inset 10px 0px 20px rgba(0, 0, 0, 0.3);
     padding-bottom: 5px;
@@ -374,9 +374,6 @@ hr {
     width: 100%;
 }
 
-#other-services-container {
-    margin-top:80px; /* Space above the container */
-}
 #other-services-container h1{
     margin-bottom: 17px; /* Space above the container */
 }

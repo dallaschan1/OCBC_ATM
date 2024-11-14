@@ -7,6 +7,8 @@
     <!-- Link to the shared CSS file -->
     <link rel="stylesheet" href="../css/normalise.css">
     <link rel="stylesheet" href="../css/style.css">
+    
+    
 </head>
 <style>
     body {
@@ -42,8 +44,72 @@
     .qr-button:hover {
         background-color: #ff6347;
     }
+.Camera{
+    width: 150px;
+    position: absolute;
+    right: 140px;
+    top: 80px;
+}
+#Alert {
+    position: absolute;
+    top: 40px;
+    background-color: transparent;
+    width: 800px;
+    color: transparent;
+    text-align: center;
+}
+#Alert.active {
+        background-color: red;
+        color: black;
+        border-color: black;
+      }
+
+.video-wrapper {
+    position: relative;
+    width: 200px; 
+    height: 200px;
+    border-radius: 50%; 
+    overflow: hidden; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+    margin-bottom: 0;
+    padding: 0;
+}
+
+
+.circular-video {
+    border-radius: 50%; 
+    object-fit: cover; 
+    width: 100%; 
+    height: 100%; 
+    position: absolute;
+}
+
+
+canvas {
+    position: absolute; 
+    right: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    border-radius: 50%; 
+    pointer-events: none; 
+}
+
 </style>
+
 <body>
+    <div id = "Alert">
+        <h3>Shoulder Surfing Warning!</h3>
+    </div>
+  
+    <div class="Camera">
+        <div class="video-wrapper">
+          <video id="video" class="circular-video" autoplay muted></video>
+        </div>
+    </div>
     <img src="../images/OcbcLogo.png" alt="Logo" class="logo">
     <div class="container">
         <!-- Button for QR Code navigation -->
@@ -60,19 +126,49 @@
         <button id="fingerprint" class="verification-button">Fingerprint and NRIC</button>
     </div>
 
+    <div id="voice-assistant">
+        <div class="voice-assistant-content">
+          <div id="test">
+            <div id="waveformContainer">
+              <canvas id="waveform"></canvas>
+            </div>
+            <div id="microphoneContainer">
+              <img
+                src="../images/microphone.png"
+                alt="Voice Assistant"
+                class="voice-image"
+              />
+            </div>
+          </div>
+          <div class="voice-assistant-header">
+            <h3>Voice Assistant</h3>
+            <div class="toggle-container">
+              <label class="switch">
+                <input type="checkbox" id="voice-toggle" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
         // Redirect to different pages on button click
         document.getElementById('cardLogin').addEventListener('click', function() {
-            window.location.href = 'card-login.html'; 
+            window.location.href = '/card-login'; 
         });
 
         document.getElementById('facialRecognition').addEventListener('click', function() {
-            window.location.href = '/fingerprint';
+            window.location.href = '/faceLogin';
         });
 
         document.getElementById('fingerprint').addEventListener('click', function() {
-            window.location.href = '/faceLogin';
+            window.location.href = '/fingerprint';
         });
     </script>
+    <script src="../js/LoginPageChatbot.js"></script>
+    <script src = "../js/face-api.min.js"></script>
+    <script src = "../js/b.js"></script>
 </body>
 </html>

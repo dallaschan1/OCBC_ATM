@@ -112,6 +112,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Biometric Authentication</title>
     <link rel="stylesheet" href="../css/fingerprint.css"></link>
+    <link rel="stylesheet" href="../css/chatbot.css"></link>
+    <link rel="stylesheet" href="../css/style.css"></link>
 </head>
 <body>
     <div class="card">
@@ -124,6 +126,32 @@
         </div>        
     </div>
 
+    <div id="voice-assistant">
+        <div class="voice-assistant-content">
+          <div id="test">
+            <div id="waveformContainer">
+              <canvas id="waveform"></canvas>
+            </div>
+            <div id="microphoneContainer">
+              <img
+                src="../images/microphone.png"
+                alt="Voice Assistant"
+                class="voice-image"
+              />
+            </div>
+          </div>
+          <div class="voice-assistant-header">
+            <h3>Voice Assistant</h3>
+            <div class="toggle-container">
+              <label class="switch">
+                <input type="checkbox" id="voice-toggle" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <script src="../js/session.js"></script>
     <script>
         document.getElementById('triggerButton').addEventListener('click', async () => {
@@ -145,19 +173,6 @@
             });
 
             const nricData = await nricResponse.json();
-
-            const idResponse = await fetch('/getting-id', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ nric })
-            });
-
-            const idData = await idResponse.json();
-            console.log(idData);
-            const UserId = idData.UserID;
-            localStorage.setItem('UserId', UserId);
 
             if (nricResponse.ok) {
                 // If a token is found, get user location and send the message
@@ -202,12 +217,26 @@
 
         let authCheckInterval;
 
+        // Continuously check authentication status
         async function checkAuthStatus() {
             try {
                 const response = await fetch('/check-auth-status');
                 const data = await response.json();
                 
                 if (data.authenticated) {
+                    const nric = document.getElementById('nricInput').value.trim();
+                    const idResponse = await fetch(`/getting-id?nric=${encodeURIComponent(nric)}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const idData = await idResponse.json();
+                    console.log(idData);
+                    const UserId = idData.UserID;
+                    localStorage.setItem('UserId', UserId);
+
                     clearInterval(authCheckInterval);
                     window.location.href = '/Home';
                 }
@@ -216,7 +245,9 @@
             }
         }
 
+        // Start the interval to check auth status
         authCheckInterval = setInterval(checkAuthStatus, 2000);
     </script>
+    <script src="../js/fingerPrintChatbot.js"></script>
 </body>
 </html> 

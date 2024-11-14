@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATM Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px;
+        }
+        .atm-box {
+            position: relative;
+            background-color: rgba(199, 199, 199, 0.8);
+            width: 180px;
+            height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            margin: 10px;
+            text-align: center;
+            overflow: hidden;
+            cursor: pointer; /* Make all boxes clickable */
+        }
+        .atm-icon {
+            width: 80px;
+            height: 80px;
+            background-size: cover;
+            background-position: center;
+            margin-bottom: 10px;
+        }
+        .atm-id {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .atm-status {
+            margin-top: 10px;
+            font-size: 16px;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            color: #ffffff;
+        }
+        .inactive {
+            color: #f44336;
+        }
+        .active {
+            color: #4CAF50;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        /* Overlay styles */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            border-radius: 10px;
+        }
+        .overlay.show {
+            opacity: 1;
+        }
+        .warning-icon {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            z-index: 1000;
+            text-align: center;
+        }
+        .modal.show {
+            display: block;
+        }
+        .modal button {
+            margin: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .approve-btn {
+            background-color: #4CAF50;
+            color: #fff;
+        }
+        .reject-btn {
+            background-color: #f44336;
+            color: #fff;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .modal-overlay.show {
+            display: block;
+        }
+        #modal-atm-info {
+            font-size:18px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>ATM Dashboard</h1>
+    
+    <div class="container" id="atm-container"></div>
+
+    <!-- Modal for approving/rejecting -->
+    <div class="modal-overlay" id="modal-overlay"></div>
+    <div class="modal" id="atm-modal">
+        <h2>Suspicious Activity Detected</h3>
+        <p id="modal-atm-id"></p>
+        <p id="modal-atm-info"></p>
+        <button class="approve-btn" onclick="handleApprove()">Approve</button>
+        <button class="reject-btn" onclick="handleReject()">Reject</button>
+    </div>
+
+    <script>
+        const alertedATMs = new Set(); // Store ATM IDs that have already triggered an alert
+        let selectedATMId = null; // To keep track of the selected ATM ID
+
+        async function fetchATMs() {
+            try {
+                const response = await fetch('/atms');
+                const data = await response.json();
+
+                if (data.success) {
+                    const atmContainer = document.getElementById('atm-container');
+                    atmContainer.innerHTML = '';
+
+                    data.atms.forEach(atm => {
+                        const atmBox = document.createElement('div');
+                        atmBox.classList.add('atm-box');
+                        atmBox.style.cursor = atm.UserSuspicion === 1 ? 'pointer' : 'default';
+
+                        // ATM Icon
+                        const atmIcon = document.createElement('div');
+                        atmIcon.classList.add('atm-icon');
+                        atmIcon.style.backgroundImage = "url('../images/atm-machine.png')";
+
+                        // ATM ID
+                        const atmId = document.createElement('div');
+                        atmId.classList.add('atm-id');
+                        atmId.innerText = `ID: ${atm.ATMID}`;
+
+                        // ATM Status
+                        const atmStatus = document.createElement('div');
+                        atmStatus.classList.add('atm-status');
+                        atmStatus.classList.add(atm.Status === 'Inactive' ? 'inactive' : 'active');
+                        atmStatus.innerText = `${atm.Status}`;
+
+                        // Overlay for suspicious activity
+                        const overlay = document.createElement('div');
+                        overlay.classList.add('overlay');
+                        if (atm.UserSuspicion === 1 && atm.Status === 'Active') {
+                            overlay.classList.add('show');
+                            overlay.innerHTML = `<div class="warning-icon">⚠️</div> Suspicious Activity`;
+                            atmBox.onclick = () => showModal(atm.ATMID);
+                        }
+
+                        atmBox.appendChild(atmIcon);
+                        atmBox.appendChild(atmId);
+                        atmBox.appendChild(atmStatus);
+                        atmBox.appendChild(overlay);
+                        atmContainer.appendChild(atmBox);
+                    });
+                } else {
+                    alert('No ATMs found.');
+                }
+            } catch (error) {
+                console.error('Error fetching ATM data:', error);
+            }
+        }
+
+        function showModal(atmId) {
+            selectedATMId = atmId;
+            document.getElementById('modal-atm-id').innerText = `ATM ID: ${atmId}`;
+            document.getElementById('modal-atm-info').innerText = `User is trying to transfer fund to an suspicious account from this ATM. Do you want to approve or reject this?`;
+            
+            document.getElementById('atm-modal').classList.add('show');
+            document.getElementById('modal-overlay').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('atm-modal').classList.remove('show');
+            document.getElementById('modal-overlay').classList.remove('show');
+        }
+
+        function handleApprove() {
+            alert(`Approved ATM ID: ${selectedATMId}`);
+            updateSuspicionStatus(0);
+            closeModal();
+        }
+
+        function handleReject() {
+            alert(`Rejected ATM ID: ${selectedATMId}`);
+            updateSuspicionStatus(2);
+            closeModal();
+        }
+
+        async function updateSuspicionStatus(suspicionStatus) {
+            try {
+                const response = await fetch('/update-user-suspicion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ATMID: 1,
+                        UserSuspicion: suspicionStatus
+                    })
+                });
+
+                if (response.ok) {
+                    console.log(`User suspicion status updated to ${suspicionStatus}.`);
+                } else {
+                    console.error('Error updating suspicion status.');
+                }
+            } catch (error) {
+                console.error('Error during suspicion update:', error);
+            }
+        }
+
+        setInterval(fetchATMs, 3000);
+        window.onload = fetchATMs;
+    </script>
+    
+</body>
+</html>
