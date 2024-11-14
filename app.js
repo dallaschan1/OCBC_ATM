@@ -534,6 +534,195 @@ app.get('/balance/:userId', async (req, res) => {
     }
 });
 
+//ratings
+app.use(cors());
+app.post('/submit-rating', async (req, res) => {
+    const { rating, userId } = req.body;
+
+    // Log the request body to the terminal
+    console.log('Received rating data:', req.body);
+
+    if (!rating) {
+        console.log('Error: Rating is required.');
+        return res.status(400).send({ message: 'Rating is required.' });
+    }
+    
+    if (!userId) {
+        console.log('Error: User ID is required.');
+        return res.status(400).send({ message: 'User ID is required.' });
+    }
+    
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        
+        // Log the database interaction to the terminal
+        console.log('Inserting rating into the database...');
+        
+        // Insert the rating into the database
+        await pool.request()
+            .input('userId', sql.Int, userId)
+            .input('rating', sql.Int, rating)
+            .query('INSERT INTO Ratings (UserID, Rating) VALUES (@userId, @rating)');
+        
+        console.log('Rating successfully inserted into the database.');
+        
+        res.status(200).send({ message: 'Rating submitted successfully!' });
+    } catch (error) {
+        console.error('Error saving rating to database:', error);
+        res.status(500).send({ message: 'Internal server error.' });
+    }
+});
+
+app.get('/get-low-ratings', async (req, res) => {
+    const userId = req.query.userId; // Optional: Use this to filter by userId if needed
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        
+        // Query to fetch low ratings (e.g., Rating < 3)
+        const result = await pool.request()
+            .input('userId', sql.Int, userId)
+            .query('SELECT Rating, UserID, RatingDate FROM Ratings WHERE Rating < 3 AND UserID = @userId');
+
+        res.status(200).json({ ratings: result.recordset });
+    } catch (error) {
+        console.error('Error fetching ratings:', error);
+        res.status(500).send({ message: 'Error fetching low ratings.' });
+    }
+});
+
+// POST endpoint to submit feedback
+app.post('/submit-feedback', async (req, res) => {
+    const { userId, rating, feedback } = req.body;
+
+    // Log the request body to the terminal
+    console.log('Received feedback data:', req.body);
+
+    if (!userId || rating === undefined || !feedback) {
+        console.log('Error: User ID, rating, and feedback text are required.');
+        return res.status(400).send({ message: 'User ID, rating, and feedback are required.' });
+    }
+
+    try {
+        const pool = await sql.connect(dbConfig);
+
+        // Log the database interaction to the terminal
+        console.log('Inserting feedback into the database...');
+        
+        // Insert feedback into the database
+        await pool.request()
+            .input('userId', sql.Int, userId)
+            .input('rating', sql.Int, rating)
+            .input('feedback', sql.VarChar(500), feedback)
+            .query('INSERT INTO Feedback (UserID, Rating, FeedbackText) VALUES (@userId, @rating, @feedback)');
+
+        console.log('Feedback successfully inserted into the database.');
+        
+        res.status(200).send({ message: 'Feedback submitted successfully!' });
+    } catch (error) {
+        console.error('Error saving feedback to database:', error);
+        res.status(500).send({ message: 'Internal server error.' });
+    }
+});
+
+// GET endpoint to fetch feedback for a specific user
+app.get('/get-feedback', async (req, res) => {
+    const userId = req.query.userId;
+
+    if (!userId) {
+        console.log('Error: User ID is required to fetch feedback.');
+        return res.status(400).send({ message: 'User ID is required.' });
+    }
+
+    try {
+        const pool = await sql.connect(dbConfig);
+
+        // Query to fetch feedback for the given userId
+        const result = await pool.request()
+            .input('userId', sql.Int, userId)
+            .query('SELECT FeedbackID, Rating, FeedbackText, FeedbackDate FROM Feedback WHERE UserID = @userId');
+
+        res.status(200).json({ feedback: result.recordset });
+    } catch (error) {
+        console.error('Error fetching feedback:', error);
+        res.status(500).send({ message: 'Error fetching feedback.' });
+    }
+});
+
+app.post('/updateTransactionCount', async (req, res) => {
+    try {
+        const { userId } = req.body; // Get userId from request body
+        
+        if (!userId) {
+            return res.status(400).send('User ID is required');
+        }
+
+        const pool = await sql.connect('your-mssql-connection-string');
+        const result = await pool.request()
+            .input('userId', sql.Int, userId) // Parameterized query to prevent SQL injection
+            .query('SELECT transactionCount FROM UserTransactionCount WHERE userId = @userId');
+        
+        let transactionCount;
+        
+        if (result.recordset.length === 0) {
+            // If no record is found, create a new one with a default transaction count of 1
+            transactionCount = 1;
+            await pool.request()
+                .input('userId', sql.Int, userId)
+                .input('transactionCount', sql.Int, transactionCount)
+                .query('INSERT INTO UserTransactionCount (userId, transactionCount) VALUES (@userId, @transactionCount)');
+        } else {
+            transactionCount = result.recordset[0].transactionCount;
+            transactionCount = transactionCount + 1; // Increment transaction count
+
+            if (transactionCount > 30) {
+                transactionCount = 1; // Reset to 1 if it exceeds 30
+            }
+
+            // Update the transaction count in the database
+            await pool.request()
+                .input('userId', sql.Int, userId)
+                .input('transactionCount', sql.Int, transactionCount)
+                .query('UPDATE UserTransactionCount SET transactionCount = @transactionCount WHERE userId = @userId');
+        }
+
+        res.status(200).send({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error updating transaction count');
+    }
+});
+app.get('/getTransactionCount', async (req, res) => {
+    try {
+        const { userId } = req.query; // Get userId from query parameters
+        
+        if (!userId) {
+            return res.status(400).send('User ID is required');
+        }
+
+        const pool = await sql.connect('your-mssql-connection-string');
+        const result = await pool.request()
+            .input('userId', sql.Int, userId) // Parameterized query to prevent SQL injection
+            .query('SELECT transactionCount FROM UserTransactionCount WHERE userId = @userId');
+        
+        if (result.recordset.length === 0) {
+            // If no record is found, initialize with a default transaction count of 1
+            await pool.request()
+                .input('userId', sql.Int, userId)
+                .input('transactionCount', sql.Int, 1) // Default transaction count
+                .query('INSERT INTO UserTransactionCount (userId, transactionCount) VALUES (@userId, @transactionCount)');
+            
+            return res.json({ transactionCount: 1 }); // Return default count of 1
+        }
+
+        // Return transaction count as JSON
+        res.json({ transactionCount: result.recordset[0].transactionCount });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error retrieving transaction count');
+    }
+});
 
 
 // Start the server

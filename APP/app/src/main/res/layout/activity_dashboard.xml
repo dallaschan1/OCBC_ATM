@@ -29,7 +29,43 @@
             android:textColor="@color/black"
             android:layout_marginStart="8dp"
             android:layout_marginLeft="8dp" />
+
+        <FrameLayout
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="end"
+            android:layout_marginStart="153dp"
+          >
+
+            <!-- Circle Button -->
+
+            <!-- Notification Badge (Number) -->
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/notificationButton"
+                android:layout_width="38dp"
+                android:layout_height="43dp"
+                android:layout_gravity="center"
+                android:background="@drawable/notification_icon"
+                android:contentDescription="Notification Button"
+                android:padding="16dp"
+                android:src="@drawable/baseline_account_circle_24" />
+
+            <TextView
+                android:id="@+id/notificationBubble"
+                android:layout_width="24dp"
+                android:layout_height="18dp"
+                android:layout_gravity="end|top"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/notification_bubble"
+                android:gravity="center"
+                android:text="1"
+                android:textColor="@android:color/white"
+                android:visibility="invisible" />
+        </FrameLayout>
     </LinearLayout>
+
+
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardbutton"
@@ -72,7 +108,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingTop="16dp">
+        android:paddingTop="16dp"
+        android:layout_marginLeft="30dp">
 
         <TextView
             android:id="@+id/textViewUserId"

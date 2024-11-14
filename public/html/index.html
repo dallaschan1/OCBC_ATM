@@ -34,7 +34,7 @@
             console.error('Invalid response from server');
           }
         } catch (error) {
-          console.error('Login failed:', error);
+          console.error(':', error);
         }
       } else {
         alert('Please enter both username and password');
@@ -43,7 +43,7 @@
 
     async function PasswordLogin(userName, password) {
       try {
-        const response = await fetch('/PasswordLogin', {
+        const response = await fetch('http://127.0.0.1:3001/PasswordLogin', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

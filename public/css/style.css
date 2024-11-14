@@ -805,16 +805,12 @@ canvas {
 .rating-container {
     text-align: center;
     background-color: #fff;
-    padding: 20px;
-    margin:40rem;
+    padding: 20px 100px 20px 100px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     max-width: 400px;
-
     position: relative;
 }
-
-
 
 .stars {
     display: flex;
@@ -827,14 +823,21 @@ canvas {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 32px;
+    font-size: 50px;
     color: #ccc;
     transition: color 0.3s;
 }
 
-.stars button.active,
-.stars button:hover,
-.stars button:hover ~ button {
+.stars button {
+    color: f0eeee;
+}
+
+/* Active stars (selected) */
+.stars button.active {
+    color: gold;
+}
+
+.stars button:hover{
     color: gold;
 }
 
@@ -844,14 +847,35 @@ canvas {
     cursor: pointer;
     border: none;
     border-radius: 5px;
-    background-color: #4CAF50;
+    background-color: #10075b;
     color: white;
-    margin-top: 20px;
+    margin-top: 10px;
+    margin-bottom: 20px;
 }
 
 .thank-you {
     display: none;
     margin-top: 20px;
     font-size: 18px;
-    color: #4CAF50;
+    color: #10075b;
 }
+
+.please-submit {
+    display: none;
+    margin-top: 20px;
+    font-size: 18px;
+    color: #ff0000;
+}
+
+/*ThankYou*/
+#thankYouHeader {
+    font-weight: bold;
+    font-size:28px;
+    margin-bottom: 2rem;
+}
+
+#redirectMessage {
+    font-size: 18px;
+    margin-top: 20px;
+}
+

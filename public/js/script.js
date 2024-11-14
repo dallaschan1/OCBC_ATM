@@ -144,18 +144,131 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById("exit-confirmation").style.display = "none";
     }
 });
+// document.addEventListener("DOMContentLoaded", function() {
+//     // Get userId from localStorage
+//     const userId = 1; // Hardcoded for now, but replace with localStorage.getItem('userId') for real use
+//     if (!userId) {
+//         console.error("User not logged in. No userId found.");
+//         return;
+//     }
 
-// data leak 
-function showDataLeakWarning() {
-    document.getElementById('data-leak-warning').style.display = 'flex';
+//     // Show exit confirmation when exit button is clicked
+//     document.getElementById("exit-button").onclick = async function() {
+//         try {
+//             // Fetch the current transaction count for the user
+//             const response = await fetch(`/getTransactionCount?userId=${userId}`);
+//             const data = await response.json();
+//             const transactionCount = data.transactionCount;
+
+//             // Show exit confirmation modal
+//             document.getElementById("exit-confirmation").style.display = "flex";
+
+//             // Confirm exit
+//             window.confirmExit = function() {
+//                 console.log("Exit confirmed.");
+
+//                 // Hide confirmation text and buttons
+//                 document.querySelector("#exit-confirmation h1").style.display = "none";
+//                 document.querySelector("#exit-confirmation p").style.display = "none";
+//                 document.querySelectorAll(".modal-button").forEach(button => button.style.display = "none");
+
+//                 // Show loading animation
+//                 document.getElementById("loading-animation").style.display = "flex";
+
+//                 // Redirect based on transaction count
+//                 setTimeout(function() {
+//                     if (transactionCount === 1) {
+//                         window.location.href = 'rating-page.html'; // Redirect to rating page
+//                     } else {
+//                         window.location.href = 'thank-you-page.html'; // Redirect to Thank You page
+//                     }
+//                 }, 3000);
+//             };
+
+//             // Cancel exit and hide the modal
+//             window.cancelExit = function() {
+//                 document.getElementById("exit-confirmation").style.display = "none";
+//             };
+//         } catch (err) {
+//             console.error("Error fetching transaction count:", err);
+//         }
+//     };
+// });
+
+
+// Feedback page
+let selectedRating = 0;
+
+function rate(rating) {
+    selectedRating = rating;
+    const stars = document.querySelectorAll('.stars button');
+    stars.forEach((star, index) => {
+        // Add 'active' class to the selected stars
+        star.classList.toggle('active', index < rating);
+    });
+}
+
+function submitRating() {
+    // Retrieve the userId from localStorage
+    const userId = localStorage.getItem('userId');
+
+    // Check if the user has selected a rating
+    if (selectedRating === 0) {
+        document.querySelector('.please-submit').style.display = 'block'; // Show the warning
+        document.querySelector('.thank-you').style.display = 'none'; // Hide the thank-you message
+    } else {
+        document.querySelector('.please-submit').style.display = 'none'; // Hide the warning
+        document.querySelector('.thank-you').style.display = 'block'; // Show the thank-you message
+
+        // Log the rating (for testing purposes)
+        console.log('User rating:', selectedRating);
+        console.log('Sending rating data to server:', {
+            rating: selectedRating,
+            userId: userId // Use the retrieved userId
+        });
+        
+        // Send the rating to the backend
+        fetch('http://localhost:3001/submit-rating', {  // Use the correct port
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                rating: selectedRating,
+                userId: userId // Use the retrieved userId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data.message); // Handle the response message
+        })
+        .catch(error => {
+            console.error('Error submitting rating:', error);
+        });
+
+        // Simulate a delay before redirecting to login page
+        setTimeout(() => {
+            window.location.href = 'login-page.html'; // Replace with the actual login page URL
+        }, 2000);
+    }
 }
 
 
+/*ThankYou*/
+   // Show only the h1 and p initially
+   document.getElementById("thankYouHeader").style.display = "block";
+   document.getElementById("redirectMessage").style.display = "none";
 
-function dismissWarning() {
-    // Hide the warning modal without further action
-    document.getElementById('data-leak-warning').style.display = 'none';
-}
+   // Wait 3 seconds before showing the Lottie animation
+   setTimeout(() => {
+       // Show the Lottie animation
+       document.getElementById("thankYouHeader").style.display = "none";
+       document.getElementById("redirectMessage").style.display = "block";
+       document.getElementById("loading-animation").style.display = "block";
 
-// Show data leak warning after 3 seconds
-setTimeout(showDataLeakWarning, 3000);
+       // After 3 more seconds, redirect to the login page
+       setTimeout(() => {
+           window.location.href = "login-page.html"; // Redirect to login page
+       }, 3000);
+
+   }, 3000);
