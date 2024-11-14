@@ -1,7 +1,8 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const dotenv = require("dotenv");
 dotenv.config();
-const path = require('path');
+const path = require('path')
+const nodemailer = require('nodemailer');
 const express = require('express');
 const bodyParser = require('body-parser');
 const admin = require('firebase-admin');
@@ -1069,9 +1070,111 @@ app.get('/getTransactionCount', async (req, res) => {
     }
 });
 
+//
+app.use(bodyParser.json());
+app.use(cors());
+
+let members = [];
+
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
+  auth: {
+    user: 'nandithabvs06@gmail.com', // Replace with your email
+    pass: 'abhl zvij brqf ohve', // Replace with your App Password
+  },
+});
+
+app.post('/add-member', (req, res) => {
+  const { name, email, contact, account_number } = req.body;
+
+  if (!name || !email || !contact || !account_number) {
+    return res.status(400).json({ message: 'All fields are required.' });
+  }
+
+  const newMember = {
+    id: Date.now(),
+    name,
+    email,
+    contact,
+    account_number,
+    status: 'Waiting for Approval',
+  };
+
+  members.push(newMember);
+
+  const approvalLink = `http://localhost:${PORT}/approve-member/${newMember.id}`;
+  const declineLink = `http://localhost:${PORT}/decline-member/${newMember.id}`;
+  const reportLink = `http://localhost:${PORT}/report-member/${newMember.id}`;
+
+  const mailOptions = {
+    from: 'your-email@gmail.com',
+    to: email,
+    subject: 'Approval Needed: Shared Account',
+    html: `
+      <p>Hi ${name},</p>
+      <p>You have been invited to join a shared account.</p>
+      <p>Please choose an action:</p>
+      <a href="${approvalLink}">Accept Invitation</a><br>
+      <a href="${declineLink}">Decline Invitation</a><br>
+      <a href="${reportLink}">Decline and Report</a>
+    `,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error('Error sending email:', error);
+      return res.status(500).json({ message: 'Failed to send email.' });
+    }
+    res.status(201).json({ message: 'Member added and email sent.' });
+  });
+});
+
+app.get('/approve-member/:id', (req, res) => {
+  const { id } = req.params;
+  const member = members.find((m) => m.id == id);
+
+  if (member) {
+    member.status = 'Accepted';
+    res.send('<p>Thank you! Your membership has been approved.</p>');
+  } else {
+    res.status(404).send('Member not found.');
+  }
+});
+
+app.get('/decline-member/:id', (req, res) => {
+  const { id } = req.params;
+  members = members.filter((m) => m.id != id);
+  res.send('<p>You have declined the invitation.</p>');
+});
+
+app.get('/report-member/:id', (req, res) => {
+  const { id } = req.params;
+  members = members.filter((m) => m.id != id);
+  res.send('<p>You have declined and reported the invitation.</p>');
+});
+
+app.get('/members', (req, res) => {
+  res.json(members);
+});
+
+app.delete('/delete-member/:id', (req, res) => {
+  const { id } = req.params;
+  const memberIndex = members.findIndex((m) => m.id == id);
+
+  if (memberIndex !== -1) {
+    const removedMember = members.splice(memberIndex, 1)[0];
+    res.status(200).json({ message: `Member ${removedMember.name} deleted successfully.` });
+  } else {
+    res.status(404).json({ message: 'Member not found.' });
+  }
+});
+
 
 // Start the server
 app.listen(PORT,'0.0.0.0', () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
 
