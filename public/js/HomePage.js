@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     });
 
                     // Fill in with default values if less than 4 unique amounts
-                    const defaultValues = [5, 10, 20, 50];
+                    const defaultValues = [20, 50, 100, 200];
                     let i = 0;
                     while (uniqueAmounts.length < 4 && i < defaultValues.length) {
                         if (!uniqueAmounts.includes(defaultValues[i])) {
