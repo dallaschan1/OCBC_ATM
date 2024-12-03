@@ -58,9 +58,8 @@
   <component name="ChangeListManager">
     <list default="true" id="63879667-1484-4d5a-886c-aa231d1f3e45" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/APP/app/src/main/java/sg/edu/np/mad/atm/QRCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/APP/app/src/main/java/sg/edu/np/mad/atm/QRCode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP/app/src/main/java/sg/edu/np/mad/atm/MainActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/APP/app/src/main/java/sg/edu/np/mad/atm/MainActivity.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/APP/app/src/main/java/sg/edu/np/mad/atm/RegistrationActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/APP/app/src/main/java/sg/edu/np/mad/atm/RegistrationActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/APP/app/src/main/java/sg/edu/np/mad/atm/login.java" beforeDir="false" afterPath="$PROJECT_DIR$/APP/app/src/main/java/sg/edu/np/mad/atm/login.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
