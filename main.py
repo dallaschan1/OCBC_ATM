@@ -116,12 +116,17 @@
 from flask import Flask, request, jsonify
 import joblib
 import pandas as pd
+import os
 
 app = Flask(__name__)
-model = joblib.load('C:/Ngee Ann/Y2 SEM2/FDSP/OCBC_ATM/python/suspicion_model.pkl')
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(script_dir, 'python', 'suspicion_model.pkl')
+model = joblib.load(model_path)
 
 # Load your transactions data (make sure this path is correct)
-transactions_df = pd.read_csv('C:/Ngee Ann/Y2 SEM2/FDSP/OCBC_ATM/python/synthetic_transactions_updated.csv')
+transactions_path = os.path.join(script_dir, 'python', 'synthetic_transactions_updated.csv')
+transactions_df = pd.read_csv(transactions_path)
 
 @app.route('/predict', methods=['POST'])
 def predict():
