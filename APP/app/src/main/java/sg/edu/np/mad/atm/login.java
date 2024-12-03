@@ -31,8 +31,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class login extends AppCompatActivity {
-//    private static final String LOGIN_URL = "http://192.168.18.70:3001/login";
-    private static final String LOGIN_URL = "https://1219-116-88-162-192.ngrok-free.app/login";
+  private static final String LOGIN_URL = "http://172.20.10.2:3001/login";
+ //   private static final String LOGIN_URL = "https://1219-116-88-162-192.ngrok-free.app/login";
     private static final String PREFS_NAME = "UserPreferences";
     private static final String KEY_USER_ID = "userId";
     private static final String KEY_USER_NAME = "userName";
@@ -123,14 +123,14 @@ public class login extends AppCompatActivity {
                         editor.putString(KEY_USER_ID, userId);
                         editor.putString(KEY_USER_NAME, userName);
                         editor.putString(KEY_USER_NRIC, userNric);
-//                        editor.putString(KEY_USER_TOKEN, userToken);
+                     editor.putString(KEY_USER_TOKEN, userToken);
                         editor.putString(KEY_USER_BALANCE, userBalance);
                         editor.apply();
 
                         Log.d("LoginSuccess", "User ID: " + sharedPreferences.getString(KEY_USER_ID, ""));
                         Log.d("LoginSuccess", "User Name: " + sharedPreferences.getString(KEY_USER_NAME, ""));
                         Log.d("LoginSuccess", "User NRIC: " + sharedPreferences.getString(KEY_USER_NRIC, ""));
-//                        Log.d("LoginSuccess", "User Token: " + sharedPreferences.getString(KEY_USER_TOKEN, ""));
+//                      Log.d("LoginSuccess", "User Token: " + sharedPreferences.getString(KEY_USER_TOKEN, ""));
                         Log.d("LoginSuccess", "User Balance: " + sharedPreferences.getString(KEY_USER_BALANCE, ""));
 
                         Intent intent = new Intent(login.this, dashboard.class);
