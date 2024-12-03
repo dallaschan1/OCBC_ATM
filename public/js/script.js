@@ -210,7 +210,7 @@ function rate(rating) {
 
 function submitRating() {
     // Retrieve the userId from localStorage
-    const userId = localStorage.getItem('userId');
+    const userId = localStorage.getItem('UserId');
 
     // Check if the user has selected a rating
     if (selectedRating === 0) {
@@ -248,7 +248,7 @@ function submitRating() {
 
         // Simulate a delay before redirecting to login page
         setTimeout(() => {
-            window.location.href = 'login-page.html'; // Replace with the actual login page URL
+            window.location.href = '/'; // Replace with the actual login page URL
         }, 2000);
     }
 }

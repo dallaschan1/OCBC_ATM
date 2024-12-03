@@ -16,7 +16,7 @@
       align-items: center;
       margin: 0;
       padding: 20px;
-      background-color: #3f4147;
+      background-color: #f0eeee;
     }
 
     /* Container for charts (2x2 grid layout) */
@@ -33,6 +33,7 @@
     /* Each chart takes up 45% of the width to fit 2 per row */
     .chart-container > div {
       flex: 1 1 45%; /* Flex grow, shrink, and basis to control width */
+      max-width: 45%;
       margin-bottom: 20px;
     }
 
@@ -100,10 +101,53 @@
     #qrCodeContainer {
       margin-top: 20px;
     }
+
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5); /* Black with opacity */
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 300px;
+      text-align: center;
+      position: relative;
+    }
+
+    .close {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      color: #aaa;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: #000;
+    }
+
+    #modalQrCodeContainer {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
   </style>
 </head>
 <body>
-  <h1>Financial Dashboard</h1>
+  <h1 style="color:black">Financial Dashboard</h1>
 
   <!-- Container for charts -->
   <div class="chart-container">
@@ -120,10 +164,10 @@
     </div>
 
     <!-- Chart for Transaction Categories -->
-    <div>
+    <!-- <div>
       <h2>Transaction Category Distribution</h2>
       <canvas id="categoryChart"></canvas>
-    </div>
+    </div> -->
 
     <!-- Chart for Transactions Over Time -->
     <div>
@@ -158,6 +202,14 @@
   <div id="qrCodeContainer">
     <h3>Scan QR Code to Download PDF</h3>
     <div id="qrcode"></div>
+  </div>
+
+  <div id="qrCodeModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Scan QR Code to Download PDF</h2>
+      <div id="modalQrCodeContainer"></div>
+    </div>
   </div>
 
   <script>
@@ -219,22 +271,22 @@
         });
 
         // Category Distribution Chart (Pie Chart for Incoming vs Outgoing)
-        const incomingCount = incomingAmounts.filter(amount => amount > 0).length;
-        const outgoingCount = outgoingAmounts.filter(amount => amount > 0).length;
+        // const incomingCount = incomingAmounts.filter(amount => amount > 0).length;
+        // const outgoingCount = outgoingAmounts.filter(amount => amount > 0).length;
 
-        const ctx3 = document.getElementById('categoryChart').getContext('2d');
-        new Chart(ctx3, {
-          type: 'pie',
-          data: {
-            labels: ['Incoming Transactions', 'Outgoing Transactions'],
-            datasets: [{
-              data: [incomingCount, outgoingCount],
-              backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)'],
-              borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
-              borderWidth: 1
-            }]
-          }
-        });
+        // const ctx3 = document.getElementById('categoryChart').getContext('2d');
+        // new Chart(ctx3, {
+        //   type: 'pie',
+        //   data: {
+        //     labels: ['Incoming Transactions', 'Outgoing Transactions'],
+        //     datasets: [{
+        //       data: [incomingCount, outgoingCount],
+        //       backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)'],
+        //       borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
+        //       borderWidth: 1
+        //     }]
+        //   }
+        // });
 
         // Transactions Over Time Chart (Line Chart)
         const timeLabels = userData.map(item => item.TransactionDate);
@@ -305,28 +357,28 @@
       })
       .catch(error => console.error("Error fetching transaction data:", error));
 
-    //   function fetchFinancialTips(userData) {
-    //     fetch('/get-financial-tips', {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //         },
-    //         body: JSON.stringify({ transactions: userData })
-    //     })
-    //     .then(response => response.json())
-    //     .then(data => {
-    //         const tipsList = document.getElementById('financialTips');
-    //         tipsList.innerHTML = ''; // Clear previous tips
-    //         data.tips.forEach(tip => {
-    //             const li = document.createElement('li');
-    //             li.textContent = tip;
-    //             tipsList.appendChild(li);
-    //         });
-    //     })
-    //     .catch(error => {
-    //         console.error("Error fetching financial tips:", error);
-    //     });
-    // }
+      function fetchFinancialTips(userData) {
+        fetch('/get-financial-tips', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ transactions: userData })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const tipsList = document.getElementById('financialTips');
+            tipsList.innerHTML = ''; // Clear previous tips
+            data.tips.forEach(tip => {
+                const li = document.createElement('li');
+                li.textContent = tip;
+                tipsList.appendChild(li);
+            });
+        })
+        .catch(error => {
+            console.error("Error fetching financial tips:", error);
+        });
+    }
 
     const toggleModalButton = document.getElementById('toggleModalButton');
     const financialTipsModal = document.getElementById('financialTipsModal');
@@ -352,8 +404,19 @@
       const financialTips = Array.from(document.querySelectorAll('#financialTips li')).map(li => li.textContent);
       pdf.setFontSize(14);
       pdf.text('Financial Tips:', 10, 30);
+      let yPosition = 40;
+
       financialTips.forEach((tip, index) => {
-        pdf.text(`${index + 1}. ${tip}`, 10, 40 + index * 10);
+        const tipText = `${index + 1}. ${tip}`;
+        
+        const wrappedText = pdf.splitTextToSize(tipText, pageWidth - 20);
+
+        wrappedText.forEach(line => {
+          pdf.text(line, 10, yPosition);
+          yPosition += 5;
+        });
+
+        yPosition += 7; // Add extra space between tips (after each tip's block)
       });
 
       // Section: Charts
@@ -368,10 +431,10 @@
         }
 
         // Calculate the position to center the chart on the page
-        const chartWidth = 160;  // New width (smaller)
-        const chartHeight = 120; // New height (smaller)
-        const xPosition = (pageWidth - chartWidth) / 2; // Center horizontally
-        const yPosition = (pageHeight - chartHeight) / 2; // Center vertically
+        const chartWidth = 160; 
+        const chartHeight = 120;
+        const xPosition = (pageWidth - chartWidth) / 2;
+        const yPosition = (pageHeight - chartHeight) / 2;
 
         // Add the chart image to the PDF, centered on the page
         pdf.addImage(chartImage, 'PNG', xPosition, yPosition, chartWidth, chartHeight);
@@ -395,19 +458,28 @@
 
         // Get the download URL for the PDF
         const UserID = localStorage.getItem('UserId');
-        const downloadUrl = `https://ec67-2406-3003-2005-3fc7-e17d-78b8-257e-a76f.ngrok-free.app/download-pdf/${UserID}`;
+        const downloadUrl = `https://1219-116-88-162-192.ngrok-free.app/download-pdf/${UserID}`;
 
         // Generate the QR Code with the download URL
-        const qrCodeContainer = document.getElementById('qrcode');
-        qrCodeContainer.innerHTML = ''; // Clear any previous QR code
-        new QRCode(qrCodeContainer, {
+        const modalQrCodeContainer = document.getElementById('modalQrCodeContainer');
+        modalQrCodeContainer.innerHTML = ''; // Clear any previous QR code
+        new QRCode(modalQrCodeContainer, {
           text: downloadUrl,
-          width: 128,
-          height: 128
+          width: 180,
+          height: 180
         });
+
+        const qrCodeModal = document.getElementById('qrCodeModal');
+        qrCodeModal.style.display = 'block';
       } else {
         alert('Error saving the PDF on the server');
       }
+    });
+
+    const modal = document.getElementById('qrCodeModal');
+    const closeModal = document.querySelector('.close');
+    closeModal.addEventListener('click', () => {
+      modal.style.display = 'none';
     });
 
     // Fetch and handle the Blob for downloading the PDF

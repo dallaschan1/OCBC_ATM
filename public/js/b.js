@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Define detection options with adjusted parameters
   const detectionOptions = new faceapi.TinyFaceDetectorOptions({
     inputSize: 320,      // Higher value for better accuracy
-    scoreThreshold: 0.4  // Lowered to increase sensitivity
+    scoreThreshold: 0.1  // Lowered to increase sensitivity
   });
 
   // Handle video loadeddata event to ensure video is ready

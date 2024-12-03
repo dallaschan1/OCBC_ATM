@@ -74,7 +74,7 @@ public class Feedback extends AppCompatActivity {
 
     // Method to send feedback to the server
     private void submitFeedback(String feedbackText) {
-        String submitUrl = "http://172.20.10.2:3001/submit-feedback";
+        String submitUrl = "https://1219-116-88-162-192.ngrok-free.app/submit-feedback";
         String jsonPayload = "{ \"userId\": \"" + userId + "\", \"rating\": " + rating + ", \"feedback\": \"" + feedbackText + "\" }";
 
         RequestBody requestBody = RequestBody.create(

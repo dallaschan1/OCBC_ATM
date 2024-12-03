@@ -70,5 +70,10 @@ public class dashboard extends AppCompatActivity {
             startActivity(intent);
         });
 
+        CardView token = findViewById(R.id.walletTransfer);
+        token.setOnClickListener(v -> {
+            Intent intent = new Intent(dashboard.this, WalletTransfer.class);
+            startActivity(intent);
+        });
     }
 }

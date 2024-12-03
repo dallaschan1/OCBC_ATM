@@ -8,6 +8,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -26,9 +27,8 @@ import okhttp3.Response;
 public class RegistrationActivity extends AppCompatActivity {
 
     private static final String TAG = "RegistrationActivity";
-    private static final String SERVER_URL = "http://192.168.18.70:3001/register";
-//    private static final String SERVER_URL = "https://d94b-153-20-78-96.ngrok-free.app/register";
-
+//    private static final String SERVER_URL = "http://192.168.18.70:3001/register";
+    private static final String SERVER_URL = "https://1219-116-88-162-192.ngrok-free.app/register";
     private EditText nricInput;
     private EditText passwordInput;
     private EditText emailInput;
