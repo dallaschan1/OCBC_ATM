@@ -92,6 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('Withdraw button clicked:', button.textContent);
             const amount = button.textContent.replace('$', '');
             const userId = localStorage.getItem('UserId');
+            const ATMID = localStorage.getItem('ATMID');
             
             if (userId && amount) {
                 try {
@@ -105,6 +106,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     if (!response.ok) {
                         throw new Error('Failed to withdraw');
+                    }
+
+                    const atmResponse = await fetch('/withdraw-atm-balance', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ ATMID: ATMID, withdrawalAmount: amount }),
+                    });
+              
+                    if (!atmResponse.ok) {
+                      throw new Error('Failed to update ATM balance');
                     }
 
                     alert('Withdrawal successful');
@@ -124,6 +137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const amount = prompt('Enter the amount you want to withdraw:');
         if (amount && !isNaN(amount) && Number(amount) > 0) {
             const userId = localStorage.getItem('UserId');
+            const ATMID = localStorage.getItem('ATMID');
             
             if (userId) {
                 try {
@@ -137,6 +151,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     if (!response.ok) {
                         throw new Error('Failed to withdraw');
+                    }
+
+                    const atmResponse = await fetch('/withdraw-atm-balance', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ ATMID: ATMID, withdrawalAmount: amount }),
+                    });
+              
+                    if (!atmResponse.ok) {
+                      throw new Error('Failed to update ATM balance');
                     }
 
                     alert('Withdrawal successful');

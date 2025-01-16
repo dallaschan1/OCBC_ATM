@@ -13,7 +13,7 @@ const { sendFcmMessage } = require('./controllers/fcmController')
 const { registerUser, nricCheck, notifySuccess, login, handleDeductBalance, storeWebToken, getWebToken, removeWebToken, getId,findUserByNameOrPhone } = require('./controllers/userController');
 const chatbot = require("./controllers/chatBotController.js");
 const { adminlogin } = require("./controllers/adminController.js");
-const { fetchATMs,handleATMStatusUpdate, handleUserSuspicionUpdate,getUserSuspicion } = require("./controllers/atmController.js");
+const { fetchATMs,handleATMStatusUpdate, handleUserSuspicionUpdate,getUserSuspicion,getBalance,withdrawATMbalance } = require("./controllers/atmController.js");
 const axios = require('axios');
 const {loginUserByFace, updateUserFace} = require("./models/facialModel.js");
 const { PythonShell } = require('python-shell');
@@ -200,11 +200,18 @@ app.get('/adminHome', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/html/adminHome.html'))
 })
 
+// ATM
 app.get('/atms', fetchATMs);
 
 app.post('/update-atm-status', handleATMStatusUpdate);
 app.post('/update-user-suspicion', handleUserSuspicionUpdate);
 app.post('/get-user-suspicion', getUserSuspicion);
+app.post('/get-balance', getBalance);
+app.post('/withdraw-atm-balance', withdrawATMbalance);
+
+app.get('/location', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/location.html'))
+});
 
 app.get('/feedback', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/html/feedback.html'))
