@@ -27,7 +27,7 @@ import okhttp3.Response;
 public class RegistrationActivity extends AppCompatActivity {
 
     private static final String TAG = "RegistrationActivity";
-  private static final String SERVER_URL = "http:// 172.20.10.2:3001/register";
+  private static final String SERVER_URL = "http://172.20.10.2:3001/register";
     //private static final String SERVER_URL = "https://1219-116-88-162-192.ngrok-free.app/register";
     private EditText nricInput;
     private EditText passwordInput;
