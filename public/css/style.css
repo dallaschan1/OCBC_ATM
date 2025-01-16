@@ -570,90 +570,36 @@ hr {
 /*Voice assistant*/
 #voice-assistant {
     position: absolute;
-    right: 60px;
-    bottom: 40px;
+    right: 20px;
+    bottom: 60px;
+    width: 200px;
+    height: 50px;
 }
 
-.voice-assistant-content {
-    display: flex; /* Use flexbox for layout */
-    flex-direction: column; /* Stack items vertically */
-    align-items: flex-end; /* Align items to the right */
-    text-align: right; /* Align text to the right */
+#voice-top{
+    display: flex;
+    font-size: 10px;
+    align-items: center;
+    width: 100%;
+    padding: 0;
+    
+    
 }
-
-.voice-image {
-    width: 4rem; /* Smaller size for the microphone image */
-    height: auto; /* Maintain aspect ratio */
-    margin-bottom: 10px; /* Space between image and header */
-    margin-right:0rem;
-}
-
-.voice-assistant-header {
-    display: flex; /* Use flexbox to align header and toggle */
-    align-items: center; /* Center items vertically */
-}
-
-#voice-assistant h3 {
-    font-size: 24px; /* Adjust font size */
-    color: #422EB3; /* Change color to match your theme */
-    margin: 0; /* Remove margin */
-    margin-right: 10px; /* Space between header and toggle */
-}
-
-/* Toggle Switch Styles */
-.toggle-container {
-    display: flex; /* Use flexbox for layout */
-    align-items: center; /* Center items vertically */
-}
-
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 60px; /* Width of the toggle */
-    height: 34px; /* Height of the toggle */
-}
-
-.switch input {
-    opacity: 0; /* Hide the default checkbox */
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc; /* Gray background */
-    transition: .4s; /* Smooth transition */
-    border-radius: 34px; /* Round the corners */
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 26px; /* Height of the toggle circle */
-    width: 26px; /* Width of the toggle circle */
-    left: 4px; /* Position of the circle */
-    bottom: 4px; /* Position of the circle */
-    background-color: white; /* White circle */
-    border-radius: 50%; /* Make it a circle */
-    transition: .4s; /* Smooth transition */
-}
-
-input:checked + .slider {
-    background-color: green; /* Color when checked */
-}
-
-
-
-input:checked + .slider:before {
-    transform: translateX(26px); /* Move the circle when checked */
-}
-
         
+#voice-top img{
+    width: 50px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+}
+
+#voice-button{
+    width: 95%;
+    height: 40px;
+    background-color: greenyellow;
+     
+}
+
 .video-wrapper {
     position: relative;
     width: 200px; 
@@ -698,30 +644,7 @@ canvas {
     gap: 10px; /* Add some space between the waveform and microphone */
 }
 
-#waveformContainer {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 
-#microphoneContainer {
-    display: flex;
-    justify-content: end;
-    align-items: end;
-   
-}
-
-
-#waveform {
-    width: 70%; 
-    height: 60%; 
-    color: blue;
-    pointer-events: none; 
-    border: 1px solid black;
-    border-radius: 0;
-}
 
 .Camera{
     width: 150px;
