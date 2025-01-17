@@ -15,9 +15,11 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
   
         const data = await response.json();
+        console.log("Response Data:", data);
   
         if (data.success) {
           console.log("ATM status updated to Active.");
+          localStorage.setItem("ATMID", data.ATMID);
         } else {
           console.error("Failed to update ATM status.");
         }
