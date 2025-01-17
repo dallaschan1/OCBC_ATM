@@ -108,8 +108,8 @@ public class Notifications extends AppCompatActivity {
 
     // Method to load low ratings from the server (ratings < 3)
     private void loadLowRatings() {
-//        String RatingsUrl = "http://172.20.10.2:3001/get-low-ratings?userId=" + userId;
-        String RatingsUrl = "https://1219-116-88-162-192.ngrok-free.app/get-low-ratings?userId=" + userId;
+      String RatingsUrl = "http://172.20.10.2:3001/get-low-ratings?userId=" + userId;
+       // String RatingsUrl = "https://1219-116-88-162-192.ngrok-free.app/get-low-ratings?userId=" + userId;
         Request request = new Request.Builder()
                 .url(RatingsUrl)
                 .build();

@@ -18,6 +18,15 @@
         android:hint="Enter Amount"
         android:inputType="numberDecimal" />
 
+    <EditText
+        android:id="@+id/inputtokentype"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/black"
+        android:textColorHint="@color/black"
+        android:hint="Bitcoin"
+        android:inputType="numberDecimal" />
+
 
     <!-- Proceed Button -->
     <Button

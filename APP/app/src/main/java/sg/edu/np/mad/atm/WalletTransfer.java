@@ -67,7 +67,7 @@ public class WalletTransfer extends AppCompatActivity {
         String jsonPayload = String.format("{\"walletAddress\":\"%s\", \"amount\":\"%s\", \"tokenName\":\"Bitcoin\"}", walletAddress, amount);
 
         // Call the /receive endpoint (sending tokens back)
-        postRequest("https://1219-116-88-162-192.ngrok-free.app/receive", jsonPayload);
+        postRequest("http://172.20.10.2:3001/receive", jsonPayload);
     }
 
     private void postRequest(String url, String json) {

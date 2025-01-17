@@ -357,28 +357,28 @@
       })
       .catch(error => console.error("Error fetching transaction data:", error));
 
-    //   function fetchFinancialTips(userData) {
-    //     fetch('/get-financial-tips', {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //         },
-    //         body: JSON.stringify({ transactions: userData })
-    //     })
-    //     .then(response => response.json())
-    //     .then(data => {
-    //         const tipsList = document.getElementById('financialTips');
-    //         tipsList.innerHTML = ''; // Clear previous tips
-    //         data.tips.forEach(tip => {
-    //             const li = document.createElement('li');
-    //             li.textContent = tip;
-    //             tipsList.appendChild(li);
-    //         });
-    //     })
-    //     .catch(error => {
-    //         console.error("Error fetching financial tips:", error);
-    //     });
-    // }
+      function fetchFinancialTips(userData) {
+        fetch('/get-financial-tips', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ transactions: userData })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const tipsList = document.getElementById('financialTips');
+            tipsList.innerHTML = ''; // Clear previous tips
+            data.tips.forEach(tip => {
+                const li = document.createElement('li');
+                li.textContent = tip;
+                tipsList.appendChild(li);
+            });
+        })
+        .catch(error => {
+            console.error("Error fetching financial tips:", error);
+        });
+    }
 
     const toggleModalButton = document.getElementById('toggleModalButton');
     const financialTipsModal = document.getElementById('financialTipsModal');
@@ -458,7 +458,7 @@
 
         // Get the download URL for the PDF
         const UserID = localStorage.getItem('UserId');
-        const downloadUrl = `http://192.168.18.70:3001/download-pdf/${UserID}`;
+        const downloadUrl = `http://172.20.10.2:3001/download-pdf/${UserID}`;
 
         // Generate the QR Code with the download URL
         const modalQrCodeContainer = document.getElementById('modalQrCodeContainer');

@@ -45,6 +45,11 @@
           <theme>@style/Theme.ATM</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/APP/app/src/main/res/layout/activity_wallet_transfer.xml">
+        <config>
+          <theme>@style/Theme.ATM</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/APP/app/src/main/res/layout/item_notification.xml">
         <config>
           <theme>@style/Theme.ATM</theme>
@@ -57,9 +62,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="63879667-1484-4d5a-886c-aa231d1f3e45" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/APP/app/src/main/java/sg/edu/np/mad/atm/MainActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/APP/app/src/main/java/sg/edu/np/mad/atm/MainActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/APP/app/src/main/java/sg/edu/np/mad/atm/RegistrationActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/APP/app/src/main/java/sg/edu/np/mad/atm/RegistrationActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP/app/src/main/java/sg/edu/np/mad/atm/Notifications.java" beforeDir="false" afterPath="$PROJECT_DIR$/APP/app/src/main/java/sg/edu/np/mad/atm/Notifications.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP/app/src/main/java/sg/edu/np/mad/atm/WalletTransfer.java" beforeDir="false" afterPath="$PROJECT_DIR$/APP/app/src/main/java/sg/edu/np/mad/atm/WalletTransfer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP/app/src/main/res/layout/activity_wallet_transfer.xml" beforeDir="false" afterPath="$PROJECT_DIR$/APP/app/src/main/res/layout/activity_wallet_transfer.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/html/EditMembers.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/html/EditMembers.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/html/crypto.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/html/crypto.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/html/data.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/html/data.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/html/more-options-shared.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/html/more-options-shared.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/html/more-options.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/html/more-options.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/js/script.js" beforeDir="false" afterPath="$PROJECT_DIR$/public/js/script.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,7 +83,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=PhysicalDevice, isTemplate=false, identifier=serial=R52N512C66A)]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\Klaris\.android\avd\Pixel_3a_API_34.avd)]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
