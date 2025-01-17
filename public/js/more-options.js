@@ -6,9 +6,15 @@ recognition.continuous = false; // We'll handle continuous listening manually
 
 let isRecognitionRunning = false;
 let transcriptBuffer = ""; // Store the full transcript
+let isManuallyStopped = false; // Flag to handle manual stop
+let isBotSpeaking = false; // Flag to check if the bot is speaking
 const voiceButton = document.getElementById("voice-button");
 
 voiceButton.addEventListener("click", () => {
+  if (isBotSpeaking) {
+    // Stop the bot from speaking before starting recognition
+    stopBotSpeaking();
+  }
   if (!isRecognitionRunning) {
     startRecognition();
   } else {
@@ -16,9 +22,19 @@ voiceButton.addEventListener("click", () => {
   }
 });
 
+// Stop the bot from speaking
+function stopBotSpeaking() {
+  if (isBotSpeaking) {
+    window.speechSynthesis.cancel(); // Stop any ongoing speech synthesis
+    isBotSpeaking = false;
+    console.log("Bot speaking stopped.");
+  }
+}
+
 // Start speech recognition
 function startRecognition() {
   isRecognitionRunning = true;
+  isManuallyStopped = false; // Reset manual stop flag
   transcriptBuffer = ""; // Clear any previous transcript
   updateButtonState();
   recognition.start();
@@ -28,16 +44,19 @@ function startRecognition() {
 // Stop speech recognition
 function stopRecognition(sendTranscript = false) {
   isRecognitionRunning = false;
+  isManuallyStopped = true; // Mark as manually stopped
   recognition.stop(); // Explicitly stop recognition
   updateButtonState();
   console.log("Speech recognition stopped.");
 
-  // If `sendTranscript` is true, process the buffer
-  if (sendTranscript && transcriptBuffer.trim()) {
-    console.log("Final transcript to send:", transcriptBuffer.trim());
-    processUserInput(transcriptBuffer.trim());
-    transcriptBuffer = ""; // Clear the buffer after processing
-  }
+  // Wait briefly to ensure all pending results are processed
+  setTimeout(() => {
+    if (sendTranscript && transcriptBuffer.trim()) {
+      console.log("Final transcript to send:", transcriptBuffer.trim());
+      processUserInput(transcriptBuffer.trim());
+      transcriptBuffer = ""; // Clear the buffer after processing
+    }
+  }, 250); // Delay to allow pending results to process
 }
 
 // Update button appearance and text based on the recognition state
@@ -67,7 +86,7 @@ recognition.addEventListener("result", (event) => {
 
 // Restart recognition when it ends (unless manually stopped)
 recognition.addEventListener("end", () => {
-  if (isRecognitionRunning) {
+  if (isRecognitionRunning && !isManuallyStopped) {
     console.log("Recognition ended. Restarting...");
     recognition.start(); // Restart recognition to maintain continuous listening
   }
@@ -123,13 +142,22 @@ async function processUserInput(input) {
 // Speak a response using SpeechSynthesis
 function speakResponse(response) {
   return new Promise((resolve, reject) => {
+    stopBotSpeaking(); // Stop any existing speech before starting a new one
+    isBotSpeaking = true;
+
     const utterance = new SpeechSynthesisUtterance(response);
     utterance.lang = 'en-US'; // Use 'en-SG' for Singapore English
     utterance.rate = 1.2;
     utterance.pitch = 1.0;
 
-    utterance.onend = resolve;
-    utterance.onerror = reject;
+    utterance.onend = () => {
+      isBotSpeaking = false;
+      resolve();
+    };
+    utterance.onerror = (error) => {
+      isBotSpeaking = false;
+      reject(error);
+    };
 
     window.speechSynthesis.speak(utterance);
   });

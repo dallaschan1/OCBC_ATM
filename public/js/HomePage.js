@@ -187,16 +187,29 @@ recognition.lang = 'en-SG'; // Use Singapore English
 recognition.continuous = false; // We'll handle continuous listening manually
 
 let isRecognitionRunning = false;
+let isBotSpeaking = false; // Flag to track if the bot is speaking
 let transcriptBuffer = ""; // Store the full transcript
 const voiceButton = document.getElementById("voice-button");
 
 voiceButton.addEventListener("click", () => {
+  if (isBotSpeaking) {
+    stopBotSpeaking(); // Stop the bot from speaking
+  }
   if (!isRecognitionRunning) {
     startRecognition();
   } else {
     stopRecognition(true); // Ensure manual stop triggers transcript sending
   }
 });
+
+// Function to stop the bot from speaking
+function stopBotSpeaking() {
+  if (isBotSpeaking) {
+    window.speechSynthesis.cancel(); // Stop any ongoing speech synthesis
+    isBotSpeaking = false;
+    console.log("Bot speaking stopped.");
+  }
+}
 
 // Function to start recognition
 function startRecognition() {
@@ -309,13 +322,22 @@ async function processUserInput(input) {
 // Speak a response using SpeechSynthesis
 function speakResponse(response) {
   return new Promise((resolve, reject) => {
+    stopBotSpeaking(); // Stop any existing speech before starting a new one
+    isBotSpeaking = true;
+
     const utterance = new SpeechSynthesisUtterance(response);
     utterance.lang = 'en-SG'; // Use Singapore English
     utterance.rate = 1.2;
     utterance.pitch = 1.0;
 
-    utterance.onend = resolve;
-    utterance.onerror = reject;
+    utterance.onend = () => {
+      isBotSpeaking = false;
+      resolve();
+    };
+    utterance.onerror = (error) => {
+      isBotSpeaking = false;
+      reject(error);
+    };
 
     window.speechSynthesis.speak(utterance);
   });
