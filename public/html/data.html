@@ -170,9 +170,21 @@
     </div> -->
 
     <!-- Chart for Transactions Over Time -->
-    <div>
+    <!-- <div>
       <h2>Transactions Over Time</h2>
       <canvas id="timeChart"></canvas>
+    </div> -->
+
+    <!-- Chart for Incoming Transactions Over Time -->
+    <div>
+      <h2>Incoming Transactions Over Time</h2>
+      <canvas id="incomingTimeChart"></canvas>
+    </div>
+
+    <!-- Chart for Outgoing Transactions Over Time -->
+    <div>
+      <h2>Outgoing Transactions Over Time</h2>
+      <canvas id="outgoingTimeChart"></canvas>
     </div>
 
     <!-- Chart for Transactions by Hour of Day -->
@@ -225,25 +237,29 @@
       .then(response => response.json())
       .then(data => {
         console.log("Fetched Data:", data);
-        // Ensure we limit the data to only 20 entries
-        const userData = data.filter(item => item.id == userID).slice(0, 20);
+        
+        // Ensure the data structure fits the expected format (if fetched from an endpoint)
+        const userData = data.filter(item => item.UserID == userID).slice(0, 40); // 20 Incoming, 20 Outgoing
 
         if (userData.length === 0) {
           alert("No data found for this user.");
           return;
         }
 
-        // Separate data for different categories
-        const incomingAmounts = userData.map(item => parseFloat(item.IncomingTransactionAmount || 0));
-        const outgoingAmounts = userData.map(item => parseFloat(item.OutgoingTransactionAmount || 0));
+        // Separate data for incoming and outgoing transactions
+        const incomingAmounts = userData.filter(item => item.TransactionType === "Incoming")
+                                        .map(item => parseFloat(item.TransactionAmount || 0));
+        const outgoingAmounts = userData.filter(item => item.TransactionType === "Outgoing")
+                                        .map(item => parseFloat(item.TransactionAmount || 0));
         const transactionDates = userData.map(item => new Date(item.TransactionDate));
-
+        
         // Incoming Transactions Chart
         const ctx1 = document.getElementById('incomingChart').getContext('2d');
         new Chart(ctx1, {
           type: 'bar',
           data: {
-            labels: userData.map((item, index) => `Transaction ${index + 1}`),
+            labels: userData.filter(item => item.TransactionType === "Incoming")
+                            .map((item, index) => `Incoming ${index + 1}`),
             datasets: [{
               label: 'Incoming Transactions',
               data: incomingAmounts,
@@ -259,7 +275,8 @@
         new Chart(ctx2, {
           type: 'bar',
           data: {
-            labels: userData.map((item, index) => `Transaction ${index + 1}`),
+            labels: userData.filter(item => item.TransactionType === "Outgoing")
+                            .map((item, index) => `Outgoing ${index + 1}`),
             datasets: [{
               label: 'Outgoing Transactions',
               data: outgoingAmounts,
@@ -270,44 +287,62 @@
           }
         });
 
-        // Category Distribution Chart (Pie Chart for Incoming vs Outgoing)
-        // const incomingCount = incomingAmounts.filter(amount => amount > 0).length;
-        // const outgoingCount = outgoingAmounts.filter(amount => amount > 0).length;
+        // // Transactions Over Time Chart
+        // const timeLabels = transactionDates.map(date => date.toLocaleDateString());
+        // const totalAmounts = incomingAmounts.map((amount, index) => amount + outgoingAmounts[index]);
 
-        // const ctx3 = document.getElementById('categoryChart').getContext('2d');
-        // new Chart(ctx3, {
-        //   type: 'pie',
+        // console.log(timeLabels);
+        // console.log(totalAmounts);
+
+        // const ctx4 = document.getElementById('timeChart').getContext('2d');
+        // new Chart(ctx4, {
+        //   type: 'line',
         //   data: {
-        //     labels: ['Incoming Transactions', 'Outgoing Transactions'],
+        //     labels: timeLabels,
         //     datasets: [{
-        //       data: [incomingCount, outgoingCount],
-        //       backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)'],
-        //       borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
+        //       label: 'Total Transactions Over Time',
+        //       data: totalAmounts,
+        //       backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        //       borderColor: 'rgba(54, 162, 235, 1)',
         //       borderWidth: 1
         //     }]
         //   }
         // });
 
-        // Transactions Over Time Chart (Line Chart)
-        const timeLabels = userData.map(item => item.TransactionDate);
-        const totalAmounts = incomingAmounts.map((amount, index) => amount + outgoingAmounts[index]); // Total transaction amount
-
-        const ctx4 = document.getElementById('timeChart').getContext('2d');
-        new Chart(ctx4, {
+        // Incoming Transactions Over Time Chart
+        const incomingTimeLabels = transactionDates.map(date => date.toLocaleDateString());
+        const ctx3 = document.getElementById('incomingTimeChart').getContext('2d');
+        new Chart(ctx3, {
           type: 'line',
           data: {
-            labels: timeLabels,
+            labels: incomingTimeLabels,
             datasets: [{
-              label: 'Total Transactions',
-              data: totalAmounts,
-              backgroundColor: 'rgba(54, 162, 235, 0.2)',
-              borderColor: 'rgba(54, 162, 235, 1)',
+              label: 'Incoming Transactions Over Time',
+              data: incomingAmounts,
+              backgroundColor: 'rgba(75, 192, 192, 0.2)',
+              borderColor: 'rgba(75, 192, 192, 1)',
               borderWidth: 1
             }]
           }
         });
 
-        // Transactions by Hour of Day Chart (Bar Chart)
+        // Outgoing Transactions Over Time Chart
+        const ctx4 = document.getElementById('outgoingTimeChart').getContext('2d');
+        new Chart(ctx4, {
+          type: 'line',
+          data: {
+            labels: incomingTimeLabels,
+            datasets: [{
+              label: 'Outgoing Transactions Over Time',
+              data: outgoingAmounts,
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              borderColor: 'rgba(255, 99, 132, 1)',
+              borderWidth: 1
+            }]
+          }
+        });
+
+        // Transactions by Hour of Day
         const hourCounts = Array(24).fill(0);
         userData.forEach(item => {
           const hour = new Date(item.TransactionDate).getHours();
@@ -329,7 +364,7 @@
           }
         });
 
-        // Transactions by Day of Week Chart (Bar Chart)
+        // Transactions by Day of Week
         const dayCounts = Array(7).fill(0);
         userData.forEach(item => {
           const day = new Date(item.TransactionDate).getDay();
@@ -357,28 +392,28 @@
       })
       .catch(error => console.error("Error fetching transaction data:", error));
 
-      function fetchFinancialTips(userData) {
-        fetch('/get-financial-tips', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ transactions: userData })
-        })
-        .then(response => response.json())
-        .then(data => {
-            const tipsList = document.getElementById('financialTips');
-            tipsList.innerHTML = ''; // Clear previous tips
-            data.tips.forEach(tip => {
-                const li = document.createElement('li');
-                li.textContent = tip;
-                tipsList.appendChild(li);
-            });
-        })
-        .catch(error => {
-            console.error("Error fetching financial tips:", error);
-        });
-    }
+    //   function fetchFinancialTips(userData) {
+    //     fetch('/get-financial-tips', {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //         },
+    //         body: JSON.stringify({ transactions: userData })
+    //     })
+    //     .then(response => response.json())
+    //     .then(data => {
+    //         const tipsList = document.getElementById('financialTips');
+    //         tipsList.innerHTML = ''; // Clear previous tips
+    //         data.tips.forEach(tip => {
+    //             const li = document.createElement('li');
+    //             li.textContent = tip;
+    //             tipsList.appendChild(li);
+    //         });
+    //     })
+    //     .catch(error => {
+    //         console.error("Error fetching financial tips:", error);
+    //     });
+    // }
 
     const toggleModalButton = document.getElementById('toggleModalButton');
     const financialTipsModal = document.getElementById('financialTipsModal');
