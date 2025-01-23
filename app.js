@@ -603,7 +603,7 @@ app.post('/receiveToken', async (req, res) => {
 });
 
 
-const csvFilePath = path.join(__dirname, 'python/synthetic_transactions_updated.csv');
+const csvFilePath = path.join(__dirname, 'python/chart_data.csv');
 
 app.get('/get-transaction-data', (req, res) => {
     const transactionData = [];
@@ -1251,6 +1251,38 @@ app.delete('/delete-member/:id', (req, res) => {
   res.status(404).json({ message: 'Member not found.' });
 });
 
+app.post('/predict-wait-time', async (req, res) => {
+    const { ATMID, DayOfWeek, TimeOfDay } = req.body;
+
+    // Check for missing parameters
+    if (!ATMID || !DayOfWeek || !TimeOfDay) {
+        return res.status(400).json({ error: "ATMID, DayOfWeek, and TimeOfDay are required" });
+    }
+
+    try {
+        // Make a request to the Python API
+        const response = await axios.post('http://localhost:5000/predict-wait-time', {
+            ATMID,
+            DayOfWeek,
+            TimeOfDay
+        });
+
+        // Forward the Python API response to the client
+        return res.status(200).json(response.data);
+
+    } catch (error) {
+        console.error("Error calling Python API:", error);
+
+        // Handle specific error responses from the Python API
+        if (error.response) {
+            const { status, data } = error.response;
+            return res.status(status).json(data);
+        }
+
+        // Handle internal server errors
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
 
 // Start the server
 app.listen(PORT,'0.0.0.0', () => {
