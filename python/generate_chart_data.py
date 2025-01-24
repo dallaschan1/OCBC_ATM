@@ -24,8 +24,12 @@
 
 # # Generate 20 Incoming Transactions
 # for i in range(num_records):
-#     amount = round(random.uniform(1000, 5000), 2)  # Larger amounts for incoming
+#     # Set amount to 4000 for the 15th of the month (payday), else random between 500 and 2000
 #     random_date = random_date_within_days(60)
+#     if random_date.day == 15:
+#         amount = 3000
+#     else:
+#         amount = round(random.uniform(100, 1000), 2)  # More realistic incoming range
 #     transaction_datetime = random_date.replace(hour=random.randint(0, 23), minute=random.randint(0, 59), second=random.randint(0, 59))
 #     data.append({
 #         "UserID": user_id,
@@ -77,7 +81,6 @@
 # print(f"CSV file saved at: {csv_file_path}")
 
 
-
 import pandas as pd
 import random
 from datetime import datetime, timedelta
@@ -85,6 +88,9 @@ from datetime import datetime, timedelta
 # Generate synthetic data
 user_id = 1  # Example UserID
 num_records = 20  # Set to 20 for both incoming and outgoing
+
+# List of categories for outgoing transactions
+categories = ["Groceries", "Rent", "Utilities", "Entertainment", "Dining"]
 
 # Function to generate random transaction dates within the last 60 days
 def random_date_within_days(days=60):
@@ -107,9 +113,11 @@ for i in range(num_records):
     # Set amount to 4000 for the 15th of the month (payday), else random between 500 and 2000
     random_date = random_date_within_days(60)
     if random_date.day == 15:
+        category = "Salary"
         amount = 3000
     else:
-        amount = round(random.uniform(100, 1000), 2)  # More realistic incoming range
+        category = random.choice(["Investments", "Freelance"])
+        amount = round(random.uniform(0, 100), 2)  # More realistic incoming range
     transaction_datetime = random_date.replace(hour=random.randint(0, 23), minute=random.randint(0, 59), second=random.randint(0, 59))
     data.append({
         "UserID": user_id,
@@ -117,21 +125,25 @@ for i in range(num_records):
         "TransactionDate": transaction_datetime.strftime('%Y-%m-%d %H:%M:%S'),
         "TransactionType": "Incoming",
         "TransactionAmount": amount,
-        "TransactionHour": transaction_datetime.hour
+        "TransactionHour": transaction_datetime.hour,
+        "Category": category
     })
 
-# Generate 20 Outgoing Transactions
+# Generate 20 Outgoing Transactions with categories
 for i in range(num_records):
-    amount = round(random.uniform(10, 1000), 2)  # Smaller amounts for outgoing
+    amount = round(random.uniform(10, 500), 2)  # Smaller amounts for outgoing
     random_date = random_date_within_days(60)
     transaction_datetime = random_date.replace(hour=random.randint(0, 23), minute=random.randint(0, 59), second=random.randint(0, 59))
+    # Assign a random category to the outgoing transaction
+    category = random.choice(categories)
     data.append({
         "UserID": user_id,
         "TransactionID": f"T{2*i+2:04d}",  # Even numbered IDs for outgoing
         "TransactionDate": transaction_datetime.strftime('%Y-%m-%d %H:%M:%S'),
         "TransactionType": "Outgoing",
         "TransactionAmount": amount,
-        "TransactionHour": transaction_datetime.hour
+        "TransactionHour": transaction_datetime.hour,
+        "Category": category  # Add category field
     })
 
 # Convert the data to a DataFrame
@@ -142,7 +154,7 @@ df['TransactionDate'] = pd.to_datetime(df['TransactionDate'])
 df = df.sort_values(by='TransactionDate')
 
 # Save the DataFrame to a CSV file
-csv_file_path = 'chart_data.csv'
+csv_file_path = 'chart_data_with_categories.csv'
 df.to_csv(csv_file_path, index=False)
 
 # Display a summary of the data for verification
@@ -150,7 +162,8 @@ df_summary = {
     "Incoming Transactions": len(df[df["TransactionType"] == "Incoming"]),
     "Outgoing Transactions": len(df[df["TransactionType"] == "Outgoing"]),
     "Total Incoming Amount": df[df["TransactionType"] == "Incoming"]["TransactionAmount"].sum(),
-    "Total Outgoing Amount": df[df["TransactionType"] == "Outgoing"]["TransactionAmount"].sum()
+    "Total Outgoing Amount": df[df["TransactionType"] == "Outgoing"]["TransactionAmount"].sum(),
+    "Outgoing by Category": df.groupby("Category")["TransactionAmount"].sum().to_dict()  # Summarize outgoing by category
 }
 
 # Print the summary and DataFrame for verification

@@ -53,6 +53,14 @@ app.get('/fingerprint', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/html/fingerprint.html'));
 });
 
+app.get('/card-login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/card-login.html'))
+})
+
+app.get('/pincode', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/pincode.html'))
+})
+
 app.get('/crypto', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/html/crypto.html'));
 });
@@ -603,7 +611,7 @@ app.post('/receiveToken', async (req, res) => {
 });
 
 
-const csvFilePath = path.join(__dirname, 'python/chart_data.csv');
+const csvFilePath = path.join(__dirname, 'python/chart_data_with_categories.csv');
 
 app.get('/get-transaction-data', (req, res) => {
     const transactionData = [];
@@ -1283,6 +1291,96 @@ app.post('/predict-wait-time', async (req, res) => {
         return res.status(500).json({ error: "Internal server error" });
     }
 });
+
+app.get('/Personalized-Budgetting', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/Personalized.html'));
+});
+
+app.post('/analyze-budget', async (req, res) => {
+    const { userData, userGoals } = req.body;
+    if (!userData || userData.length === 0) {
+        return res.status(400).json({ error: 'No user data provided.' });
+    }
+
+    const goal = userGoals || 'No specific goals provided';
+
+    const prompt = `
+        User Transaction Data:
+        ${userData.map(item => `${item.TransactionType}: ${item.TransactionAmount} on ${item.TransactionDate} in ${item.Category}`).join('\n')}
+
+        Task:
+        - Create a monthly budget for the user based on their spending data.
+        - Identify areas where spending exceeds reasonable limits and provide suggestions for cutting down.
+        - Highlight key opportunities for saving and increasing income.
+        - Recommend actionable steps to help the user achieve their financial goals.
+
+        User Goals:
+        ${goal}
+
+        Present the analysis in the following format:
+        
+        1. **Real-Time Budget and Suggestions**:
+            - **Issues**: List specific spending issues, including areas where the user exceeds a reasonable budget.
+            - **Recommendations**: Provide concise suggestions for cutting down spending or increasing savings.
+            - **Recommended Budget**: List the suggested spending limits for each category (e.g., 'Dining: $200') without any additional text or explanations in brackets.
+            Conclusion and overview regarding the budget analysis.
+
+        2. **Goal Alignment and Progress**:
+            - **Current Status**: Summarize how the user's current spending aligns with their goals.
+            - **Progress**: Provide an update on how close the user is to achieving their goals.
+            - **Goals to Reach**: Offer specific amount to reach (e.g., $5000) and why that amount is good for the user.
+            
+        Ensure each section is formatted with bullet points and is concise, focusing on clarity and directness without unnecessary details.
+    `;
+
+    try {
+        const result = await model.generateContent(prompt);
+        const analysis = result.response.text();
+
+        const realTimeBudgetMatch = analysis.match(/\*\*1\. Real-Time Budget and Suggestions\*\*([\s\S]*?)(?=\*\*2\. Goal Alignment and Progress\*\*)/i);
+        const goalAlignmentMatch = analysis.match(/\*\*2\. Goal Alignment and Progress\*\*([\s\S]*)/i);
+
+        const escapeHtml = (text) => {
+            // Replace special characters for HTML
+            let escapedText = text
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\n/g, '<br>');
+            
+            // Replace **text** with <strong>text</strong> to make it bold
+            escapedText = escapedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        
+            // Replace list markers with proper HTML elements
+            escapedText = escapedText
+                .replace(/    \* (.*?)<br>/g, '<li>$1</li>') // Nested bullet points
+                .replace(/    \* /g, '<li>')                // Unordered list
+                .replace(/<li>(.*?)<\/li>/g, '<ul><li>$1</li></ul>') // Wrap lists in <ul>
+                .replace(/<\/ul><ul>/g, '');               // Clean up redundant <ul></ul> pairs
+        
+            return escapedText;
+        };                     
+
+        const realTimeBudget = realTimeBudgetMatch
+            ? `<div class="container"><h2>Real-Time Budget and Suggestions</h2><p>${escapeHtml(realTimeBudgetMatch[1].trim())}</p></div>`
+            : '<div class="container"><h2>Real-Time Budget and Suggestions</h2><p>No data available for Real-Time Budget and Suggestions.</p></div>';
+
+        const goalAlignment = goalAlignmentMatch
+            ? `<div class="container"><h2>Goal Alignment and Progress</h2><p>${escapeHtml(goalAlignmentMatch[1].trim())}</p></div>`
+            : '<div class="container"><h2>Goal Alignment and Progress</h2><p>No data available for Goal Alignment and Progress.</p></div>';
+
+        res.json({
+            budgetAnalysis: `
+                <h1>Budget and Goal Analysis</h1>
+                ${realTimeBudget}
+                ${goalAlignment}
+            `,
+        });
+    } catch (error) {
+        console.error("Error generating budget analysis:", error);
+        res.status(500).json({ error: "Error generating budget analysis" });
+    }
+});
+
 
 // Start the server
 app.listen(PORT,'0.0.0.0', () => {

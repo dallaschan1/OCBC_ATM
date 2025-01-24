@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personalized Budget Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            color: #333;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-top: 20px;
+        }
+        .btn {
+            display: block;
+            width: 80%;
+            max-width: 600px;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        #result {
+            margin-top: 30px;
+            font-family: Arial, sans-serif;
+            width: 80%;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+            color: whitesmoke;
+        }
+        #budgetAnalysis h2 {
+            color: whitesmoke;
+            margin-top:0px;
+            max-width: 1000px;
+            margin-left: 0px;
+            margin-right: auto;
+        }
+        #budgetAnalysis p {
+            margin-top: 0px;
+            margin-bottom:0px;
+            color:whitesmoke
+        }
+        #budgetAnalysis h1 {
+            margin: 10px 0;
+        }
+        #budgetAnalysis .container{
+            background-color: #323232;
+            border-radius: 15px;
+            padding: 30px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.7);
+        }
+        select {
+            width: 80%;
+            max-width: 600px;
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 20px;
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        #generateBudget {
+            margin-top:30px;
+        }
+
+        /* Centering the Lottie animation */
+        #loadingAnimation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent background */
+            z-index: 9999; /* Make sure it's above other elements */
+        }
+
+        /* Optionally, hide the loading animation once the analysis is done */
+        #loadingAnimation.hidden {
+            display: none;
+        }
+
+    </style>
+
+    <!-- Include Lottie player script -->
+    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+</head>
+<body>
+
+    <h1>Personalized Budget Page</h1>
+
+    <!-- Dropdown for selecting a single user goal -->
+    <label for="userGoals" style="display: block; text-align: center; font-size: 18px; margin-top: 20px;">Select Your Financial Goal:</label>
+    <select id="userGoals">
+        <option value="emergencyFund" selected>Save for Emergency Fund</option>
+        <option value="payOffDebt">Pay off Debt</option>
+        <option value="buyAHouse">Buy a House</option>
+        <option value="saveForRetirement">Save for Retirement</option>
+        <option value="vacationFund">Save for Vacation</option>
+        <option value="educationFund">Save for Education</option>
+        <option value="startInvesting">Start Investing</option>
+        <option value="buildCredit">Build Credit Score</option>
+        <option value="startBusiness">Start a Business</option>
+        <option value="charitableDonations">Make Charitable Donations</option>
+    </select>
+
+    <!-- Button for triggering budget analysis -->
+    <button id="generateBudget" class="btn">Generate Budget Analysis</button>
+
+    <div id="result">
+        <p id="budgetAnalysis" style="white-space: pre-wrap;"></p>
+    </div>
+
+    <!-- Lottie Animation container -->
+    <div id="loadingAnimation" class="hidden">
+        <dotlottie-player src="https://lottie.host/77c0f104-1ac3-4a7f-89f4-3a1a41247dbf/HuFLfV36MG.lottie" 
+            background="transparent" speed="1" style="width: 300px; height: 300px" loop autoplay>
+        </dotlottie-player>
+    </div>
+
+    <script>
+        function getUserGoal() {
+            const userGoals = document.getElementById('userGoals').value;
+            console.log('Selected User Goal:', userGoals); // This will log the selected goal when this function is called
+            return userGoals;
+        }
+        document.getElementById('generateBudget').addEventListener('click', () => {
+            const userID = localStorage.getItem('UserId'); // Replace with actual UserID retrieval logic
+            const resultElement = document.getElementById('budgetAnalysis');
+            const userGoals = getUserGoal(); 
+            if (!userID) {
+                resultElement.textContent = 'User ID not found. Please log in to proceed.';
+                return;
+            }
+
+            // Show Lottie animation and center it
+            document.getElementById('loadingAnimation').classList.remove('hidden');
+
+            // Fetch transaction data and send to backend
+            fetch(`/get-transaction-data?userId=${userID}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch transaction data');
+                    return response.json();
+                })
+                .then(userData => {
+                    return fetch('http://localhost:3001/analyze-budget', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userData, userGoals })
+                    });
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Error analyzing budget');
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide the loading animation once analysis is done
+                    document.getElementById('loadingAnimation').classList.add('hidden');
+                    
+                    if (data.budgetAnalysis) {
+                        resultElement.innerHTML = data.budgetAnalysis; // Render HTML result
+                    } else {
+                        resultElement.textContent = 'No analysis available.';
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    resultElement.textContent = 'An error occurred while processing your request. Please try again later.';
+                    document.getElementById('loadingAnimation').classList.add('hidden');
+                });
+        });
+    </script>
+
+</body>
+</html>
