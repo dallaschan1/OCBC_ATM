@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personalized Budget Page</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -71,6 +72,15 @@
             box-sizing: border-box;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.7);
         }
+        #budgetAnalysis canvas{
+            max-width:400px;
+            max-height: 400px;
+            margin-left:auto;
+            margin-right:auto;
+        }
+        #budgetAnalysis #dataDisplay{
+            height: 100px;
+        }
         select {
             width: 80%;
             max-width: 600px;
@@ -107,6 +117,17 @@
             display: none;
         }
 
+        #budgetPieChart + div ul li span {
+            color: white !important; /* Override all CSS conflicts */
+        }
+        .visual-title{
+            margin-left: auto;
+            margin-right: auto;
+            margin-top:40px;
+            display: block;
+            text-align: center;
+            margin-bottom: 0px;
+        }
     </style>
 
     <!-- Include Lottie player script -->
@@ -119,7 +140,8 @@
     <!-- Dropdown for selecting a single user goal -->
     <label for="userGoals" style="display: block; text-align: center; font-size: 18px; margin-top: 20px;">Select Your Financial Goal:</label>
     <select id="userGoals">
-        <option value="emergencyFund" selected>Save for Emergency Fund</option>
+        <option value="" disabled selected>Select a Goal</option>
+        <option value="emergencyFund">Save for Emergency Fund</option>
         <option value="payOffDebt">Pay off Debt</option>
         <option value="buyAHouse">Buy a House</option>
         <option value="saveForRetirement">Save for Retirement</option>
@@ -151,6 +173,48 @@
             console.log('Selected User Goal:', userGoals); // This will log the selected goal when this function is called
             return userGoals;
         }
+
+        function renderPieChart(data) {
+            const ctx = document.getElementById('budgetPieChart').getContext('2d');
+            const labels = Object.keys(data);
+            const values = Object.values(data);
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            '#FF6384',
+                            '#36A2EB',
+                            '#FFCE56',
+                            '#4BC0C0',
+                            '#9966FF',
+                            '#FF9F40'
+                        ],
+                        hoverBackgroundColor: [
+                            '#FF6384',
+                            '#36A2EB',
+                            '#FFCE56',
+                            '#4BC0C0',
+                            '#9966FF',
+                            '#FF9F40'
+                        ]
+                    }]
+                },
+                options: {
+                plugins: {
+                    legend: {
+                    labels: {
+                        color: 'white'  // Change this to the desired text color
+                    }
+                    }
+                }
+                }
+            });
+        }
+
         document.getElementById('generateBudget').addEventListener('click', () => {
             const userID = localStorage.getItem('UserId'); // Replace with actual UserID retrieval logic
             const resultElement = document.getElementById('budgetAnalysis');
@@ -188,6 +252,22 @@
                         resultElement.innerHTML = data.budgetAnalysis; // Render HTML result
                     } else {
                         resultElement.textContent = 'No analysis available.';
+                    }
+
+                    if (data.recommendedBudget) {
+                        // Filter out items with '**' from recommendedBudget
+                        const filteredBudget = Object.fromEntries(
+                            Object.entries(data.recommendedBudget)
+                                .filter(([key, _]) => key.startsWith('* ') && !key.startsWith('* **'))
+                        );
+
+                        // Remove the '*' prefix from the keys
+                        const cleanedBudget = Object.fromEntries(
+                            Object.entries(filteredBudget).map(([key, value]) => [key.replace('* ', ''), value])
+                        );
+
+                        // Render the pie chart
+                        renderPieChart(cleanedBudget);
                     }
                 })
                 .catch(error => {

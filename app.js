@@ -1322,13 +1322,14 @@ app.post('/analyze-budget', async (req, res) => {
         1. **Real-Time Budget and Suggestions**:
             - **Issues**: List specific spending issues, including areas where the user exceeds a reasonable budget.
             - **Recommendations**: Provide concise suggestions for cutting down spending or increasing savings.
-            - **Recommended Budget**: List the suggested spending limits for each category (e.g., 'Dining: $200') without any additional text or explanations in brackets.
+            - **Recommended Budget**: List the suggested spending limits for each category (e.g., 'Dining: $200') without any additional text or explanations in brackets pls.
             Conclusion and overview regarding the budget analysis.
 
         2. **Goal Alignment and Progress**:
             - **Current Status**: Summarize how the user's current spending aligns with their goals.
             - **Progress**: Provide an update on how close the user is to achieving their goals.
             - **Goals to Reach**: Offer specific amount to reach (e.g., $5000) and why that amount is good for the user.
+            - **Strategy**: Suggest a strategy to help the user reach their goals faster.
             
         Ensure each section is formatted with bullet points and is concise, focusing on clarity and directness without unnecessary details.
     `;
@@ -1337,31 +1338,81 @@ app.post('/analyze-budget', async (req, res) => {
         const result = await model.generateContent(prompt);
         const analysis = result.response.text();
 
+        const recommendedBudgetMatch = analysis.match(/\*\*Recommended Budget\*\*:([\s\S]*?)(?=\n\s*Conclusion|$)/i);
         const realTimeBudgetMatch = analysis.match(/\*\*1\. Real-Time Budget and Suggestions\*\*([\s\S]*?)(?=\*\*2\. Goal Alignment and Progress\*\*)/i);
         const goalAlignmentMatch = analysis.match(/\*\*2\. Goal Alignment and Progress\*\*([\s\S]*)/i);
 
         const escapeHtml = (text) => {
-            // Replace special characters for HTML
             let escapedText = text
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;')
-                .replace(/\n/g, '<br>');
-            
-            // Replace **text** with <strong>text</strong> to make it bold
-            escapedText = escapedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        
-            // Replace list markers with proper HTML elements
-            escapedText = escapedText
-                .replace(/    \* (.*?)<br>/g, '<li>$1</li>') // Nested bullet points
-                .replace(/    \* /g, '<li>')                // Unordered list
-                .replace(/<li>(.*?)<\/li>/g, '<ul><li>$1</li></ul>') // Wrap lists in <ul>
-                .replace(/<\/ul><ul>/g, '');               // Clean up redundant <ul></ul> pairs
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/    \* (.*?)<br>/g, '<li>$1</li>')
+                .replace(/    \* /g, '<li>')
+                .replace(/<li>(.*?)<\/li>/g, '<ul><li>$1</li></ul>')
+                .replace(/<\/ul><ul>/g, '');
         
             return escapedText;
-        };                     
+        };
 
+        const parseRecommendedBudget = (budgetText) => {
+            const budgetLines = budgetText.trim().split('\n');
+            const budgetJson = budgetLines.reduce((acc, line) => {
+                const match = line.match(/(.+):\s*\$?(\d+)/);
+                if (match) {
+                    const [_, category, amount] = match;
+                    acc[category.trim()] = parseFloat(amount.trim());
+                }
+                return acc;
+            }, {});
+            return budgetJson;
+        };
+
+        const recommendedBudget = recommendedBudgetMatch
+            ? parseRecommendedBudget(recommendedBudgetMatch[1])
+            : null;
+
+        
+        const filteredBudget = recommendedBudget
+        ? Object.fromEntries(
+                Object.entries(recommendedBudget).filter(
+                    ([key]) => key.startsWith('* ') && !key.startsWith('* **')
+                )
+            )
+        : {};
+
+        const pieChartScript = `
+            <canvas id="budgetPieChart" width="400" height="400"></canvas>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                const ctx = document.getElementById('budgetPieChart').getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ${JSON.stringify(Object.keys(filteredBudget).map(key => key.replace('* ', '')))},
+                        datasets: [{
+                            data: ${JSON.stringify(Object.values(filteredBudget))},
+                            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
+                            hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40']
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: "white",
+                                },
+                            },
+                        }
+                    }
+                });
+            </script>
+        `;
+    
+    
         const realTimeBudget = realTimeBudgetMatch
-            ? `<div class="container"><h2>Real-Time Budget and Suggestions</h2><p>${escapeHtml(realTimeBudgetMatch[1].trim())}</p></div>`
+            ? `<div class="container"><h2>Real-Time Budget and Suggestions</h2><p>${escapeHtml(realTimeBudgetMatch[1].trim())}<h2 class="visual-title">Budget Visualization & Distribution</h2></p>${pieChartScript}</div>`
             : '<div class="container"><h2>Real-Time Budget and Suggestions</h2><p>No data available for Real-Time Budget and Suggestions.</p></div>';
 
         const goalAlignment = goalAlignmentMatch
@@ -1374,6 +1425,7 @@ app.post('/analyze-budget', async (req, res) => {
                 ${realTimeBudget}
                 ${goalAlignment}
             `,
+            recommendedBudget, // Include JSON format for recommended budget
         });
     } catch (error) {
         console.error("Error generating budget analysis:", error);
