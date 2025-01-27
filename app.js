@@ -18,6 +18,7 @@ const axios = require('axios');
 const {loginUserByFace, updateUserFace} = require("./models/facialModel.js");
 const { PythonShell } = require('python-shell');
 const API_KEY = process.env.GEMINI_API_KEY;
+const API_KEY2 = process.env.GEMINI_API_KEY2;
 const app = express();
 const PORT = 3001;
 const sql = require('mssql');
@@ -31,6 +32,9 @@ const dbconfig = require('./dbconfig.js');
 
 const genAI = new GoogleGenerativeAI(API_KEY); // Replace with your actual API key
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+const genAI2 = new GoogleGenerativeAI(API_KEY2);
+const model2 = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 // Middleware setup
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -1433,6 +1437,35 @@ app.post('/analyze-budget', async (req, res) => {
     }
 });
 
+const twilio = require('twilio');
+
+const accountSid = process.env.Twilio_SID; // Replace with your Twilio Account SID
+const authToken = process.env.Twilio_Token;  // Replace with your Twilio Auth Token
+const twilioPhoneNumber = '+12194911103'; // Replace with your Twilio phone number
+const client = twilio(accountSid, authToken);
+
+app.post('/send-sms', (req, res) => {
+    const { phoneNumber, budgetAnalysis } = req.body;
+
+    if (!phoneNumber || !budgetAnalysis) {
+        return res.status(400).json({ success: false, message: 'Phone number or budget analysis is missing.' });
+    }
+
+    client.messages
+        .create({
+            body: budgetAnalysis,
+            from: twilioPhoneNumber,
+            to: phoneNumber
+        })
+        .then(message => {
+            console.log('SMS sent:', message.sid);
+            res.json({ success: true });
+        })
+        .catch(error => {
+            console.error('Error sending SMS:', error);
+            res.status(500).json({ success: false, message: 'Failed to send SMS.' });
+        });
+});
 
 // Start the server
 app.listen(PORT,'0.0.0.0', () => {
