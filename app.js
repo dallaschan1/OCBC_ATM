@@ -30,6 +30,14 @@ const Password = require('./controllers/PasswordController');
 const Withdraw = require('./controllers/withdrawalController');
 const dbconfig = require('./dbconfig.js');
 
+sql.connect(dbConfig)
+    .then((pool) => {
+        db = pool;
+        console.log("✅ Connected to the database.");
+    })
+    .catch((error) => console.error("❌ Database connection failed:", error));
+
+
 const genAI = new GoogleGenerativeAI(API_KEY); // Replace with your actual API key
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -1474,7 +1482,7 @@ app.post("/apply-loan", async (req, res) => {
 
         res.status(201).json({ message: "Loan application submitted!", unique_id });
     } catch (error) {
-        console.error("❌ Error applying for loan:", error);
+        console.error("Error applying for loan:", error);
         res.status(500).json({ message: "Failed to apply for loan.", error });
     }
 });
@@ -1602,11 +1610,13 @@ app.get("/get-loans/:unique_id", async (req, res) => {
 
         res.status(200).json({ loans: result.recordset });
     } catch (error) {
-        console.error("❌ Error fetching loan history:", error);
+        console.error("Error fetching loan history:", error);
         res.status(500).json({ message: "Failed to fetch loan history." });
     }
 });
 
+
+//
 app.post('/predict-wait-time', async (req, res) => {
     const { ATMID, DayOfWeek, TimeOfDay } = req.body;
 
