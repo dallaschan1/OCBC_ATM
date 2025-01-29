@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Apply for Loan</title>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f0eeee;
+      }
+
+      .logo {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        width: 120px;
+        height: auto;
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+      }
+
+      .form-container,
+      .loan-history {
+        max-width: 600px;
+        margin: 20px auto;
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h2 {
+        font-size: 20px;
+        margin-bottom: 10px;
+        color: #555;
+      }
+      
+      .loan-history h3 {
+        text-align: center;
+        color: #007bff;
+        font-size: 22px;
+        font-weight: 600;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #333;
+      }
+
+      input {
+        width: 577px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+      select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+
+      button {
+        width: 100%;
+        background-color: #224365;
+        color: white;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.3s, transform 0.2s;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+      }
+
+      #status-message {
+        text-align: center;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+
+      /* ✅ Loan History Styling */
+      .loan-item {
+        background: #f8f9fa;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border-left: 4px solid #007bff;
+      }
+
+      .loan-item p {
+        margin: 5px 0;
+        font-size: 14px;
+      }
+
+      .status-paid {
+        color: green;
+        font-weight: bold;
+      }
+
+      .status-ongoing {
+        color: orange;
+        font-weight: bold;
+      }
+
+      /* ✅ Back Button Styling */
+      .back-button {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+      }
+
+      .back-circle {
+        width: 40px;
+        height: 40px;
+        background: transparent;
+        border: 2px solid #333;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        position: relative;
+      }
+
+      .back-arrow {
+        font-size: 28px;
+        color: #000000;
+        position: absolute;
+        top: 48%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin-top: -2px;
+        line-height: 1;
+      }
+
+      .back-text {
+        color: #888;
+        font-size: 25px;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="/loanServices" class="back-button">
+      <div class="back-circle">
+        <span class="back-arrow">←</span>
+      </div>
+      <span class="back-text">Back</span>
+    </a>
+
+    <a href="/home">
+      <img src="../images/OcbcLogo.png" alt="OCBC Logo" class="logo" />
+    </a>
+
+    <h1>Apply for Loan</h1>
+
+    <div class="form-container">
+      <h2>Loan Application</h2>
+      <form id="loan-application-form">
+        <div class="form-group">
+          <label for="eligibility-id">Eligibility ID</label>
+          <input
+            type="text"
+            id="eligibility-id"
+            placeholder="Enter your eligibility ID"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="loan-amount">Loan Amount</label>
+          <input
+            type="number"
+            id="loan-amount"
+            placeholder="Enter loan amount"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="loan-term">Choose Loan Term</label>
+          <select id="loan-term">
+            <option value="4" data-rate="2.3">4 Months - 2.3% Interest</option>
+            <option value="6" data-rate="2.7">6 Months - 2.7% Interest</option>
+            <option value="12" data-rate="3.0">12 Months - 3% Interest</option>
+          </select>
+        </div>
+
+        <p id="interest-rate-display" class="result"></p>
+        <p id="total-repayment" class="result"></p>
+
+        <button type="submit">Apply</button>
+      </form>
+      <p id="status-message"></p>
+    </div>
+
+    <!-- Loan History Section -->
+    <div id="loan-history" class="loan-history" style="display: none">
+      <h3>Your Loans</h3>
+      <div id="loan-list"></div>
+    </div>
+    <script>
+      document
+        .getElementById("eligibility-id")
+        .addEventListener("input", fetchLoanHistory);
+      document
+        .getElementById("loan-term")
+        .addEventListener("change", updateLoanDetails);
+      document
+        .getElementById("loan-amount")
+        .addEventListener("input", updateLoanDetails);
+
+      async function fetchLoanHistory() {
+        const uniqueId = document.getElementById("eligibility-id").value;
+        const loanHistoryDiv = document.getElementById("loan-history");
+        const loanList = document.getElementById("loan-list");
+
+        if (uniqueId.trim() === "") {
+          loanHistoryDiv.style.display = "none";
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `http://localhost:3001/get-loans/${uniqueId}`
+          );
+          const result = await response.json();
+
+          if (response.ok && result.loans.length > 0) {
+            loanList.innerHTML = result.loans
+              .map(
+                (loan) => `
+                        <div class="loan-item">
+                            <p><strong>ID:</strong> ${loan.id} | <strong>$${
+                  loan.loan_amount
+                }</strong></p>
+                            <p><strong>Due:</strong> $${Math.max(
+                              loan.amount_due,
+                              0
+                            )}</p>
+                            <p><strong>Status:</strong> 
+                                <span class="${
+                                  loan.amount_due <= 0
+                                    ? "status-paid"
+                                    : "status-ongoing"
+                                }">
+                                    ${
+                                      loan.amount_due <= 0
+                                        ? "✅ Paid"
+                                        : "🟠 Ongoing"
+                                    }
+                                </span>
+                            </p>
+                        </div>
+                    `
+              )
+              .join("");
+            loanHistoryDiv.style.display = "block";
+          } else {
+            loanList.innerHTML = `<p>No loans found.</p>`;
+            loanHistoryDiv.style.display = "block";
+          }
+        } catch (error) {
+          console.error("Error fetching loan history:", error);
+        }
+      }
+
+      function updateLoanDetails() {
+        const loanAmount =
+          parseFloat(document.getElementById("loan-amount").value) || 0;
+        const selectedOption =
+          document.getElementById("loan-term").selectedOptions[0];
+        const interestRate = parseFloat(
+          selectedOption.getAttribute("data-rate")
+        );
+
+        if (loanAmount > 0) {
+          const totalInterest = (loanAmount * interestRate) / 100;
+          const totalRepayment = loanAmount + totalInterest;
+
+          document.getElementById(
+            "interest-rate-display"
+          ).textContent = `Interest Rate: ${interestRate}%`;
+          document.getElementById(
+            "total-repayment"
+          ).textContent = `Total Repayment: $${totalRepayment.toFixed(2)}`;
+        } else {
+          document.getElementById("interest-rate-display").textContent = "";
+          document.getElementById("total-repayment").textContent = "";
+        }
+      }
+
+      document
+        .getElementById("loan-application-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const uniqueId = document.getElementById("eligibility-id").value;
+          const loanAmount = document.getElementById("loan-amount").value;
+          const loanTerm = document.getElementById("loan-term").value;
+          const selectedOption =
+            document.getElementById("loan-term").selectedOptions[0];
+          const interestRate = parseFloat(
+            selectedOption.getAttribute("data-rate")
+          );
+          const totalRepayment = (
+            loanAmount *
+            (1 + interestRate / 100)
+          ).toFixed(2);
+
+          const response = await fetch("http://localhost:3001/apply-loan", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              unique_id: uniqueId,
+              loan_amount: loanAmount,
+              loan_term: loanTerm,
+              interest_rate: interestRate,
+              total_repayment: totalRepayment,
+            }),
+          });
+
+          const result = await response.json();
+          document.getElementById("status-message").textContent =
+            result.message;
+
+          fetchLoanHistory();
+        });
+    </script>
+  </body>
+</html>
