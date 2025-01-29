@@ -3,28 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>ATM Out of Cash</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
     <style>
         body, html {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+            font-family: 'Raleway', sans-serif;
             display: flex;
-            font-family: Arial, sans-serif;
+            background-color: #b8b8b8;
             justify-content: center;
-            background-color: #f0eeee; 
+            align-items: center;
             height: 100vh;
-            width: 100vw;
+            color: #fff;
         }
 
-        .text-container{
+        .glass-container {
+            backdrop-filter: blur(20px) saturate(150%);
+            -webkit-backdrop-filter: blur(20px) saturate(150%);
+            background: rgba(44, 44, 44, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
             text-align: center;
+            color: #ddd;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #e63946;
+        }
+
+        p {
+            font-size: 1.2rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            color: #dbdbdb;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            margin-bottom: 15px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgb(255, 255, 255);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        option {
+            color:black;
+        }
+
+        #time-display, #wait-time-display {
+            margin-top: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #e5e5e5;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        #qrcode {
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="text-container">
-        <h1 style="color:#ff0000; margin-top: 50px;">Out of Cash</h1>
-        <p>Sorry, the ATM is out of cash. Please try again later or head to other ATM.</p>
+    <div class="glass-container">
+        <h1>ATM Out of Cash</h1>
+        <p>Sorry, the ATM is out of cash. Please try again later or head to another ATM nearby.</p>
+
+        <h2 style="color: #e63946;">Nearest ATM</h2>
+        <select id="atm-locations" onchange="updateSelectedATM()">
+            <option value="" disabled selected>Select a nearby ATM</option>
+            <option value="1|1.3152,103.7641">ATM 1 - 325 Clementi Ave 5, Block 325</option>
+            <option value="2|1.3096,103.7946">ATM 2 - 36 Holland Dr</option>
+            <option value="3|1.3020,103.8066">ATM 3 - 170 Stirling Rd, #01-1147 FairPrice</option>
+        </select>
+
+        <select id="travel-mode" onchange="updateTravelMode()">
+            <option value="walking" selected>Walking</option>
+            <option value="driving">Driving</option>
+            <option value="transit">Transit</option>
+        </select>
+
+        <div id="time-display"></div>
+        <div id="wait-time-display"></div>
+
+        <canvas id="qrcode"></canvas>
     </div>
+
+    <script>
+        let selectedATMId = null;
+
+        async function updateSelectedATM() {
+            const select = document.getElementById('atm-locations');
+            const selectedOption = select.value;
+            const travelMode = document.getElementById('travel-mode').value; // Get selected travel mode
+
+            if (selectedOption) {
+                const [atmId, coords] = selectedOption.split('|');
+                selectedATMId = atmId;
+
+                const [lat, lng] = coords.split(',').map(parseFloat);
+
+                // Generate a Google Maps URL with the selected travel mode
+                const destinationUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=${travelMode}`;
+                
+                // Generate QR Code
+                QRCode.toCanvas(document.getElementById('qrcode'), destinationUrl, { width: 200, margin: 0.3 });
+
+                // Automatically predict wait time after selecting an ATM
+                await predictWaitTime();
+            }
+        }
+
+        function calculateTravelTime() {
+            const userLocation = L.latLng(1.3111, 103.7735); // User's location
+            const select = document.getElementById('atm-locations');
+            const mode = document.getElementById('travel-mode').value; // Selected travel mode
+            const selectedOption = select.value;
+
+            if (!selectedOption) {
+                document.getElementById('time-display').textContent = 'Please select a valid ATM location.';
+                return;
+            }
+
+            const [, coords] = selectedOption.split('|');
+            const [lat, lng] = coords.split(',').map(coord => parseFloat(coord));
+
+            // Calculate distance in km
+            const distance = userLocation.distanceTo(L.latLng(lat, lng));
+            const distanceInKm = distance / 1000;
+
+            // Rough average speed for transit mode (in km/h)
+            const transitSpeed = 25; // Rough average speed of public transport (e.g., bus, metro)
+            
+            if (mode === 'transit') {
+                // Rough estimation: Assume public transit follows similar speed
+                const timeInMinutes = (distanceInKm / transitSpeed) * 60;
+                document.getElementById('time-display').textContent = 
+                    `Distance: ${distanceInKm.toFixed(2)} km, Travel Time: ${timeInMinutes.toFixed(0)} minutes by ${mode}.`;
+            } else {
+                // Walking or Driving time calculation based on selected mode
+                const speed = mode === 'walking' ? 5 : 50; // Average speed in km/h
+                const timeInMinutes = (distanceInKm / speed) * 60;
+                document.getElementById('time-display').textContent = 
+                    `Distance: ${distanceInKm.toFixed(2)} km, Travel Time: ${timeInMinutes.toFixed(0)} minutes by ${mode}.`;
+            }
+        }
+
+        function updateTravelMode() {
+            // Recalculate travel time
+            calculateTravelTime();
+            // Update QR code with the new travel mode
+            updateSelectedATM();
+        }
+
+        async function predictWaitTime() {
+            if (!selectedATMId) {
+                alert('Please select an ATM first.');
+                return;
+            }
+
+            const now = new Date();
+            let dayOfWeek = now.getDay();
+            dayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // Map Sunday to 7
+
+            const hour = now.getHours();
+            let timeOfDay;
+
+            if (hour >= 6 && hour < 12) {
+                timeOfDay = 1; // Morning
+            } else if (hour >= 12 && hour < 18) {
+                timeOfDay = 2; // Afternoon
+            } else if (hour >= 18 && hour < 22) {
+                timeOfDay = 3; // Evening
+            } else {
+                timeOfDay = 4; // Night
+            }
+
+            try {
+                const response = await fetch('/predict-wait-time', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ATMID: Number(selectedATMId), // Ensure ATMID is sent as a number
+                        DayOfWeek: dayOfWeek,
+                        TimeOfDay: timeOfDay,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const roundedWaitTime = Math.floor(data.predicted_wait_time);
+                    document.getElementById('wait-time-display').textContent = 
+                        `Live Wait Time: ${roundedWaitTime} minutes.`;
+                } else {
+                    document.getElementById('wait-time-display').textContent = 
+                        `Error: ${data.message || 'Failed to predict wait time.'}`;
+                }
+            } catch (error) {
+                console.error('Error predicting wait time:', error);
+                document.getElementById('wait-time-display').textContent = 
+                    'An error occurred while predicting wait time.';
+            }
+        }
+    </script>
 </body>
 </html>

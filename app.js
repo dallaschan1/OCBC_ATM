@@ -18,6 +18,7 @@ const axios = require('axios');
 const {loginUserByFace, updateUserFace} = require("./models/facialModel.js");
 const { PythonShell } = require('python-shell');
 const API_KEY = process.env.GEMINI_API_KEY;
+const API_KEY2 = process.env.GEMINI_API_KEY2;
 const app = express();
 const PORT = 3001;
 const sql = require('mssql');
@@ -31,21 +32,6 @@ const dbconfig = require('./dbconfig.js');
 
 const genAI = new GoogleGenerativeAI(API_KEY); // Replace with your actual API key
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-app.use(cors());
-app.use(express.json());
-
-// Connect to the database
-let db; // Define the `db` variable globally
-
-(async () => {
-  try {
-    db = await sql.connect(dbConfig); // Initialize `db` with the connection pool
-    console.log('Connected to the database.');
-  } catch (error) {
-    console.error('Error connecting to the database:', error);
-  }
-})();
 
 // Middleware setup
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -67,6 +53,14 @@ app.get('/login', (req, res) => {
 app.get('/fingerprint', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/html/fingerprint.html'));
 });
+
+app.get('/card-login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/card-login.html'))
+})
+
+app.get('/pincode', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/pincode.html'))
+})
 
 app.get('/crypto', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/html/crypto.html'));
@@ -618,7 +612,7 @@ app.post('/receiveToken', async (req, res) => {
 });
 
 
-const csvFilePath = path.join(__dirname, 'python/synthetic_transactions_updated.csv');
+const csvFilePath = path.join(__dirname, 'python/chart_data_with_categories.csv');
 
 app.get('/get-transaction-data', (req, res) => {
     const transactionData = [];
@@ -1613,6 +1607,209 @@ app.get("/get-loans/:unique_id", async (req, res) => {
     }
 });
 
+app.post('/predict-wait-time', async (req, res) => {
+    const { ATMID, DayOfWeek, TimeOfDay } = req.body;
+
+    // Check for missing parameters
+    if (!ATMID || !DayOfWeek || !TimeOfDay) {
+        return res.status(400).json({ error: "ATMID, DayOfWeek, and TimeOfDay are required" });
+    }
+
+    try {
+        // Make a request to the Python API
+        const response = await axios.post('http://localhost:5000/predict-wait-time', {
+            ATMID,
+            DayOfWeek,
+            TimeOfDay
+        });
+
+        // Forward the Python API response to the client
+        return res.status(200).json(response.data);
+
+    } catch (error) {
+        console.error("Error calling Python API:", error);
+
+        // Handle specific error responses from the Python API
+        if (error.response) {
+            const { status, data } = error.response;
+            return res.status(status).json(data);
+        }
+
+        // Handle internal server errors
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+app.get('/Personalized-Budgetting', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/Personalized.html'));
+});
+
+app.post('/analyze-budget', async (req, res) => {
+    const { userData, userGoals } = req.body;
+    if (!userData || userData.length === 0) {
+        return res.status(400).json({ error: 'No user data provided.' });
+    }
+
+    const goal = userGoals || 'No specific goals provided';
+
+    const prompt = `
+        User Transaction Data:
+        ${userData.map(item => `${item.TransactionType}: ${item.TransactionAmount} on ${item.TransactionDate} in ${item.Category}`).join('\n')}
+
+        Task:
+        - Create a monthly budget for the user based on their spending data.
+        - Identify areas where spending exceeds reasonable limits and provide suggestions for cutting down.
+        - Highlight key opportunities for saving and increasing income.
+        - Recommend actionable steps to help the user achieve their financial goals.
+
+        User Goals:
+        ${goal}
+
+        Present the analysis in the following format:
+        
+        1. **Real-Time Budget and Suggestions**:
+            - **Issues**: List specific spending issues, including areas where the user exceeds a reasonable budget.
+            - **Recommendations**: Provide concise suggestions for cutting down spending or increasing savings.
+            - **Recommended Budget**: List the suggested spending limits for each category (e.g., 'Dining: $200') without any additional text or explanations in brackets pls.
+            Conclusion and overview regarding the budget analysis.
+
+        2. **Goal Alignment and Progress**:
+            - **Current Status**: Summarize how the user's current spending aligns with their goals.
+            - **Progress**: Provide an update on how close the user is to achieving their goals.
+            - **Goals to Reach**: Offer specific amount to reach (e.g., $5000) and why that amount is good for the user.
+            - **Strategy**: Suggest a strategy to help the user reach their goals faster.
+            
+        Ensure each section is formatted with bullet points and is concise, focusing on clarity and directness without unnecessary details.
+    `;
+
+    try {
+        const result = await model.generateContent(prompt);
+        const analysis = result.response.text();
+
+        const recommendedBudgetMatch = analysis.match(/\*\*Recommended Budget\*\*:([\s\S]*?)(?=\n\s*Conclusion|$)/i);
+        const realTimeBudgetMatch = analysis.match(/\*\*1\. Real-Time Budget and Suggestions\*\*([\s\S]*?)(?=\*\*2\. Goal Alignment and Progress\*\*)/i);
+        const goalAlignmentMatch = analysis.match(/\*\*2\. Goal Alignment and Progress\*\*([\s\S]*)/i);
+
+        const escapeHtml = (text) => {
+            let escapedText = text
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/    \* (.*?)<br>/g, '<li>$1</li>')
+                .replace(/    \* /g, '<li>')
+                .replace(/<li>(.*?)<\/li>/g, '<ul><li>$1</li></ul>')
+                .replace(/<\/ul><ul>/g, '');
+        
+            return escapedText;
+        };
+
+        const parseRecommendedBudget = (budgetText) => {
+            const budgetLines = budgetText.trim().split('\n');
+            const budgetJson = budgetLines.reduce((acc, line) => {
+                const match = line.match(/(.+):\s*\$?(\d+)/);
+                if (match) {
+                    const [_, category, amount] = match;
+                    acc[category.trim()] = parseFloat(amount.trim());
+                }
+                return acc;
+            }, {});
+            return budgetJson;
+        };
+
+        const recommendedBudget = recommendedBudgetMatch
+            ? parseRecommendedBudget(recommendedBudgetMatch[1])
+            : null;
+
+        
+        const filteredBudget = recommendedBudget
+        ? Object.fromEntries(
+                Object.entries(recommendedBudget).filter(
+                    ([key]) => key.startsWith('* ') && !key.startsWith('* **')
+                )
+            )
+        : {};
+
+        const pieChartScript = `
+            <canvas id="budgetPieChart" width="400" height="400"></canvas>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                const ctx = document.getElementById('budgetPieChart').getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ${JSON.stringify(Object.keys(filteredBudget).map(key => key.replace('* ', '')))},
+                        datasets: [{
+                            data: ${JSON.stringify(Object.values(filteredBudget))},
+                            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
+                            hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40']
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: "white",
+                                },
+                            },
+                        }
+                    }
+                });
+            </script>
+        `;
+    
+    
+        const realTimeBudget = realTimeBudgetMatch
+            ? `<div class="container"><h2>Real-Time Budget and Suggestions</h2><p>${escapeHtml(realTimeBudgetMatch[1].trim())}<h2 class="visual-title">Budget Visualization & Distribution</h2></p>${pieChartScript}</div>`
+            : '<div class="container"><h2>Real-Time Budget and Suggestions</h2><p>No data available for Real-Time Budget and Suggestions.</p></div>';
+
+        const goalAlignment = goalAlignmentMatch
+            ? `<div class="container"><h2>Goal Alignment and Progress</h2><p>${escapeHtml(goalAlignmentMatch[1].trim())}</p></div>`
+            : '<div class="container"><h2>Goal Alignment and Progress</h2><p>No data available for Goal Alignment and Progress.</p></div>';
+
+        res.json({
+            budgetAnalysis: `
+                <h1>Budget and Goal Analysis</h1>
+                ${realTimeBudget}
+                ${goalAlignment}
+            `,
+            recommendedBudget, // Include JSON format for recommended budget
+        });
+    } catch (error) {
+        console.error("Error generating budget analysis:", error);
+        res.status(500).json({ error: "Error generating budget analysis" });
+    }
+});
+
+const twilio = require('twilio');
+
+const accountSid = process.env.Twilio_SID; // Replace with your Twilio Account SID
+const authToken = process.env.Twilio_Token;  // Replace with your Twilio Auth Token
+const twilioPhoneNumber = '+12194911103'; // Replace with your Twilio phone number
+const client = twilio(accountSid, authToken);
+
+app.post('/send-sms', (req, res) => {
+    const { phoneNumber, budgetAnalysis } = req.body;
+
+    if (!phoneNumber || !budgetAnalysis) {
+        return res.status(400).json({ success: false, message: 'Phone number or budget analysis is missing.' });
+    }
+
+    client.messages
+        .create({
+            body: budgetAnalysis,
+            from: twilioPhoneNumber,
+            to: phoneNumber
+        })
+        .then(message => {
+            console.log('SMS sent:', message.sid);
+            res.json({ success: true });
+        })
+        .catch(error => {
+            console.error('Error sending SMS:', error);
+            res.status(500).json({ success: false, message: 'Failed to send SMS.' });
+        });
+});
 
 // Start the server
 app.listen(PORT,'0.0.0.0', () => {
