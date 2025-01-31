@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Repay Loan</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f0eeee;
+      }
+
+      .logo {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        width: 120px;
+        height: auto;
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+      }
+
+      .form-container {
+        max-width: 600px;
+        margin: 20px auto;
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h2 {
+        font-size: 20px;
+        margin-bottom: 10px;
+        color: #555;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+        text-align: left;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #333;
+      }
+      input {
+        width: 577px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+      input:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 6px rgba(0, 123, 255, 0.2);
+      }
+
+      .amount-due {
+        font-size: 18px;
+        font-weight: 600;
+        color: #d9534f;
+        margin-bottom: 15px;
+        text-align: center;
+        display: none;
+      }
+
+      button {
+        width: 100%;
+        background-color: #224365;
+        color: white;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        margin-top: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.3s;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      #status-message {
+        text-align: center;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+
+      .success {
+        color: #28a745;
+      }
+
+      .error {
+        color: #dc3545;
+      }
+
+      /* ✅ Back Button Styling */
+      .back-button {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+      }
+
+      .back-circle {
+        width: 40px;
+        height: 40px;
+        background: transparent;
+        border: 2px solid #333;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        position: relative;
+      }
+
+      .back-arrow {
+        font-size: 28px;
+        color: #000000;
+        position: absolute;
+        top: 48%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin-top: -2px;
+        line-height: 1;
+      }
+
+      .back-text {
+        color: #888;
+        font-size: 25px;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="/loanServices" class="back-button">
+      <div class="back-circle">
+        <span class="back-arrow">←</span>
+      </div>
+      <span class="back-text">Back</span>
+    </a>
+
+    <a href="/home">
+      <img src="../images/OcbcLogo.png" alt="OCBC Logo" class="logo" />
+    </a>
+
+    <h1>Repay Loan</h1>
+
+    <div class="form-container">
+      <h2>Loan Repayment</h2>
+      <form id="loan-repayment-form">
+        <div class="form-group">
+          <label for="eligibility-id">Unique Loan ID</label>
+          <input
+            type="text"
+            id="eligibility-id"
+            placeholder="Enter your loan ID"
+            required
+          />
+        </div>
+
+        <p id="amount-due" class="amount-due"></p>
+
+        <div class="form-group">
+          <label for="repayment-amount">Repayment Amount</label>
+          <input
+            type="number"
+            id="repayment-amount"
+            placeholder="Enter repayment amount"
+            required
+          />
+        </div>
+
+        <button type="submit">Repay</button>
+      </form>
+      <p id="status-message"></p>
+    </div>
+
+    <script>
+      async function fetchTotalBalance() {
+        const uniqueId = document.getElementById("eligibility-id").value;
+        const amountDueElement = document.getElementById("amount-due");
+
+        if (uniqueId.trim() === "") {
+          amountDueElement.style.display = "none";
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `http://localhost:3001/loan-total-balance/${uniqueId}`
+          );
+          const result = await response.json();
+
+          if (response.ok) {
+            amountDueElement.textContent = `Total Amount Due: $${result.total_due}`;
+            amountDueElement.style.color =
+              result.total_due > 0 ? "#d9534f" : "#28a745";
+            amountDueElement.style.display = "block";
+          } else {
+            amountDueElement.textContent = "Loan not found.";
+            amountDueElement.style.color = "#dc3545";
+            amountDueElement.style.display = "block";
+          }
+        } catch (error) {
+          console.error("Error fetching balance:", error);
+          amountDueElement.textContent = "Error fetching balance.";
+          amountDueElement.style.color = "#dc3545";
+          amountDueElement.style.display = "block";
+        }
+      }
+
+      document
+        .getElementById("eligibility-id")
+        .addEventListener("input", fetchTotalBalance);
+
+      document
+        .getElementById("loan-repayment-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const statusMessage = document.getElementById("status-message");
+          statusMessage.textContent = "";
+
+          try {
+            const response = await fetch("http://localhost:3001/repay-loan", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                unique_id: document.getElementById("eligibility-id").value,
+                repayment_amount:
+                  document.getElementById("repayment-amount").value,
+              }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+              statusMessage.textContent = result.message;
+              statusMessage.classList.add("success");
+              statusMessage.classList.remove("error");
+
+              // Refresh balance immediately
+              fetchTotalBalance();
+            } else {
+              statusMessage.textContent = result.message;
+              statusMessage.classList.add("error");
+              statusMessage.classList.remove("success");
+            }
+          } catch (error) {
+            statusMessage.textContent = "Error processing repayment.";
+            statusMessage.classList.add("error");
+          }
+        });
+    </script>
+  </body>
+</html>

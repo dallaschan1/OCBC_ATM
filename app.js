@@ -31,11 +31,16 @@ const Withdraw = require('./controllers/withdrawalController');
 const dbconfig = require('./dbconfig.js');
 const bcrypt = require('bcrypt')
 
+sql.connect(dbConfig)
+    .then((pool) => {
+        db = pool;
+        console.log("✅ Connected to the database.");
+    })
+    .catch((error) => console.error("❌ Database connection failed:", error));
+
+
 const genAI = new GoogleGenerativeAI(API_KEY); // Replace with your actual API key
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-const genAI2 = new GoogleGenerativeAI(API_KEY2);
-const model2 = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 // Middleware setup
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -1163,115 +1168,464 @@ app.get('/getTransactionCount', async (req, res) => {
     }
 });
 
-//
-app.get('/EditMembers', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/html/EditMembers.html'));
-  });
-
-app.use(cors());
-
-let members = [];
-
+// Edit Members
 // Nodemailer Transporter Setup
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  auth: {
-    user: 'nandithabvs06@gmail.com', // Use environment variables for security
-    pass:  'abhl zvij brqf ohve', // App-specific password or OAuth2 token
-  },
-});
-
-// Add a Member Endpoint
-app.post('/add-member', (req, res) => {
-  const { name, email, contact, account_number } = req.body;
-
-  if (!name || !email || !contact || !account_number) {
-    return res.status(400).json({ message: 'All fields are required.' });
-  }
-
-  const newMember = {
-    id: Date.now(),
-    name,
-    email,
-    contact,
-    account_number,
-    status: 'Waiting for Approval',
-  };
-
-  members.push(newMember);
-
-  const approvalLink = `http://localhost:${PORT}/approve-member/${newMember.id}`;
-  const declineLink = `http://localhost:${PORT}/decline-member/${newMember.id}`;
-  const reportLink = `http://localhost:${PORT}/report-member/${newMember.id}`;
-
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: 'Approval Needed: Shared Account',
-    html: `
-      <p>Hi ${name},</p>
-      <p>You have been invited to join a shared account.</p>
-      <p>Please choose an action:</p>
-      <a href="${approvalLink}">Accept Invitation</a><br>
-      <a href="${declineLink}">Decline Invitation</a><br>
-      <a href="${reportLink}">Decline and Report</a>
-    `,
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error('Error sending email:', error);
-      return res.status(500).json({ message: 'Failed to send email.', error });
-    }
-    res.status(201).json({ message: 'Member added and email sent.' });
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+      user: 'nandithabvs06@gmail.com', // Replace with your email
+      pass: 'ffgu bdbe hdcj mvub', // Replace with your Gmail app password
+    },
+    connectionTimeout: 10000,
   });
+  
+  // Serve Edit Members HTML
+  app.get('/EditMembers', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/EditMembers.html'));
+  });
+  
+  // Add a Member Endpoint
+  app.post('/add-member', async (req, res) => {
+    const { name, email, contact, account_number } = req.body;
+  
+    if (!name || !email || !contact || !account_number) {
+      return res.status(400).json({ message: 'All fields are required.' });
+    }
+  
+    try {
+      const query = `
+        INSERT INTO members (name, email, contact, account_number, status)
+        OUTPUT Inserted.id
+        VALUES (@name, @email, @contact, @account_number, @status)
+      `;
+  
+      const request = db.request();
+      request.input('name', sql.VarChar, name);
+      request.input('email', sql.VarChar, email);
+      request.input('contact', sql.VarChar, contact);
+      request.input('account_number', sql.VarChar, account_number);
+      request.input('status', sql.VarChar, 'Waiting for Approval');
+  
+      const result = await request.query(query);
+      const insertedId = result.recordset[0].id;
+  
+      // Construct approval, decline, and report links
+      const approvalLink = `http://localhost:${PORT}/approve-member/${insertedId}`;
+      const declineLink = `http://localhost:${PORT}/decline-member/${insertedId}`;
+      const reportLink = `http://localhost:${PORT}/report-member/${insertedId}`;
+  
+      // Set up email options
+      const mailOptions = {
+        from: 'nandithabvs06@gmail.com',
+        to: email,
+        subject: 'Approval Needed: Shared Account',
+        html: `
+          <p>Hi ${name},</p>
+          <p>You have been invited to join a shared account.</p>
+          <p>Please choose an action:</p>
+          <a href="${approvalLink}">Accept Invitation</a><br>
+          <a href="${declineLink}">Decline Invitation</a><br>
+          <a href="${reportLink}">Decline and Report</a>
+        `,
+      };
+  
+      // Send the email
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending email:', error);
+          return res.status(500).json({ message: 'Failed to send email.', error });
+        }
+        console.log('Email sent: ', info.response);
+        res.status(201).json({
+          message: 'Member added successfully! Email has been sent.',
+          memberId: insertedId,
+        });
+      });
+    } catch (error) {
+      console.error('Error adding member:', error);
+      res.status(500).json({ message: 'Failed to add member.', error });
+    }
+  });
+  
+  // Get All Members Endpoint
+  app.get('/members', async (req, res) => {
+    try {
+      if (!db) {
+        return res.status(500).send('Database not connected');
+      }
+  
+      const result = await db.query('SELECT * FROM members'); // Replace with your table name
+      res.json(result.recordset); // `.recordset` contains the rows
+    } catch (error) {
+      console.error('Error fetching members:', error);
+      res.status(500).json({ error: 'Failed to fetch members' });
+    }
+  });
+  
+  // Approve Member Endpoint
+  app.get('/approve-member/:id', async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      const query = `UPDATE members SET status = 'Accepted' WHERE id = @id`;
+      const request = db.request();
+      request.input('id', sql.Int, id);
+      const result = await request.query(query);
+  
+      if (result.rowsAffected[0] === 0) {
+        return res.status(404).send('<p>Member not found.</p>');
+      }
+      res.send('<p>Thank you! Your membership has been approved.</p>');
+    } catch (error) {
+      console.error('Error approving member:', error);
+      res.status(500).send('<p>Failed to approve member.</p>');
+    }
+  });
+  
+  // Decline Member Endpoint
+  app.get('/decline-member/:id', async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      const query = `DELETE FROM members WHERE id = @id`;
+      const request = db.request();
+      request.input('id', sql.Int, id);
+      const result = await request.query(query);
+  
+      if (result.rowsAffected[0] === 0) {
+        return res.status(404).send('<p>Member not found.</p>');
+      }
+      res.send('<p>You have declined the invitation.</p>');
+    } catch (error) {
+      console.error('Error declining member:', error);
+      res.status(500).send('<p>Failed to decline member.</p>');
+    }
+  });
+  
+  // Report Member Endpoint
+  app.get('/report-member/:id', async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      const query = `DELETE FROM members WHERE id = @id`;
+      const request = db.request();
+      request.input('id', sql.Int, id);
+      const result = await request.query(query);
+  
+      if (result.rowsAffected[0] === 0) {
+        return res.status(404).send('<p>Member not found.</p>');
+      }
+      res.send('<p>You have declined and reported the invitation.</p>');
+    } catch (error) {
+      console.error('Error reporting member:', error);
+      res.status(500).send('<p>Failed to report member.</p>');
+    }
+  });
+  
+  // Delete Member Endpoint
+  app.delete('/delete-member/:id', async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      const query = `DELETE FROM members WHERE id = @id`;
+      const request = db.request();
+      request.input('id', sql.Int, id);
+      const result = await request.query(query);
+  
+      if (result.rowsAffected[0] === 0) {
+        return res.status(404).json({ message: 'Member not found.' });
+      }
+      res.status(200).json({ message: `Member deleted successfully.` });
+    } catch (error) {
+      console.error('Error deleting member:', error);
+      res.status(500).json({ message: 'Failed to delete member.', error });
+    }
+  });
+  
+  // Edit Member Endpoint
+  app.put('/edit-member/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, email, contact, account_number, status } = req.body;
+  
+    try {
+      const query = `
+        UPDATE members 
+        SET name = @name, email = @email, contact = @contact, 
+            account_number = @account_number, status = @status 
+        WHERE id = @id
+      `;
+      const request = db.request();
+      request.input('id', sql.Int, id);
+      request.input('name', sql.VarChar, name);
+      request.input('email', sql.VarChar, email);
+      request.input('contact', sql.VarChar, contact);
+      request.input('account_number', sql.VarChar, account_number);
+      request.input('status', sql.VarChar, status);
+  
+      const result = await request.query(query);
+  
+      if (result.rowsAffected[0] === 0) {
+        return res.status(404).json({ message: 'Member not found or update failed.' });
+      }
+      res.status(200).json({ message: 'Member updated successfully.' });
+    } catch (error) {
+      console.error('Error editing member:', error);
+      res.status(500).json({ message: 'Failed to edit member.', error });
+    }
+  });
+ 
+
+//LOAN
+app.get("/loanServices", (req, res) => {
+    res.sendFile(path.join(__dirname, "public/html", "loanServices.html"));
 });
 
-// Approve Member Endpoint
-app.get('/approve-member/:id', (req, res) => {
-  const { id } = req.params;
-  const member = members.find((m) => m.id == id);
-
-  if (member) {
-    member.status = 'Accepted';
-    return res.send('<p>Thank you! Your membership has been approved.</p>');
-  }
-  res.status(404).send('Member not found.');
+app.get("/applyEligibility", (req, res) => {
+    res.sendFile(path.join(__dirname, "public/html", "applyEligibility.html"));
 });
 
-// Decline Member Endpoint
-app.get('/decline-member/:id', (req, res) => {
-  const { id } = req.params;
-  members = members.filter((m) => m.id != id);
-  res.send('<p>You have declined the invitation.</p>');
+// Serve Loan Application Page
+app.get("/applyLoan", (req, res) => {
+    res.sendFile(path.join(__dirname, "public/html", "loanApplication.html"));
 });
 
-// Report Member Endpoint
-app.get('/report-member/:id', (req, res) => {
-  const { id } = req.params;
-  members = members.filter((m) => m.id != id);
-  res.send('<p>You have declined and reported the invitation.</p>');
+// Serve Loan Repayment Page
+app.get("/repayLoan", (req, res) => {
+    res.sendFile(path.join(__dirname, "public/html", "loanRepayment.html"));
 });
 
-// Get All Members Endpoint
-app.get('/members', (req, res) => {
-  res.json(members);
+// Serve Admin Dashboard Page
+app.get("/adminDashboard", (req, res) => {
+    res.sendFile(path.join(__dirname, "public/html", "adminDashboard.html"));
 });
 
-// Delete Member Endpoint
-app.delete('/delete-member/:id', (req, res) => {
-  const { id } = req.params;
-  const memberIndex = members.findIndex((m) => m.id == id);
+// Helper function to generate a Unique Loan ID
+function generateUniqueId() {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const randomLetters = letters.charAt(Math.floor(Math.random() * 26)) + letters.charAt(Math.floor(Math.random() * 26));
+    const randomNumbers = Math.floor(1000 + Math.random() * 9000);
+    return randomLetters + randomNumbers;
+}
 
-  if (memberIndex !== -1) {
-    const removedMember = members.splice(memberIndex, 1)[0];
-    return res.status(200).json({ message: `Member ${removedMember.name} deleted successfully.` });
-  }
-  res.status(404).json({ message: 'Member not found.' });
+// Apply for Loan Eligibility (Prevents Duplicate Entries)
+app.post("/apply-eligibility", async (req, res) => {
+    const { name, email, contact, account_number, salary } = req.body;
+
+    if (!name || !email || !contact || !account_number || !salary) {
+        return res.status(400).json({ message: "All fields are required." });
+    }
+
+    try {
+        const existingUser = await db.request()
+            .input("email", sql.NVarChar, email)
+            .input("contact", sql.NVarChar, contact)
+            .input("account_number", sql.NVarChar, account_number)
+            .query(`SELECT * FROM loan_eligibility WHERE email = @email OR contact = @contact OR account_number = @account_number`);
+
+        if (existingUser.recordset.length > 0) {
+            return res.status(400).json({ message: "A user with this email, contact, or account number already exists." });
+        }
+
+        const uniqueId = generateUniqueId();
+
+        await db.request()
+            .input("unique_id", sql.NVarChar, uniqueId)
+            .input("name", sql.NVarChar, name)
+            .input("email", sql.NVarChar, email)
+            .input("contact", sql.NVarChar, contact)
+            .input("account_number", sql.NVarChar, account_number)
+            .input("salary", sql.Decimal(15, 2), salary)
+            .query(`INSERT INTO loan_eligibility (unique_id, name, email, contact, account_number, salary, eligibility_status)
+                    VALUES (@unique_id, @name, @email, @contact, @account_number, @salary, 'Pending')`);
+
+        res.status(201).json({ message: "Loan eligibility application submitted!" });
+    } catch (error) {
+        console.error("Error applying for eligibility:", error);
+        res.status(500).json({ message: "Failed to apply for loan eligibility.", error });
+    }
 });
 
+// Fetch Loan Eligibility Applications for Admin Page
+app.get("/eligibility", async (req, res) => {
+    try {
+        const result = await db.query("SELECT * FROM loan_eligibility");
+        res.status(200).json(result.recordset);
+    } catch (error) {
+        console.error("Error fetching eligibility applications:", error);
+        res.status(500).json({ message: "Failed to fetch eligibility applications." });
+    }
+});
+
+// Apply for Loan (Ensure `amount_due` Includes Interest)
+app.post("/apply-loan", async (req, res) => {
+    const { unique_id, loan_amount, loan_term, interest_rate } = req.body;
+
+    if (!unique_id || !loan_amount || !loan_term || !interest_rate) {
+        return res.status(400).json({ message: "All fields are required." });
+    }
+
+    try {
+        const eligibilityCheck = await db.request()
+            .input("unique_id", sql.NVarChar, unique_id)
+            .query("SELECT id FROM loan_eligibility WHERE unique_id = @unique_id AND eligibility_status = 'Approved'");
+
+        if (eligibilityCheck.recordset.length === 0) {
+            return res.status(403).json({ message: "You are not eligible to apply for a loan." });
+        }
+
+        const eligibilityId = eligibilityCheck.recordset[0].id;
+        const interestMultiplier = 1 + (parseFloat(interest_rate) / 100);
+        const totalRepayment = (parseFloat(loan_amount) * interestMultiplier).toFixed(2); // Ensure correct decimal rounding
+
+        console.log(`Applying Loan -> Loan Amount: ${loan_amount}, Interest Rate: ${interest_rate}%, Total Due: ${totalRepayment}`);
+
+        await db.request()
+            .input("eligibility_id", sql.Int, eligibilityId)
+            .input("unique_id", sql.NVarChar, unique_id)
+            .input("loan_amount", sql.Decimal(15, 2), loan_amount)
+            .input("amount_due", sql.Decimal(15, 2), totalRepayment) // ✅ Store correct amount with interest
+            .query(`INSERT INTO loan_applications (eligibility_id, unique_id, loan_amount, amount_due, loan_status)
+                    VALUES (@eligibility_id, @unique_id, @loan_amount, @amount_due, 'Ongoing')`);
+
+        res.status(201).json({ message: "Loan application submitted!", unique_id });
+    } catch (error) {
+        console.error("Error applying for loan:", error);
+        res.status(500).json({ message: "Failed to apply for loan.", error });
+    }
+});
+
+// Admin Approves or Declines Loan Eligibility (Sends Email)
+app.put("/admin/eligibility/:id", async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!["Approved", "Declined"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status." });
+    }
+
+    try {
+        await db.request()
+            .input("id", sql.Int, id)
+            .input("status", sql.NVarChar, status)
+            .query("UPDATE loan_eligibility SET eligibility_status = @status WHERE id = @id");
+
+        const user = await db.request()
+            .input("id", sql.Int, id)
+            .query("SELECT email, name, unique_id FROM loan_eligibility WHERE id = @id");
+
+        const { email, name, unique_id } = user.recordset[0];
+
+        let subject, message;
+        if (status === "Approved") {
+            subject = "Loan Eligibility Approved";
+            message = `<p>Dear ${name},</p><p>Your loan eligibility has been <strong>approved</strong>.</p><p>Your Unique Loan ID: <b>${unique_id}</b></p>`;
+        } else {
+            subject = "Loan Eligibility Declined";
+            message = `<p>Dear ${name},</p><p>Your loan eligibility application has been <strong>declined</strong>.</p>`;
+        }
+
+        await transporter.sendMail({
+            from: "yourEmail@gmail.com",
+            to: email,
+            subject,
+            html: message,
+        });
+
+        res.status(200).json({ message: `Eligibility ${status.toLowerCase()}! Email sent.` });
+    } catch (error) {
+        console.error("Error updating eligibility:", error);
+        res.status(500).json({ message: "Failed to update eligibility.", error });
+    }
+});
+
+// Fetch Total Loan Balance for Repayment
+app.get("/loan-total-balance/:unique_id", async (req, res) => {
+    const { unique_id } = req.params;
+
+    try {
+        const result = await db.request()
+            .input("unique_id", sql.NVarChar, unique_id)
+            .query(`SELECT COALESCE(SUM(amount_due), 0) AS total_due FROM loan_applications WHERE unique_id = @unique_id AND loan_status = 'Ongoing'`);
+
+        res.status(200).json({ total_due: result.recordset[0].total_due || 0 });
+    } catch (error) {
+        console.error("Error fetching loan balance:", error);
+        res.status(500).json({ message: "Error fetching loan balance." });
+    }
+});
+
+// Process Loan Repayment
+app.post("/repay-loan", async (req, res) => {
+    const { unique_id, repayment_amount } = req.body;
+
+    try {
+        // Retrieve all outstanding loans sorted by oldest first
+        const result = await db.request()
+            .input("unique_id", sql.NVarChar, unique_id)
+            .query(`
+                SELECT id, amount_due 
+                FROM loan_applications 
+                WHERE unique_id = @unique_id AND amount_due > 0 
+                ORDER BY id ASC
+            `);
+
+        let remainingRepayment = repayment_amount;
+        let updatedLoans = [];
+
+        for (const loan of result.recordset) {
+            if (remainingRepayment <= 0) break; // Stop if no more repayment left
+
+            let amountToDeduct = Math.min(loan.amount_due, remainingRepayment);
+            remainingRepayment -= amountToDeduct;
+
+            // Update the loan's amount_due
+            await db.request()
+                .input("loan_id", sql.Int, loan.id)
+                .input("amount_due", sql.Decimal(15, 2), loan.amount_due - amountToDeduct)
+                .query(`
+                    UPDATE loan_applications 
+                    SET amount_due = @amount_due 
+                    WHERE id = @loan_id
+                `);
+
+            updatedLoans.push({ loan_id: loan.id, new_amount_due: loan.amount_due - amountToDeduct });
+
+            // Stop processing further loans if the full repayment is used up
+            if (remainingRepayment <= 0) break;
+        }
+
+        res.status(200).json({
+            message: "Repayment applied successfully!",
+            remainingRepayment,
+            updatedLoans
+        });
+    } catch (error) {
+        console.error(" Error processing repayment:", error);
+        res.status(500).json({ message: "Failed to process repayment." });
+    }
+});
+
+
+// Fetch Loan History for a User
+app.get("/get-loans/:unique_id", async (req, res) => {
+    const { unique_id } = req.params;
+
+    try {
+        const result = await db.request()
+            .input("unique_id", sql.NVarChar, unique_id)
+            .query("SELECT id, loan_amount, amount_due, loan_status FROM loan_applications WHERE unique_id = @unique_id");
+
+        res.status(200).json({ loans: result.recordset });
+    } catch (error) {
+        console.error("Error fetching loan history:", error);
+        res.status(500).json({ message: "Failed to fetch loan history." });
+    }
+});
+
+
+//
 app.post('/predict-wait-time', async (req, res) => {
     const { ATMID, DayOfWeek, TimeOfDay } = req.body;
 
