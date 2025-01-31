@@ -29,6 +29,7 @@ const dbConfig = require("./dbconfig.js");
 const Password = require('./controllers/PasswordController');
 const Withdraw = require('./controllers/withdrawalController');
 const dbconfig = require('./dbconfig.js');
+const bcrypt = require('bcrypt')
 
 const genAI = new GoogleGenerativeAI(API_KEY); // Replace with your actual API key
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -67,6 +68,14 @@ app.get('/pincode', (req, res) => {
 
 app.get('/crypto', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/html/crypto.html'));
+});
+
+app.get('/jHome', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/jointWithdrawal.html'));
+});
+
+app.get('/Withdrawal_Auth', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/Withdrawal_Authentication.html'));
 });
 
 app.post('/send-message', sendFcmMessage);

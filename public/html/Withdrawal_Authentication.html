@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATM Dual OTP Authentication</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            width: 50%;
+            margin: 0 auto;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .message {
+            color: red;
+            margin-top: 10px;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>ATM Dual OTP Authentication</h2>
+
+        <div id="otpForm">
+            <label for="accountHolderPhone">Account Holder Phone Number:</label>
+            <input type="text" id="accountHolderPhone" placeholder="Enter Account Holder's Phone Number" />
+            
+            <label for="approverPhone">Approver Phone Number:</label>
+            <input type="text" id="approverPhone" placeholder="Enter Approver's Phone Number" />
+
+            <button id="sendOtpBtn">Send OTPs</button>
+
+            <div id="otpInputs" style="display: none;">
+                <h3>Enter OTPs</h3>
+
+                <label for="accountHolderOtp">Account Holder OTP:</label>
+                <input type="text" id="accountHolderOtp" placeholder="Enter OTP for Account Holder" />
+                
+                <label for="approverOtp">Approver OTP:</label>
+                <input type="text" id="approverOtp" placeholder="Enter OTP for Approver" />
+                
+                <button id="verifyOtpBtn">Verify OTPs</button>
+            </div>
+
+            <p id="message" class="message"></p>
+        </div>
+    </div>
+
+    <script>
+        // Sending OTPs: 
+const send = await fetch('/start-otp', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        accountHolderUsername: 'accountHolderUsername', 
+        approverUsername: 'approverUsername'
+    })
+});
+
+// Verifying OTPs:
+const verify = await fetch('/verify-otp', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        accountHolderUsername: 'accountHolderUsername',
+        approverUsername: 'approverUsername',
+        accountHolderEnteredOTP: accountHolderOtp,
+        approverEnteredOTP: approverOtp
+    })
+});
+
+    </script>
+
+</body>
+</html>
