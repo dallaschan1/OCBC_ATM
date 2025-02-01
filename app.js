@@ -30,14 +30,41 @@ const Password = require('./controllers/PasswordController');
 const Withdraw = require('./controllers/withdrawalController');
 const dbconfig = require('./dbconfig.js');
 const bcrypt = require('bcrypt')
+const twilio = require('twilio');
+
+
+// Database Configuration
+const config = {
+    user: "fsdp", // Replace with your SQL Server username
+    password: "8gL!zR2@hQ3p", // Replace with your password
+    server: "localhost",
+    database: "fsdp_assignment",
+    trustServerCertificate: true,
+    options: {
+        port: 1433,
+        connectionTimeout: 60000, // Connection timeout in milliseconds
+    },
+};
 
 sql.connect(dbConfig)
     .then((pool) => {
         db = pool;
-        console.log("✅ Connected to the database.");
+        console.log("Connected to the database.");
     })
-    .catch((error) => console.error("❌ Database connection failed:", error));
+    .catch((error) => console.error("Database connection failed:", error));
 
+// Create Connection Pool
+const poolPromise = new sql.ConnectionPool(config)
+    .connect()
+    .then(pool => {
+        
+        return pool;
+    })
+    .catch(err => {
+       
+    });
+
+module.exports = { sql, poolPromise };
 
 const genAI = new GoogleGenerativeAI(API_KEY); // Replace with your actual API key
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -1624,6 +1651,142 @@ app.get("/get-loans/:unique_id", async (req, res) => {
     }
 });
 
+// card blocking 
+// Initialize Twilio Client
+const twilioClient = new twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
+
+const otpStore = {}; // Temporary store for OTP verification
+
+// Serve Block Card HTML Page
+app.get("/blockCard", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/html", "blockCard.html"));
+});
+
+// **Send OTP for Card Blocking**
+app.post("/send-otp", async (req, res) => {
+  const { card_number, phone_number } = req.body;
+
+  if (!card_number || !phone_number) {
+    return res.status(400).json({ message: "Card number and phone number are required." });
+  }
+
+  try {
+    const pool = await poolPromise;
+    const result = await pool
+      .request()
+      .input("card_number", sql.NVarChar, card_number)
+      .input("phone_number", sql.NVarChar, phone_number)
+      .query(`
+        SELECT user_id FROM atm_users 
+        JOIN atm_cards ON atm_users.id = atm_cards.user_id 
+        WHERE atm_cards.card_number = @card_number AND atm_users.phone_number = @phone_number
+      `);
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ message: "Invalid card or phone number." });
+    }
+
+    // Generate OTP
+    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore[phone_number] = { otp: generatedOtp, expiresAt: Date.now() + 300000 }; // Valid for 5 minutes
+
+    // Send OTP via Twilio
+    await twilioClient.messages.create({
+      body: `Your OTP for ATM card blocking: ${generatedOtp}`,
+      from: process.env.TWILIO_PHONE_NUMBER, // Ensure this is a valid Twilio number
+      to: `+65${phone_number}`, // Adjusted for international format
+    });
+
+    res.status(200).json({ message: "OTP sent to your phone." });
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    res.status(500).json({ message: "Failed to send OTP.", error });
+  }
+});
+
+// **Verify OTP & Block ATM Card**
+app.post("/block-atm-card", async (req, res) => {
+  const { card_number, phone_number, otp } = req.body;
+
+  if (!otp || !card_number || !phone_number) {
+    return res.status(400).json({ message: "OTP, card number, and phone number are required." });
+  }
+
+  try {
+    // Check if OTP exists and is valid
+    const storedOtp = otpStore[phone_number];
+    if (!storedOtp || storedOtp.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP." });
+    }
+
+    // Check if OTP has expired
+    if (Date.now() > storedOtp.expiresAt) {
+      delete otpStore[phone_number]; // Remove expired OTP
+      return res.status(400).json({ message: "OTP has expired." });
+    }
+
+    // Remove OTP after successful verification
+    delete otpStore[phone_number];
+
+    // Block the card in `atm_cards`
+    const pool = await poolPromise;
+    await pool
+      .request()
+      .input("card_number", sql.NVarChar, card_number)
+      .query(`UPDATE atm_cards SET status = 'Blocked' WHERE card_number = @card_number`);
+
+    // Insert into `blocked_atm_cards`
+    await pool
+      .request()
+      .input("card_number", sql.NVarChar, card_number)
+      .query(`
+        INSERT INTO blocked_atm_cards (user_id, card_number, status, blocked_at)
+        SELECT user_id, card_number, 'Blocked', GETDATE() 
+        FROM atm_cards 
+        WHERE card_number = @card_number
+      `);
+
+    res.status(200).json({ success: true, message: "Card blocked successfully." });
+  } catch (error) {
+    console.error("Error blocking card:", error);
+    res.status(500).json({ success: false, message: "Failed to block card.", error });
+  }
+});
+
+// **Resend OTP**
+app.post("/resend-otp", async (req, res) => {
+  const { phone_number } = req.body;
+
+  if (!phone_number) {
+    return res.status(400).json({ message: "Phone number is required." });
+  }
+
+  try {
+    // Check if OTP exists for the phone number
+    if (!otpStore[phone_number]) {
+      return res.status(400).json({ message: "No OTP request found for this phone number." });
+    }
+
+    // Generate a new OTP
+    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore[phone_number] = { otp: generatedOtp, expiresAt: Date.now() + 300000 }; // Valid for 5 minutes
+
+    // Send new OTP via Twilio
+    await twilioClient.messages.create({
+      body: `Your new OTP for ATM card blocking: ${generatedOtp}`,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: `+65${phone_number}`,
+    });
+
+    res.status(200).json({ message: "New OTP sent to your phone." });
+  } catch (error) {
+    console.error("Error resending OTP:", error);
+    res.status(500).json({ message: "Failed to resend OTP.", error });
+  }
+}); 
 
 //
 app.post('/predict-wait-time', async (req, res) => {
@@ -1800,7 +1963,7 @@ app.post('/analyze-budget', async (req, res) => {
     }
 });
 
-const twilio = require('twilio');
+// const twilio = require('twilio');
 
 const accountSid = process.env.Twilio_SID; // Replace with your Twilio Account SID
 const authToken = process.env.Twilio_Token;  // Replace with your Twilio Auth Token

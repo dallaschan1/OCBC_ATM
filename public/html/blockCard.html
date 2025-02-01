@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Block ATM Card</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Global Styles */
+      body {
+        font-family: "Inter", sans-serif;
+        margin: 0;
+        justify-content: center; /* Center horizontally */
+        align-items: center; 
+        padding: 20px;
+        background-color: #f0eeee;
+        text-align: center;
+      }
+
+      .logo {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        width: 120px;
+        height: auto;
+      }
+
+      /* Container Styling */
+      .container {
+        max-width: 450px;
+        margin: 80px auto;
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      h2 {
+        color: #007bff;
+        font-size: 24px;
+        margin-bottom: 20px;
+        font-weight: 700;
+      }
+
+      /* Form Styling */
+      .form-group {
+        margin-bottom: 15px;
+        text-align: left;
+      }
+
+      label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      input {
+        width: 425px;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border 0.3s;
+      }
+
+      input:focus {
+        border-color: #007bff;
+        outline: none;
+      }
+
+      /* Buttons */
+      button {
+        width: 100%;
+        background-color: #007bff;
+        color: white;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.3s;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      /* Status Messages */
+      #status-message {
+        text-align: center;
+        margin-top: 15px;
+        font-weight: bold;
+      }
+
+      .error {
+        color: #dc3545;
+      }
+
+      .success {
+        color: #28a745;
+      }
+
+      /* OTP Input Styling */
+      .otp-section {
+        display: none;
+        margin-top: 15px;
+      }
+
+      .otp-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 15px;
+        gap: 10px;
+      }
+
+      .otp-container input {
+        width: 30px;
+        height: 30px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        border-radius: 8px;
+        border: 2px solid #ccc;
+      }
+
+      .otp-container input:focus {
+        border-color: #007bff;
+        outline: none;
+      }
+
+      /* Countdown Timer */
+      #countdown {
+        font-size: 16px;
+        color: #dc3545;
+        margin-top: 10px;
+      }
+
+      /* Resend OTP Button */
+      #resend-otp {
+        display: none;
+        margin-top: 10px;
+        background-color: #ff6600;
+      }
+
+      #resend-otp:hover {
+        background-color: #cc5200;
+      }
+
+      /* Back Button Styling */
+      .back-button {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+      }
+
+      .back-circle {
+        width: 40px;
+        height: 40px;
+        background: transparent;
+        border: 2px solid #333;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        position: relative;
+      }
+
+      .back-arrow {
+        font-size: 28px;
+        color: #000000;
+        position: absolute;
+        top: 48%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin-top: -2px;
+        line-height: 1;
+      }
+
+      .back-text {
+        color: #888;
+        font-size: 25px;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="/loanServices" class="back-button">
+        <div class="back-circle">
+          <span class="back-arrow">←</span>
+        </div>
+        <span class="back-text">Back</span>
+      </a>
+  
+      <a href="/home">
+        <img src="../images/OcbcLogo.png" alt="OCBC Logo" class="logo" />
+      </a>
+      
+    <div class="container">
+      <h2>Emergency ATM Card Blocking</h2>
+      <form id="block-card-form">
+        <div class="form-group">
+          <label for="card-number">ATM Card Number</label>
+          <input
+            type="text"
+            id="card-number"
+            placeholder="Enter your ATM card number"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="phone-number">Registered Phone Number</label>
+          <input
+            type="tel"
+            id="phone-number"
+            placeholder="Enter your phone number"
+            required
+          />
+        </div>
+        <button type="button" onclick="sendOtp()">Send OTP</button>
+      </form>
+
+      <!-- OTP Verification Section -->
+      <div class="otp-section" id="otp-section">
+        <h3>Please input your OTP number.</h3>
+        <div class="otp-container">
+          <input
+            type="text"
+            maxlength="1"
+            id="otp1"
+            oninput="moveToNext(this, 'otp2')"
+          />
+          <input
+            type="text"
+            maxlength="1"
+            id="otp2"
+            oninput="moveToNext(this, 'otp3')"
+          />
+          <input
+            type="text"
+            maxlength="1"
+            id="otp3"
+            oninput="moveToNext(this, 'otp4')"
+          />
+          <input
+            type="text"
+            maxlength="1"
+            id="otp4"
+            oninput="moveToNext(this, 'otp5')"
+          />
+          <input
+            type="text"
+            maxlength="1"
+            id="otp5"
+            oninput="moveToNext(this, 'otp6')"
+          />
+          <input
+            type="text"
+            maxlength="1"
+            id="otp6"
+            oninput="moveToNext(this, null)"
+          />
+        </div>
+        <p id="countdown">OTP expires in: 60s</p>
+        <button onclick="confirmBlock()">Verify & Block Card</button>
+        <button id="resend-otp" onclick="resendOtp()">Resend OTP</button>
+      </div>
+
+      <p id="status-message"></p>
+    </div>
+
+    <script>
+      let countdown = 60;
+      let countdownInterval;
+
+      function moveToNext(current, nextFieldID) {
+        if (current.value.length === 1) {
+          if (nextFieldID) {
+            document.getElementById(nextFieldID).focus();
+          }
+        }
+      }
+
+      function clearOtpFields() {
+        const otpFields = document.querySelectorAll(".otp-container input");
+        otpFields.forEach((field) => (field.value = ""));
+      }
+
+      async function sendOtp() {
+        const cardNumber = document.getElementById("card-number").value;
+        const phoneNumber = document.getElementById("phone-number").value;
+        const statusMessage = document.getElementById("status-message");
+
+        try {
+          const response = await fetch("http://localhost:3001/send-otp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              card_number: cardNumber,
+              phone_number: phoneNumber,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            statusMessage.textContent = result.message;
+            statusMessage.classList.remove("error");
+            statusMessage.classList.add("success");
+
+            document.getElementById("otp-section").style.display = "block";
+            clearOtpFields(); // Clear OTP fields when resending
+            startCountdown();
+          } else {
+            statusMessage.textContent = result.message;
+            statusMessage.classList.add("error");
+          }
+        } catch (error) {
+          statusMessage.textContent = "Error sending OTP. Please try again.";
+          statusMessage.classList.add("error");
+        }
+      }
+
+      function startCountdown() {
+        countdown = 60;
+        document.getElementById(
+          "countdown"
+        ).textContent = `OTP expires in: ${countdown}s`;
+        document.getElementById("resend-otp").style.display = "none";
+
+        clearInterval(countdownInterval);
+        countdownInterval = setInterval(() => {
+          countdown--;
+          document.getElementById(
+            "countdown"
+          ).textContent = `OTP expires in: ${countdown}s`;
+
+          if (countdown <= 0) {
+            clearInterval(countdownInterval);
+            document.getElementById("countdown").textContent = "OTP expired!";
+            document.getElementById("resend-otp").style.display = "block";
+          }
+        }, 1000);
+      }
+
+      function confirmBlock() {
+        const confirmation = confirm(
+          "Are you sure you want to permanently block this card? Once blocked, it cannot be used again. Please contact the OCBC Help Desk for assistance in transferring funds and getting a replacement card."
+        );
+        if (confirmation) {
+          verifyOtp();
+        }
+      }
+
+      async function verifyOtp() {
+        const cardNumber = document.getElementById("card-number").value;
+        const phoneNumber = document.getElementById("phone-number").value;
+        const otp = [...document.querySelectorAll(".otp-container input")]
+          .map((input) => input.value)
+          .join("");
+        const statusMessage = document.getElementById("status-message");
+
+        try {
+          const response = await fetch("http://localhost:3001/block-atm-card", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              card_number: cardNumber,
+              phone_number: phoneNumber,
+              otp: otp,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            statusMessage.textContent = result.message;
+            statusMessage.classList.remove("error");
+            statusMessage.classList.add("success");
+          } else {
+            statusMessage.textContent = "Invalid OTP.";
+            statusMessage.style.color = "#FF0000"; 
+          }
+        } catch (error) {
+          statusMessage.textContent = "Error verifying OTP. Please try again.";
+          statusMessage.style.color = "#FF0000";
+        }
+      }
+
+      function resendOtp() {
+        clearOtpFields();
+        sendOtp();
+      }
+    </script>
+  </body>
+</html>
