@@ -5,7 +5,6 @@ const path = require('path')
 const nodemailer = require('nodemailer');
 const express = require('express');
 const bodyParser = require('body-parser');
-const admin = require('firebase-admin');
 const Web3 = require('web3').default;
 const QRCode = require('qrcode');
 const cors = require('cors');
@@ -45,6 +44,7 @@ const config = {
         connectionTimeout: 60000, // Connection timeout in milliseconds
     },
 };
+
 
 sql.connect(dbConfig)
     .then((pool) => {
@@ -1963,7 +1963,9 @@ app.post('/analyze-budget', async (req, res) => {
     }
 });
 
-// const twilio = require('twilio');
+
+
+const twilio = require('twilio');
 
 const accountSid = process.env.Twilio_SID; // Replace with your Twilio Account SID
 const authToken = process.env.Twilio_Token;  // Replace with your Twilio Auth Token
@@ -1991,6 +1993,124 @@ app.post('/send-sms', (req, res) => {
             console.error('Error sending SMS:', error);
             res.status(500).json({ success: false, message: 'Failed to send SMS.' });
         });
+});
+
+//Dual Authentication for Joint Account Withdrawal
+//Connecting to Twilio
+const accsid = "AC33baff172c1798cdc33e072ee2bae343"
+const twilAuthToken = "ba37e4f3aa1d543ae548a409671f1894"
+const twilNo = "+12762763343"
+const twil = twilio(accsid, twilAuthToken);
+
+// Generate OTP
+const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+// Endpoint to Request OTPs
+app.post("/request-otp", async (req, res) => {
+ const { account_number } = req.body;
+ if (!account_number) return res.status(400).json({ error: "Account number required" });
+
+ try {
+   await sql.connect(dbConfig);
+   const result = await sql.query`SELECT phone1, phone2 FROM JointAcc WHERE account_number = ${account_number}`;
+
+   if (result.recordset.length === 0) {
+     return res.status(404).json({ error: "Account not found" });
+   }
+
+   const { phone1, phone2 } = result.recordset[0];
+   const otp1 = generateOTP();
+   const otp2 = generateOTP();
+   const expires_at = new Date((Date.now() + 5 * 60000)); // Expires in 5 minutes
+
+   await sql.query`INSERT INTO OTPs (account_number, otp1, otp2, expires_at)
+                   VALUES (${account_number}, ${otp1}, ${otp2}, ${expires_at})`;
+
+   await twil.messages.create({
+     title: "Verification OTP",
+     body: `Your ATM withdrawal OTP is: ${otp1}`,
+     from: twilNo,
+     to: phone1,
+   });
+
+   await twil.messages.create({
+     title: "Verification OTP",
+     body: `Your ATM withdrawal OTP is: ${otp2}`,
+     from: twilNo,
+     to: phone2,
+   });
+
+   res.json({ message: "OTP sent to both users" });
+ } catch (error) {
+   console.error(error);
+   res.status(500).json({ error: "Server error" });
+ }
+});
+
+// Endpoint to Verify OTPs
+app.post("/verify-otp", async (req, res) => {
+ const { account_number, otp1, otp2 } = req.body;
+
+ if (!account_number || !otp1 || !otp2) return res.status(400).json({ error: "All fields required" });
+
+ try {
+   await sql.connect(dbConfig);
+   const result = await sql.query`SELECT * FROM OTPs WHERE account_number = ${account_number}`;
+
+   if (result.recordset.length === 0) {
+     return res.status(400).json({ error: "Invalid or expired OTPs" });
+   }
+
+   const storedOTP1 = result.recordset[0].otp1;
+   const storedOTP2 = result.recordset[0].otp2;
+
+   if (storedOTP1 === otp1 && storedOTP2 === otp2) {
+     await sql.query`DELETE FROM OTPs WHERE account_number = ${account_number}`;
+     res.json({ message: "Withdrawal Approved" });
+   } else {
+     res.status(401).json({ error: "Incorrect OTPs" });
+   }
+ } catch (error) {
+   console.error(error);
+   res.status(500).json({ error: "Server error" });
+ }
+});
+
+const readline = require('readline');
+
+const currency_API_KEY = 'adb301bb5f5f2bcedd8b718a'; 
+const currency_BASE_URL = 'https://v6.exchangerate-api.com/v6';
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+app.get('/exchange', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/exchange.html'))
+})
+
+// API Route to fetch exchange rates
+app.get('/convert', async (req, res) => {
+    const { from, to, amount } = req.query;
+
+    if (!from || !to || isNaN(amount) || amount <= 0) {
+        return res.status(400).json({ error: 'Invalid input' });
+    }
+
+    try {
+        const response = await axios.get(`${currency_BASE_URL}/${currency_API_KEY}/latest/${from.toUpperCase()}`);
+        const rates = response.data.conversion_rates;
+
+        if (!rates[to.toUpperCase()]) {
+            return res.status(400).json({ error: 'Currency not supported' });
+        }
+
+        const convertedAmount = amount * rates[to.toUpperCase()];
+        res.json({ rate: rates[to.toUpperCase()], convertedAmount });
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching exchange rates' });
+    }
 });
 
 // Start the server

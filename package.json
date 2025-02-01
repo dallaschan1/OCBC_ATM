@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
-    "axios": "^1.7.7",
+    "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
     "cor": "^0.0.0",
@@ -21,7 +21,7 @@
     "python-shell": "^5.0.0",
     "qrcode": "^1.5.4",
     "session": "^0.1.0",
-    "twilio": "^5.4.2",
+    "twilio": "^5.4.3",
     "web3": "^4.15.0"
   }
 }
