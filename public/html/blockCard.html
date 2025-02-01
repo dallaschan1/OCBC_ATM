@@ -14,7 +14,7 @@
         font-family: "Inter", sans-serif;
         margin: 0;
         justify-content: center; /* Center horizontally */
-        align-items: center; 
+        align-items: center;
         padding: 20px;
         background-color: #f0eeee;
         text-align: center;
@@ -193,16 +193,16 @@
   </head>
   <body>
     <a href="/loanServices" class="back-button">
-        <div class="back-circle">
-          <span class="back-arrow">←</span>
-        </div>
-        <span class="back-text">Back</span>
-      </a>
-  
-      <a href="/home">
-        <img src="../images/OcbcLogo.png" alt="OCBC Logo" class="logo" />
-      </a>
-      
+      <div class="back-circle">
+        <span class="back-arrow">←</span>
+      </div>
+      <span class="back-text">Back</span>
+    </a>
+
+    <a href="/home">
+      <img src="../images/OcbcLogo.png" alt="OCBC Logo" class="logo" />
+    </a>
+
     <div class="container">
       <h2>Emergency ATM Card Blocking</h2>
       <form id="block-card-form">
@@ -384,9 +384,13 @@
             statusMessage.textContent = result.message;
             statusMessage.classList.remove("error");
             statusMessage.classList.add("success");
+
+            setTimeout(() => {
+              window.location.href = "/"; // Redirect to home page
+            }, 7000); // Redirect after 4 seconds
           } else {
             statusMessage.textContent = "Invalid OTP.";
-            statusMessage.style.color = "#FF0000"; 
+            statusMessage.style.color = "#FF0000";
           }
         } catch (error) {
           statusMessage.textContent = "Error verifying OTP. Please try again.";

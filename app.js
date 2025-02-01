@@ -1197,6 +1197,14 @@ app.get('/getTransactionCount', async (req, res) => {
 
 // Edit Members
 // Nodemailer Transporter Setup
+app.get('/More-Options-Shared', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/more-options-shared.html'));
+});
+
+app.get('/sharedAcc', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/SharedAccount.html'));
+});
+
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,
@@ -1512,7 +1520,7 @@ app.post("/apply-loan", async (req, res) => {
             .input("eligibility_id", sql.Int, eligibilityId)
             .input("unique_id", sql.NVarChar, unique_id)
             .input("loan_amount", sql.Decimal(15, 2), loan_amount)
-            .input("amount_due", sql.Decimal(15, 2), totalRepayment) // ✅ Store correct amount with interest
+            .input("amount_due", sql.Decimal(15, 2), totalRepayment) // Store correct amount with interest
             .query(`INSERT INTO loan_applications (eligibility_id, unique_id, loan_amount, amount_due, loan_status)
                     VALUES (@eligibility_id, @unique_id, @loan_amount, @amount_due, 'Ongoing')`);
 
@@ -1788,6 +1796,7 @@ app.post("/resend-otp", async (req, res) => {
   }
 }); 
 
+//reapply for card
 //
 app.post('/predict-wait-time', async (req, res) => {
     const { ATMID, DayOfWeek, TimeOfDay } = req.body;
@@ -1964,8 +1973,6 @@ app.post('/analyze-budget', async (req, res) => {
 });
 
 
-
-const twilio = require('twilio');
 
 const accountSid = process.env.Twilio_SID; // Replace with your Twilio Account SID
 const authToken = process.env.Twilio_Token;  // Replace with your Twilio Auth Token

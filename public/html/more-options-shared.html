@@ -3,20 +3,9 @@
 <head>
   <link rel="stylesheet" href= "../css/more-options.css">
   <script defer src="../js/face-api.min.js"></script>
-
 </head>
-<style>
-  .logo {
-    position: absolute;
-    top: 30px;
-    left: 30px;
-    width: 120px; /* Adjust size as needed */
-    height: auto;
-}
-</style>
 <body>
-  <img src="../images/OcbcLogo.png" alt="Logo" class="logo">
-  <div id = "containerr">
+  <div id = "containerr"> 
   
 
   <div class="content">
@@ -24,7 +13,7 @@
     <div id = 'yum'>
       <div class="header">
     
-        <a href="/home" class="back-button">
+        <a href="/sharedAcc" class="back-button">
           <div class="back-circle">
             <span class="back-arrow">←</span>
           </div>
@@ -38,7 +27,7 @@
         
         
       </div>
-    <h1 class="greeting">Hello! Welcome to your shared account</h1>
+    <h1 class="greeting">Hello!</h1>
     <h2 class="main-heading">What would you like to do today?</h2>
     </div>
     <div id = "test">
@@ -49,7 +38,8 @@
     </div>
     <div class="top-right">
       
-      
+      <span class="language-selector">English</span>
+     
       <div class="exit-container">
         <img src="../images/Exit.png" alt="exit" class="exit-icon">
        
@@ -62,67 +52,51 @@
       <h2>Other Services</h2>
       
       <div class="services-grid">
-        <div class="service-card greyed-out">
-          <h3>Check Transactions</h3>
-          <p>Allows tracking of transactions by all memberd</p>
+        <div class="service-card"><a href="/exchange" style="text-decoration: none;">
+          <h3>Currency Exchange</h3>
+          <p>Withdrawal of Other Currencies</p></a>
         </div>
 
-        <div class="service-card">
+        <div class="service-card"><a href="/crypto" style="text-decoration: none;">
           <h3>Crypto Currency Services</h3>
-          <p>Enables you to buy, sell, and transfer your tokens between wallets</p>
+          <p>Enables you to buy, sell, and transfer your tokens between wallets</p></a>
         </div>
 
-        <div class="service-card greyed-out" >
-          <h3>Pay Bills</h3>
-          <p>Allow payments for utilities, loans, credit cards, insurance, government fees, town council, school fees, memberships and fines.</p>
+        <div class="service-card"><a href="/data-visual" style="text-decoration: none;">
+          <h3>Transaction Report</h3>
+          <p>View your financial report regarding your incoming and outgoing transaction</p></a>
         </div>
 
-        <div class="service-card">
+        <div class="service-card"><a href="/transfer" style="text-decoration: none;">
           <h3>Transfer Fund</h3>
-          <p>Allow transfer of money between your depositories or to other bank accounts</p>
+          <p>Allow transfer of money between your depositories or to other bank accounts</p></a>
         </div>
-
-        <div class="service-card greyed-out">
-          <h3>Savings or Loan Details</h3>
-          <p>This is the greyed out option ah to show the option not avail</p>
-        </div>
-
-        <a href="EditMembers.html" style="text-decoration: none; color: inherit;">
-          <div class="service-card">
-            <h3>Update Family Particulars</h3>
-            <p>Enables you to add or remove members and change contact details and mailing address</p>
-          </div>
-        </a>
         
+        <div class="service-card">
+          <h3>Savings or Loan Details</h3>
+          <p>Check or Modify your loan details</p>
+        </div>
+
+        <div class="service-card"><a href="/EditMembers" style="text-decoration: none;">
+          <h3>Shared account</h3>
+          <p>Enables you to add member to a shared account.</p></a>
+        </div>
       </div>
     </div>
   </div>
 </div>
 <div id="voice-assistant">
-  <div class="voice-assistant-content">
-      <div id="tests">
-          <div id="waveformContainer">
-              <canvas id="waveform"></canvas>
-          </div>
-          <div id="microphoneContainer">
-              <img src="../images/microphone.png" alt="Voice Assistant" class="voice-image">
-          </div>
-      </div>
-      <div class="voice-assistant-header">
-          <h3>Voice Assistant</h3>
-          <div class="toggle-container">
-              <label class="switch">
-                  <input type="checkbox" id="voice-toggle">
-                  <span class="slider"></span>
-              </label>
-          </div>
-      </div>
+  <div id = "voice-top">
+    <h1>Voice Assistant</h1>
+    <img src="../images/microphone.png">
   </div>
+  <button id = "voice-button">start Listening</button>
 </div>
 
 
 
+
 <script src = "../js/b.js" defer></script>
-<script src = "../js/Chatbot.js" defer></script>
+<script src = "../js/more-options.js" defer></script>
 </body>
 </html>
