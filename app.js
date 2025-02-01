@@ -1913,6 +1913,43 @@ app.post("/verify-otp", async (req, res) => {
  }
 });
 
+const readline = require('readline');
+
+const currency_API_KEY = 'adb301bb5f5f2bcedd8b718a'; 
+const currency_BASE_URL = 'https://v6.exchangerate-api.com/v6';
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+app.get('/exchange', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/exchange.html'))
+})
+
+// API Route to fetch exchange rates
+app.get('/convert', async (req, res) => {
+    const { from, to, amount } = req.query;
+
+    if (!from || !to || isNaN(amount) || amount <= 0) {
+        return res.status(400).json({ error: 'Invalid input' });
+    }
+
+    try {
+        const response = await axios.get(`${currency_BASE_URL}/${currency_API_KEY}/latest/${from.toUpperCase()}`);
+        const rates = response.data.conversion_rates;
+
+        if (!rates[to.toUpperCase()]) {
+            return res.status(400).json({ error: 'Currency not supported' });
+        }
+
+        const convertedAmount = amount * rates[to.toUpperCase()];
+        res.json({ rate: rates[to.toUpperCase()], convertedAmount });
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching exchange rates' });
+    }
+});
+
 // Start the server
 app.listen(PORT,'0.0.0.0', () => {
   console.log(`Server is running on http://localhost:${PORT}`);
