@@ -1,5 +1,5 @@
 const { findUserByNric, updateUserTokenAndPassword, checkNric,loginUser, deductBalanceFromModel,
-     storeWebTokenInDatabase, getWebTokenFromDatabase,removeWebTokenFromDatabase, findUserByNameOrPhoneNumber } = require("../models/userModel");
+     storeWebTokenInDatabase, getWebTokenFromDatabase,removeWebTokenFromDatabase, findUserByNameOrPhoneNumber,getPinCode,updateLock,updateUnlock } = require("../models/userModel");
 
 async function registerUser(req, res) {
     const { nric, token, PasswordHash } = req.body;
@@ -193,4 +193,59 @@ async function findUserByNameOrPhone(req, res) {
     }
 }
 
-module.exports = { registerUser , nricCheck, login, handleDeductBalance, getId, findUserByNameOrPhone };
+async function pincodeSuccess(req, res) {
+    const { pincode } = req.body;
+
+    if (!pincode) {
+        return res.status(400).json({ error: "NRIC and pincode are required." });
+    }
+
+    try {
+        const user = await getPinCode(pincode);
+        if (user) {
+            res.status(200).json({ message: "Pincode successful", user });
+        } else {
+            res.status(401).json({ message: "Invalid pincode" });
+        }
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+}
+
+async function ATMCardLock(req, res) {
+    const { pincode } = req.body;
+
+    if (!pincode) {
+        return res.status(400).json({ error: "pincode is required" });
+    }
+
+    try {
+        const affectedRows = await updateLock(pincode);
+
+        return res.status(200).json({ message: "ATM Card locked" });
+
+    } catch (error) {
+        console.error('Error checking pincode:', error);
+        return res.status(500).json({ error: "An error occurred while checking pincode" });
+    }
+}
+
+async function ATMCardUnlock(req, res) {
+    const { pincode } = req.body;
+
+    if (!pincode) {
+        return res.status(400).json({ error: "pincode is required" });
+    }
+
+    try {
+        const affectedRows = await updateUnlock(pincode);
+
+        return res.status(200).json({ message: "ATM Card unlocked" });
+
+    } catch (error) {
+        console.error('Error checking pincode:', error);
+        return res.status(500).json({ error: "An error occurred while checking pincode" });
+    }
+}
+
+module.exports = { registerUser , nricCheck, login, handleDeductBalance, getId, findUserByNameOrPhone,pincodeSuccess,ATMCardLock,ATMCardUnlock };

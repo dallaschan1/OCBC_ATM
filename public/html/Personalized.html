@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personalized Budget Page</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            color: #333;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-top: 20px;
+        }
+        .btn {
+            display: block;
+            width: 80%;
+            max-width: 600px;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        #result {
+            margin-top: 30px;
+            font-family: Arial, sans-serif;
+            width: 80%;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+            color: whitesmoke;
+        }
+        #budgetAnalysis h2 {
+            color: whitesmoke;
+            margin-top:0px;
+            max-width: 1000px;
+            margin-left: 0px;
+            margin-right: auto;
+        }
+        #budgetAnalysis p {
+            margin-top: 0px;
+            margin-bottom:0px;
+            color:whitesmoke
+        }
+        #budgetAnalysis h1 {
+            margin: 10px 0;
+        }
+        #budgetAnalysis .container{
+            background-color: #323232;
+            border-radius: 15px;
+            padding: 30px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.7);
+        }
+        #budgetAnalysis canvas{
+            max-width:400px;
+            max-height: 400px;
+            margin-left:auto;
+            margin-right:auto;
+        }
+        #budgetAnalysis #dataDisplay{
+            height: 100px;
+        }
+        select {
+            width: 80%;
+            max-width: 600px;
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 20px;
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        #generateBudget {
+            margin-top:30px;
+        }
+
+        /* Centering the Lottie animation */
+        #loadingAnimation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent background */
+            z-index: 9999; /* Make sure it's above other elements */
+        }
+
+        /* Optionally, hide the loading animation once the analysis is done */
+        #loadingAnimation.hidden {
+            display: none;
+        }
+
+        #budgetPieChart + div ul li span {
+            color: white !important; /* Override all CSS conflicts */
+        }
+        .visual-title{
+            margin-left: auto;
+            margin-right: auto;
+            margin-top:40px;
+            display: block;
+            text-align: center;
+            margin-bottom: 0px;
+        }
+    </style>
+
+    <!-- Include Lottie player script -->
+    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+</head>
+<body>
+    <button onclick="window.history.back()" style="
+        position: absolute; 
+        top: 20px; 
+        left: 20px; 
+        background-color: #3498db; 
+        color: white; 
+        border: none; 
+        padding: 10px 15px; 
+        font-size: 16px; 
+        border-radius: 5px; 
+        cursor: pointer;
+        transition: background-color 0.3s;">
+        &larr; Back
+    </button>
+    <h1>Personalized Budget Page</h1>
+
+    <!-- Dropdown for selecting a single user goal -->
+    <label for="userGoals" style="display: block; text-align: center; font-size: 18px; margin-top: 20px;">Select Your Financial Goal:</label>
+    <select id="userGoals">
+        <option value="" disabled selected>Select a Goal</option>
+        <option value="emergencyFund">Save for Emergency Fund</option>
+        <option value="payOffDebt">Pay off Debt</option>
+        <option value="buyAHouse">Buy a House</option>
+        <option value="saveForRetirement">Save for Retirement</option>
+        <option value="vacationFund">Save for Vacation</option>
+        <option value="educationFund">Save for Education</option>
+        <option value="startInvesting">Start Investing</option>
+        <option value="buildCredit">Build Credit Score</option>
+        <option value="startBusiness">Start a Business</option>
+        <option value="charitableDonations">Make Charitable Donations</option>
+    </select>
+
+    <!-- Button for triggering budget analysis -->
+    <button id="generateBudget" class="btn">Generate Budget Analysis</button>
+
+    <div id="result">
+        <p id="budgetAnalysis" style="white-space: pre-wrap;"></p>
+    </div>
+
+    <!-- Lottie Animation container -->
+    <div id="loadingAnimation" class="hidden">
+        <dotlottie-player src="https://lottie.host/77c0f104-1ac3-4a7f-89f4-3a1a41247dbf/HuFLfV36MG.lottie" 
+            background="transparent" speed="1" style="width: 300px; height: 300px" loop autoplay>
+        </dotlottie-player>
+    </div>
+
+    <!-- Button to send budget analysis to phone -->
+    <button id="sendToPhone" class="btn" style="margin-top: 20px;">Send to Phone</button>
+
+    <script>
+        function getUserGoal() {
+            const userGoals = document.getElementById('userGoals').value;
+            console.log('Selected User Goal:', userGoals); // This will log the selected goal when this function is called
+            return userGoals;
+        }
+
+        function renderPieChart(data) {
+            const ctx = document.getElementById('budgetPieChart').getContext('2d');
+            const labels = Object.keys(data);
+            const values = Object.values(data);
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            '#FF6384',
+                            '#36A2EB',
+                            '#FFCE56',
+                            '#4BC0C0',
+                            '#9966FF',
+                            '#FF9F40'
+                        ],
+                        hoverBackgroundColor: [
+                            '#FF6384',
+                            '#36A2EB',
+                            '#FFCE56',
+                            '#4BC0C0',
+                            '#9966FF',
+                            '#FF9F40'
+                        ]
+                    }]
+                },
+                options: {
+                plugins: {
+                    legend: {
+                    labels: {
+                        color: 'white'  // Change this to the desired text color
+                    }
+                    }
+                }
+                }
+            });
+        }
+        let recommendedBudget = null;
+
+        document.getElementById('generateBudget').addEventListener('click', () => {
+            const userID = localStorage.getItem('UserId'); // Replace with actual UserID retrieval logic
+            const resultElement = document.getElementById('budgetAnalysis');
+            const userGoals = getUserGoal(); 
+            if (!userID) {
+                resultElement.textContent = 'User ID not found. Please log in to proceed.';
+                return;
+            }
+
+            // Show Lottie animation and center it
+            document.getElementById('loadingAnimation').classList.remove('hidden');
+
+            // Fetch transaction data and send to backend
+            fetch(`/get-transaction-data?userId=${userID}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch transaction data');
+                    return response.json();
+                })
+                .then(userData => {
+                    return fetch('http://localhost:3001/analyze-budget', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userData, userGoals })
+                    });
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Error analyzing budget');
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide the loading animation once analysis is done
+                    document.getElementById('loadingAnimation').classList.add('hidden');
+                    
+                    if (data.budgetAnalysis) {
+                        resultElement.innerHTML = data.budgetAnalysis; // Render HTML result
+                    } else {
+                        resultElement.textContent = 'No analysis available.';
+                    }
+
+                    if (data.recommendedBudget) {
+                        recommendedBudget = data.recommendedBudget;
+                        // Filter out items with '**' from recommendedBudget
+                        const filteredBudget = Object.fromEntries(
+                            Object.entries(data.recommendedBudget)
+                                .filter(([key, _]) => key.startsWith('* ') && !key.startsWith('* **'))
+                        );
+
+                        // Remove the '*' prefix from the keys
+                        const cleanedBudget = Object.fromEntries(
+                            Object.entries(filteredBudget).map(([key, value]) => [key.replace('* ', ''), value])
+                        );
+
+                        // Render the pie chart
+                        renderPieChart(cleanedBudget);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    resultElement.textContent = 'An error occurred while processing your request. Please try again later.';
+                    document.getElementById('loadingAnimation').classList.add('hidden');
+                });
+        });
+        document.getElementById('sendToPhone').addEventListener('click', () => {
+            const phoneNumber = prompt("Enter your phone number (with country code):");
+            const resultElement = document.getElementById('budgetAnalysis').textContent;
+
+            if (!phoneNumber || phoneNumber.trim() === '') {
+                alert("Please enter a valid phone number.");
+                return;
+            }
+
+            if (!resultElement || resultElement.trim() === '') {
+                alert("Budget analysis is empty. Please generate the analysis first.");
+                return;
+            }
+
+            if (recommendedBudget) {
+                // Filter and clean the budget
+                const filteredBudget = Object.fromEntries(
+                    Object.entries(recommendedBudget)
+                        .filter(([key, _]) => !key.includes('Rent') && !key.includes('**Goals to Reach**'))
+                );
+
+                // Remove the '*' prefix from the keys
+                const cleanedBudget = Object.fromEntries(
+                    Object.entries(filteredBudget).map(([key, value]) => [key.replace('* ', ''), value])
+                );
+
+                // Format the budget for SMS as a string
+                let budgetString = "\nOCBC: Here's your Recommended Budget Generated by AI\n";
+                for (const [category, amount] of Object.entries(cleanedBudget)) {
+                    budgetString += `${category}: $${amount}\n`;
+                }
+                console.log(budgetString);
+                // Send the formatted budget string along with phone number to the backend to send via SMS
+                fetch('http://localhost:3001/send-sms', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phoneNumber: phoneNumber,
+                        budgetAnalysis: budgetString  // Send the formatted budget string
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to send SMS.');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        alert('Budget analysis sent successfully!');
+                    } else {
+                        alert('Failed to send SMS. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while sending the SMS.');
+                });
+            } else {
+                alert("No recommended budget available to send.");
+            }
+        });
+    </script>
+
+</body>
+</html>

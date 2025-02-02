@@ -43,11 +43,57 @@ function cancelInput() {
 // Function to handle Enter button click
 function enterPin() {
     if (enteredPin.length === 6) {
-        alert("PIN Entered: " + enteredPin); // Replace this with actual validation
-        clearInput();
+        // Send the entered pin to the backend
+        fetch('/pincode-success', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ pincode: enteredPin })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.user.pincode === enteredPin) {
+                if (data.user.lock === 0) {
+                    // If the lock status is 0 (unlocked), redirect to /home
+                    window.location.href = "/home";
+                } else {
+                    // If the lock status is 1 (locked), show a toast message
+                    showToast("Card has been locked. Unlock card on mobile app to proceed.");
+                }
+            } else {
+                // Show an error message if PIN doesn't match
+                alert(data.message || 'Invalid PIN.');
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
+        });
     } else {
         alert("Please enter a 6-digit PIN.");
     }
+}
+
+// Function to show toast notification
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.position = 'fixed';
+    toast.style.bottom = '20px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.background = 'red';
+    toast.style.color = 'white';
+    toast.style.padding = '10px 20px';
+    toast.style.borderRadius = '5px';
+    toast.style.boxShadow = '0px 0px 10px rgba(0,0,0,0.2)';
+    toast.style.zIndex = '1000';
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
 }
 
 // Event listener for keyboard input

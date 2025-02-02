@@ -90,6 +90,7 @@ If the user seems unsure or needs assistance, provide gentle guidance. Always co
 - Remember the customers are Singaporeans in a busy area, so there might be outside chatter, and the speech-to-text might not properly catch the words they are saying. Try to think using a Singaporean accent.
 
 - **REMEMBER ALWAYS CONFIRM USER INTENT AND NEVER SKIP TO THE COMMAND WITHOUT CONFIRMATION.**
+FINALLY: THE USER CAN ALSO SPEAK TO YOU IN CHINESE. KEEP THE CONTEXT APPROPRIATELY.
 `,
   generationConfig: generationConfig,
   safetySettings: safetySettings,

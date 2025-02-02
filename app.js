@@ -28,6 +28,43 @@ const dbConfig = require("./dbconfig.js");
 const Password = require('./controllers/PasswordController');
 const Withdraw = require('./controllers/withdrawalController');
 const dbconfig = require('./dbconfig.js');
+const bcrypt = require('bcrypt')
+const twilio = require('twilio');
+
+
+// Database Configuration
+const config = {
+    user: "fsdp", // Replace with your SQL Server username
+    password: "8gL!zR2@hQ3p", // Replace with your password
+    server: "localhost",
+    database: "fsdp_assignment",
+    trustServerCertificate: true,
+    options: {
+        port: 1433,
+        connectionTimeout: 60000, // Connection timeout in milliseconds
+    },
+};
+
+
+sql.connect(dbConfig)
+    .then((pool) => {
+        db = pool;
+        console.log("Connected to the database.");
+    })
+    .catch((error) => console.error("Database connection failed:", error));
+
+// Create Connection Pool
+const poolPromise = new sql.ConnectionPool(config)
+    .connect()
+    .then(pool => {
+        
+        return pool;
+    })
+    .catch(err => {
+       
+    });
+
+module.exports = { sql, poolPromise };
 const cron = require('node-cron');
 const moment = require('moment');
 

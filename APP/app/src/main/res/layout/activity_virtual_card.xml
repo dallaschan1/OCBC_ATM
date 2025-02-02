@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:background="@color/white"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- Title TextView with improved styling -->
+    <TextView
+        android:id="@+id/titleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ATM Card"
+        android:textSize="28sp"
+        android:textColor="@color/black"
+        android:layout_marginBottom="30dp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium" />
+
+    <!-- CardView for virtual card with gradient background and shadow -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/virtualCard"
+        android:layout_width="300dp"
+        android:layout_height="180dp"
+        android:layout_marginBottom="30dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        android:layout_gravity="center"
+        android:padding="16dp"> <!-- Gradient background -->
+
+        <!-- Parent Layout for Card Content -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- Bank Name -->
+            <TextView
+                android:id="@+id/bankName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="12dp"
+                android:fontFamily="sans-serif"
+                android:text="OCBC Bank"
+                android:textColor="#FF0000"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+            <!-- Card Number -->
+            <TextView
+                android:id="@+id/cardNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_below="@id/bankName"
+                android:text="**** **** **** 1234"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"
+                android:textColor="@android:color/darker_gray"
+                android:letterSpacing="0.1"
+                android:layout_marginTop="40dp" />
+
+            <!-- Expiry Date -->
+            <TextView
+                android:id="@+id/cardExpiry"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="12/28"
+                android:textSize="14sp"
+                android:textColor="@android:color/darker_gray"
+                android:layout_marginTop="10dp"
+                android:layout_below="@id/cardNumber"
+                android:layout_centerHorizontal="true" />
+
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+
+
+    <!-- Lock Button with better styling -->
+    <Button
+        android:id="@+id/lockButton"
+        android:layout_width="250dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="20dp"
+        android:text="Lock ATM Card"
+        android:textSize="16sp"
+        android:backgroundTint="@color/black"
+        android:textColor="@android:color/white"
+        android:layout_gravity="center"
+        android:layout_marginBottom="15dp"
+        android:elevation="6dp" />
+
+    <!-- Unlock Button with improved styling -->
+    <Button
+        android:id="@+id/unlockButton"
+        android:layout_width="250dp"
+        android:layout_height="50dp"
+        android:text="Unlock ATM Card"
+        android:textSize="16sp"
+        android:backgroundTint="@color/black"
+        android:textColor="@android:color/white"
+        android:layout_gravity="center"
+        android:elevation="6dp" />
+
+</LinearLayout>

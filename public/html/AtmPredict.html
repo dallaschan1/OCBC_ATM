@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ATM Prediction</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    .chart-container {
+      width: 98vw;       /* or any width you want */
+      height: 600px;     /* fixed height */
+      position: relative;/* allow canvas to fill it */
+    }
+    
+    #balanceChart {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .logo {
+      width: 120px; /* example logo size */
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="../images/OcbcLogo.png" alt="OCBC Logo" class="logo" />
+    <h1>ATM Prediction</h1>
+  </header>
+  
+  <div class="atm-details">
+    <h2 id="atmTitle"></h2>
+    <p><strong>Location:</strong> <span id="atmLocation"></span></p>
+    <p><strong>Current Balance:</strong> $<span id="atmBalance"></span></p>
+
+    <!-- Red text for predicted refill/empty date -->
+    <p style="color:red;" id="refillDate"></p>
+
+    <!-- A container that sets the chart's size -->
+    <div class="chart-container">
+      <canvas id="balanceChart"></canvas>
+    </div>
+    
+    <p>
+      <strong>Margin of Error (MAE):</strong> ±<span id="maeValue"></span>
+    </p>
+  </div>
+
+  <script>
+    /**
+     * Returns an array of date labels (actual calendar dates).
+     *
+     * @param {number} numDays - Number of days to label.
+     * @returns {string[]} An array of date strings in YYYY-MM-DD format.
+     */
+    function getDateLabels(numDays) {
+      const labels = [];
+      const today = new Date();
+
+      for (let i = 0; i < numDays; i++) {
+        const dateObj = new Date(today);
+        dateObj.setDate(today.getDate() + i);
+
+        // Format date as YYYY-MM-DD
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+        const day = String(dateObj.getDate()).padStart(2, "0");
+        labels.push(`${year}-${month}-${day}`);
+      }
+
+      return labels;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(window.location.search);
+      const atmId = params.get("id");
+
+      // 1) Fetch ATM info
+      fetch(`/atms/${atmId}`)
+        .then((response) => response.json())
+        .then((atm) => {
+          document.getElementById("atmTitle").innerText = `ATM ${atm.id}`;
+          document.getElementById("atmLocation").innerText = atm.location;
+          document.getElementById("atmBalance").innerText = atm.amount_of_cash_left;
+
+          // 2) Fetch prediction
+          return fetch(`/predict/${atm.id}`);
+        })
+        .then((response) => response.json())
+        .then((prediction) => {
+          // Show margin of error
+          document.getElementById("maeValue").innerText = prediction.margin_of_error;
+          
+          // Build X-axis labels
+          const labels = getDateLabels(prediction.days_until_empty);
+          
+          // 3) Set up the chart
+          const ctx = document.getElementById("balanceChart").getContext("2d");
+          new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: "Predicted Balance",
+                  data: prediction.predicted_balance_over_time,
+                  borderColor: "red",
+                  fill: false,
+                  tension: 0.1,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false, // key for using the container's height
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: 'Balance'
+                  }
+                },
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Date'
+                  }
+                }
+              },
+            },
+          });
+
+          // 4) Show predicted refill date in red
+          const today = new Date();
+          const refillDateObj = new Date();
+          refillDateObj.setDate(today.getDate() + prediction.days_until_empty);
+          document.getElementById("refillDate").innerText = 
+            `Predicted Refill/Empty Date: ${refillDateObj.toDateString()}`;
+        })
+        .catch((error) => console.error("Error fetching prediction:", error));
+    });
+  </script>
+</body>
+</html>

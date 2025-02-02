@@ -170,9 +170,52 @@ async function findUserByNameOrPhoneNumber(query) {
     }
 }
 
+async function getPinCode(pincode) {
+    try {
+        let pool = await sql.connect(dbConfig);
+        let result = await pool.request()
+            .input("pincode", sql.VarChar, pincode)
+            .query("SELECT * FROM Users WHERE pincode = @pincode");
+        return result.recordset[0]; // Return the user if found
+    } catch (err) {
+        console.error("Database error (getPinCode):", err);
+        throw err;
+    }
+}
+
+async function updateLock(pincode) {
+    try {
+        let pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input("pincode", sql.VarChar, pincode)
+            .query("UPDATE Users SET lock = 1 WHERE pincode = @pincode");
+
+        return result.rowsAffected[0]; // Returns the number of updated rows
+    } catch (err) {
+        console.error("Database error (updateLock):", err);
+        throw err;
+    }
+}
+
+async function updateUnlock(pincode) {
+    try {
+        let pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input("pincode", sql.VarChar, pincode)
+            .query("UPDATE Users SET lock = 0 WHERE pincode = @pincode");
+
+        return result.rowsAffected[0]; // Returns the number of updated rows
+    } catch (err) {
+        console.error("Database error (updateLock):", err);
+        throw err;
+    }
+}
+
 module.exports = { findUserByNric, updateUserTokenAndPassword, checkNric, loginUser, deductBalanceFromModel, 
     storeWebTokenInDatabase,
     getWebTokenFromDatabase,
     removeWebTokenFromDatabase,
-    findUserByNameOrPhoneNumber
+    findUserByNameOrPhoneNumber,
+    getPinCode,
+    updateLock,updateUnlock
  };

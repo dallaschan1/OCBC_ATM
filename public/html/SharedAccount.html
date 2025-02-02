@@ -59,31 +59,102 @@
         border-color: black;
       }
 
-      .single-account {
+      .shared-account {
         position: absolute;
-        top: 65px;
+        top: 30px;
         right: 108px;
         width: 100px; /* Adjust size as needed */
         height: auto;
+      }
+      
+      .location-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+
+      /* Modal Content */
+      .location-modal-content {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        animation: slideDown 0.3s ease-out;
+      }
+
+      /* Modal Header */
+      .location-modal-header {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #ff0000;
+      }
+
+      /* Modal Body Text */
+      .location-modal-body {
+        font-size: 1.2rem;
+        color: #000000;
+        margin-bottom: 20px;
+        line-height: 1.6;
+      }
+
+      /* Modal Button */
+      .location-modal-button {
+        padding: 10px 60px;
+        font-size: 1rem;
+        font-weight: bold;
+        color: #fff;
+        background-color: #ff0000;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      /* Button Hover Effect */
+      .location-modal-button:hover {
+        background-color: #ff7272;
+      }
+
+      /* Slide Down Animation */
+      @keyframes slideDown {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
       }
     </style>
   </head>
   <body>
     <img src="../images/OcbcLogo.png" alt="Logo" class="logo" />
-    <a href="HomePage.html"> <img src="../images/guy.png" alt="Single-account" class="single-account" /></a>
+    <a href="/home"> <img src="../images/family.png" alt="Shared-account" class="shared-account" /></a>
   
     <div id="Left">
       <div id="Alert">
         <h3>Shoulder Surfing Warning!</h3>
       </div>
       <h1 style="color: #000000; margin-top: 60px">
-        Hello! Welcome to your shared account<br />What would you like to do today?
+        Hello!<br />What would you like to do today?
       </h1>
       <div id="Cash-Container">
         <h1>Get Cash</h1>
         <div id="Top">
+          <div class="Cash-Holder"><h3>$20</h3></div>
           <div class="Cash-Holder"><h3>$50</h3></div>
-          <div class="Cash-Holder"><h3>$80</h3></div>
         </div>
         <div id="Middle">
           <div class="Cash-Holder"><h3>$100</h3></div>
@@ -130,39 +201,20 @@
               alt="Account Balance"
               class="service-image"
             />
-            <h3>Account Balance</h3> 
+            <h3>Account Balance</h3>
           </div>
         </div>
-       <a href="more-options-shared.html"> <h4 class="more-services">More Services ></h4></a>
+        <a href="/more-options-shared"> <h4 class="more-services">More Services ></h4></a>
       </div>
 
       <!-- Voice Assistant Section -->
       <div id="voice-assistant">
-        <div class="voice-assistant-content">
-          <div id="test">
-            <div id="waveformContainer">
-              <canvas id="waveform"></canvas>
-            </div>
-            <div id="microphoneContainer">
-              <img
-                src="../images/microphone.png"
-                alt="Voice Assistant"
-                class="voice-image"
-              />
-            </div>
-          </div>
-          <div class="voice-assistant-header">
-            <h3>Voice Assistant</h3>
-            <div class="toggle-container">
-              <label class="switch">
-                <input type="checkbox" id="voice-toggle" />
-                <span class="slider"></span>
-              </label>
-            </div>
-          </div>
+        <div id = "voice-top">
+          <h1>Voice Assistant</h1>
+          <img src="../images/microphone.png">
         </div>
+        <button id = "voice-button">start Listening</button>
       </div>
-    </div>
 
     <!-- Warning message initially hidden -->
     <div id="shoulder-surfing-warning" style="display: none">
@@ -213,9 +265,19 @@
         </div>
       </div>
     </div>
+
+    <div id="insufficientFundsModal" class="location-modal" style="display: none;">
+      <div class="location-modal-content">
+        <h2 class="location-modal-header">Notice</h2>
+        <p class="location-modal-body">The ATM has insufficient funds. Please visit another ATM or contact support.</p>
+        <button id="modalOkButton" class="location-modal-button">OK</button>
+      </div>
+    </div>
+    
     <script src="../js/script.js" defer></script>
     <script src="../js/HomePage.js"></script>
-
+    <script src="../js/atm.js"></script>
+    <script src="../js/balance.js"></script>
     <script src="../js/session.js"></script>
   </body>
 </html>

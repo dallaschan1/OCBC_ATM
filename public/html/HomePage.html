@@ -61,7 +61,7 @@
 
       .shared-account {
         position: absolute;
-        top: 74px;
+        top: 30px;
         right: 108px;
         width: 100px; /* Adjust size as needed */
         height: auto;
@@ -126,6 +126,81 @@
         background-color: #ff7272;
       }
 
+
+      /* Shared Account Modal */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+
+      .modal-content {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        width: 90%;
+        height: 200px;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        animation: slideDown 0.3s ease-out;
+        position: relative; /* Needed for close button */
+      }
+
+      .button-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 10px; /* Space between buttons */
+        margin-top: 20px;
+      }
+
+      /* Close Button (Top Right) */
+      .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 20px;
+        cursor: pointer;
+        background: none;
+        border: none;
+        color: #333;
+      }
+
+      /* Styled Buttons */
+      .modal-button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+        background-color: #224365; /* Unified Color */
+        color: white;
+      }
+
+      /* Hover Effect */
+      .modal-button:hover {
+        background-color: #0056b3;
+      }
+
+      /* Click Effect */
+      .modal-button:active {
+        background-color: #004494;
+        transform: scale(0.98); /* Adds slight press effect */
+      }
+
       /* Slide Down Animation */
       @keyframes slideDown {
         from {
@@ -137,12 +212,44 @@
           opacity: 1;
         }
       }
+
+      .language-toggle {
+        position: absolute;
+        top: 50px;
+        right: 220px;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        
+      }
+      .language-toggle a{
+        text-decoration: none;
+        color: black;
+      }
     </style>
   </head>
   <body>
     <img src="../images/OcbcLogo.png" alt="Logo" class="logo" />
-    <a href="SharedAccount.html"> <img src="../images/family.png" alt="Shared-account" class="shared-account" /></a>
-  
+    
+    <!-- Shared Account Image -->
+    <a href="#" onclick="openSharedAccountModal(); return false;">
+      <img src="../images/guy.png" alt="Shared-account" class="shared-account" />
+    </a>
+    <div class="language-toggle">
+      <a href="#" onclick="toggleLanguage(); return false;" id="language-text">English</a>
+    </div>
+    <!-- Modal for Shared Account -->
+    <div id="sharedAccountModal" class="modal">
+      <div class="modal-content">
+        <button class="close-btn" onclick="closeSharedAccountModal()">❌</button>
+        <h2>Create a Shared Account</h2>
+        <div class="button-container">
+          <button class="modal-button" onclick="useCurrentAccount()">Use This Account</button>
+          <button class="modal-button" onclick="useAnotherAccount()">Use Another Account</button>
+        </div>
+      </div>
+    </div>
+
     <div id="Left">
       <div id="Alert">
         <h3>Shoulder Surfing Warning!</h3>
@@ -266,14 +373,41 @@
       </div>
     </div>
 
-    <div id="insufficientFundsModal" class="location-modal" style="display: none;">
+    <div id="statusModal" class="location-modal" style="display: none;">
       <div class="location-modal-content">
         <h2 class="location-modal-header">Notice</h2>
-        <p class="location-modal-body">The ATM has insufficient funds. Please visit another ATM or contact support.</p>
+        <p id="statusModalMessage" class="location-modal-body"></p>
         <button id="modalOkButton" class="location-modal-button">OK</button>
       </div>
     </div>
     
+    <script>
+    // Function to Open Modal
+     function openSharedAccountModal() {
+      document.getElementById("sharedAccountModal").style.display = "flex";
+     }
+     // Function to Close Modal
+     function closeSharedAccountModal() {
+      document.getElementById("sharedAccountModal").style.display = "none";
+    }
+    
+    // Function to Use Current Account
+     function useCurrentAccount() {
+      window.location.href = "/sharedAcc";
+    }
+    
+    // Function to Use Another Account
+     function useAnotherAccount() {
+      let newAccount = prompt("Enter the other account number:");
+      if (newAccount) {
+        window.location.href = `/sharedAcc?account=${newAccount}`;
+      }
+    }
+    
+    // Attach modal open function to image click
+     document.querySelector(".shared-account").addEventListener("click", openSharedAccountModal);
+    </script> 
+
     <script src="../js/script.js" defer></script>
     <script src="../js/HomePage.js"></script>
     <script src="../js/atm.js"></script>

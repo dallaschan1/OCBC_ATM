@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATM Maintenance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .maintenance-btn {
+            display: inline-block;
+            padding: 12px 20px;
+            margin: 10px 0;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        .maintenance-btn:hover {
+            background-color: #45a049;
+        }
+        .maintenance-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .status-message {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 16px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ATM Maintenance Control</h1>
+
+        <div>
+            <button class="maintenance-btn" id="paper-jam-btn" onclick="triggerMaintenance('Paper Jam')">Paper Jam</button>
+            <button class="maintenance-btn" id="low-cash-btn" onclick="triggerMaintenance('Low Cash')">Low Cash</button>
+            <button class="maintenance-btn" id="out-of-service-btn" onclick="triggerMaintenance('Out of Service')">Out of Service</button>
+            <button class="maintenance-btn" id="sensor-issue-btn" onclick="triggerMaintenance('Sensor Issue')">Sensor Issue</button>
+            <button class="maintenance-btn" id="network_error " onclick="triggerMaintenance('Network Error')">Network Error</button>
+            <button class="maintenance-btn" id="system_overload " onclick="triggerMaintenance('System Overload')">System Overload</button>
+            <button class="maintenance-btn" id="software_crash " onclick="triggerMaintenance('Software Crash')">Software Crash</button>
+        </div>
+
+        <div id="status-message" class="status-message"></div>
+    </div>
+    
+    <script>
+        const atmId = 1; // Replace with the actual ATM ID, can be dynamically set
+
+        function triggerMaintenance(maintenanceType) {
+            // Disable the buttons to prevent multiple clicks
+            disableButtons();
+
+            // Simulate API call to update maintenanceRequired in ATM table
+            fetch(`/update-maintenance`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ATMID: atmId,
+                    MaintenanceRequired: 1
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Record maintenance in atm_maintenance table
+                    recordMaintenance(atmId, maintenanceType);
+                } else {
+                    showErrorMessage('Failed to update maintenance for ATM.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage('Error updating maintenance.');
+            });
+        }
+
+        function recordMaintenance(atmId, maintenanceType) {
+            // Simulate API call to insert a record into the atm_maintenance table
+            fetch(`/insert-into-maintenance`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    atm_id: atmId,
+                    maintenance_type: maintenanceType,
+                    start_date: new Date().toISOString(), // Current time as start date
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccessMessage(`Maintenance type "${maintenanceType}" recorded successfully.`);
+                } else {
+                    showErrorMessage('Failed to record maintenance in the database.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage('Error recording maintenance.');
+            });
+        }
+
+        function showSuccessMessage(message) {
+            document.getElementById('status-message').innerText = message;
+        }
+
+        function showErrorMessage(message) {
+            document.getElementById('status-message').innerText = message;
+            document.getElementById('status-message').style.color = 'red';
+        }
+
+        function disableButtons() {
+            // Disable all buttons
+            document.querySelectorAll('.maintenance-btn').forEach(button => button.disabled = true);
+        }
+    </script>
+</body>
+</html>

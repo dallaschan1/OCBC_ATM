@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATM OTP Verification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white p-6 rounded-2xl shadow-lg w-96 text-center">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">ATM Withdrawal</h2>
+        <p class="text-gray-600 mb-6">Dual OTP Verification</p>
+
+        <input type="text" id="account_number" placeholder="Enter Account Number" 
+            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 mb-4">
+        
+
+        <button onclick="requestOTP()" 
+            class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
+            Request OTP
+        </button>
+
+        <div class="mt-6">
+            <input type="text" id="otp1" placeholder="Enter OTP 1" 
+                class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 mb-4">
+            
+            <input type="text" id="otp2" placeholder="Enter OTP 2" 
+                class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 mb-4">
+            
+            <button onclick="verifyOTP()" 
+                class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition">
+                Verify OTP
+            </button>
+        </div>
+
+        <p id="result" class="mt-4 text-lg font-semibold text-gray-700"></p>
+    </div>
+
+    <script>
+        function requestOTP() {
+            const account_number = document.getElementById("account_number").value;
+            fetch("/request-otp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ account_number })
+            }).then(res => res.json()).then(data => alert(data.message));
+        }
+
+        function verifyOTP() {
+            const account_number = document.getElementById("account_number").value;
+            const otp1 = document.getElementById("otp1").value;
+            const otp2 = document.getElementById("otp2").value;
+
+            fetch("/verify-otp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ account_number, otp1, otp2 })
+            }).then(res => res.json()).then(data => {
+                document.getElementById("result").innerText = data.message;
+
+                if (data.success) { 
+                    window.location.href = "./login-page.html"; 
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>
