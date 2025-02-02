@@ -212,6 +212,20 @@
           opacity: 1;
         }
       }
+
+      .language-toggle {
+        position: absolute;
+        top: 50px;
+        right: 220px;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        
+      }
+      .language-toggle a{
+        text-decoration: none;
+        color: black;
+      }
     </style>
   </head>
   <body>
@@ -221,6 +235,9 @@
     <a href="#" onclick="openSharedAccountModal(); return false;">
       <img src="../images/guy.png" alt="Shared-account" class="shared-account" />
     </a>
+    <div class="language-toggle">
+      <a href="#" onclick="toggleLanguage(); return false;" id="language-text">English</a>
+    </div>
     <!-- Modal for Shared Account -->
     <div id="sharedAccountModal" class="modal">
       <div class="modal-content">

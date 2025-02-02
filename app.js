@@ -110,7 +110,7 @@ app.get('/Withdrawal_Auth', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/html/Withdrawal_Authentication.html'));
 });
 
-app.post('/send-message', sendFcmMessage);
+// app.post('/send-message', sendFcmMessage);
 
 app.post('/register', registerUser);
 
@@ -1831,6 +1831,118 @@ app.post('/predict-wait-time', async (req, res) => {
     }
 });
 
+// AI MODEL
+async function getATMData(atmId) {
+    try {
+        await sql.connect(dbConfig);
+        const result = await sql.query`SELECT * FROM ATM_ML WHERE id = ${atmId}`;
+        return result.recordset[0]; // Return first result
+    } catch (err) {
+        throw new Error("Database query failed: " + err.message);
+    }
+}
+
+async function callMLModel(atmData) {
+    try {
+        // Convert last_refilled_date to days_since_last_refill
+        const daysSinceLastRefill = Math.floor((Date.now() - new Date(atmData.last_refilled_date)) / (1000 * 60 * 60 * 24));
+
+        const response = await axios.post('http://127.0.0.1:5000/predict', {
+            amount_of_cash_left: atmData.amount_of_cash_left,
+            max_cash_capacity: atmData.max_cash_capacity,
+            
+            avg_daily_withdrawal: atmData.avg_daily_withdrawal,
+            transaction_count: atmData.transaction_count,
+            last_week_withdrawal: atmData.last_week_withdrawal,
+            emergency_refill_count: atmData.emergency_refill_count,
+            days_since_last_refill: daysSinceLastRefill,
+            
+            
+            
+        }, { timeout: 10000 }); // ✅ Added timeout to prevent delays
+
+        return response.data;
+    } catch (err) {
+        throw new Error("ML Model API call failed: " + err.message);
+    }
+}
+
+// Function to fetch a specific ATM's data from the database
+async function getATMData(atmId) {
+    try {
+        await sql.connect(dbConfig);
+        const request = new sql.Request();
+        request.input('id', sql.Int, atmId);  // ✅ Secured query parameter
+        const result = await request.query('SELECT * FROM ATM_ML WHERE id = @id');
+
+        return result.recordset.length ? result.recordset[0] : null;
+    } catch (err) {
+        throw new Error("Database query failed: " + err.message);
+    }
+}
+
+// API Route: Get ATM prediction by ID
+app.get('/predict/:id', async (req, res) => {
+    try {
+        const atmId = req.params.id;
+        const atmData = await getATMData(atmId);
+
+        if (!atmData) {
+            return res.status(404).json({ error: "ATM not found" });
+        }
+
+        const mlResponse = await callMLModel(atmData);
+        res.json(mlResponse);
+
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Function to fetch all ATMs from the database
+async function getAllATMs() {
+    try {
+        await sql.connect(dbConfig);
+        const result = await sql.query('SELECT * FROM ATM_ML');
+        return result.recordset;
+    } catch (err) {
+        throw new Error("Database query failed: " + err.message);
+    }
+}
+
+// API Route: Get all ATMs
+app.get('/atmss', async (req, res) => {  // ✅ Kept "atmss" as per your original code
+    try {
+        const atms = await getAllATMs();
+        res.json({ total: atms.length, atms });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// API Route: Get a specific ATM by ID (SQL Injection Fixed)
+app.get('/atms/:id', async (req, res) => {  // ✅ Kept "atmss" as per your original code
+    try {
+        await sql.connect(dbConfig);
+        const request = new sql.Request();
+        request.input('id', sql.Int, req.params.id);
+        const result = await request.query('SELECT * FROM ATM_ML WHERE id = @id');
+
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ error: "ATM not found" });
+        }
+
+        res.json(result.recordset[0]);
+
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Serve HTML pages correctly
+app.get('/atm2', (req, res) => res.sendFile(path.join(__dirname, 'public/html/Atm.html')));
+app.get('/atm-predict', (req, res) => res.sendFile(path.join(__dirname, 'public/html/AtmPredict.html')));
+
 app.get('/Personalized-Budgetting', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/html/Personalized.html'));
 });
@@ -2084,6 +2196,7 @@ app.post("/verify-otp", async (req, res) => {
 });
 
 const readline = require('readline');
+const PricingBase = require('twilio/lib/rest/PricingBase.js');
 
 const currency_API_KEY = 'adb301bb5f5f2bcedd8b718a'; 
 const currency_BASE_URL = 'https://v6.exchangerate-api.com/v6';

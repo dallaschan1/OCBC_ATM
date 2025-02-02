@@ -192,9 +192,8 @@ let transcriptBuffer = ""; // Store the full transcript
 const voiceButton = document.getElementById("voice-button");
 
 voiceButton.addEventListener("click", () => {
-  if (isBotSpeaking) {
-    stopBotSpeaking(); // Stop the bot from speaking
-  }
+  stopBotSpeaking(); // Always stop speech before handling recognition
+
   if (!isRecognitionRunning) {
     startRecognition();
   } else {
@@ -212,13 +211,19 @@ function stopBotSpeaking() {
 }
 
 // Function to start recognition
+// Function to start recognition
 function startRecognition() {
+  if (isBotSpeaking) {
+    stopBotSpeaking(); // Stop any ongoing speech synthesis before starting recognition
+  }
+
   isRecognitionRunning = true;
   transcriptBuffer = ""; // Clear any previous transcript
   updateButtonState();
   recognition.start();
   console.log("Speech recognition started.");
 }
+
 
 // Function to stop recognition
 function stopRecognition(sendTranscript = false) {
@@ -289,27 +294,48 @@ async function processUserInput(input) {
     const aiResponse = data.responseText;
     console.log("Backend response:", aiResponse);
 
-    // Handle specific AI responses
+    // Handle specific AI responses with language toggling
     if (aiResponse.includes("Deposit 1")) {
       console.log("Initiating Deposit...");
-      await speakResponse("Starting the deposit process.");
+      if (isEnglish) {
+        await speakResponse("Starting the deposit process.");
+      } else {
+        await speakResponse("开始存款流程。");
+      }
     } else if (aiResponse.includes("Withdraw 2 and Amount: ")) {
       const amountMatch = aiResponse.match(/Withdraw 2 and Amount: (\d+(\.\d+)?)/);
       if (amountMatch) {
         const amount = amountMatch[1];
         await initiateWithdraw(amount);
       } else {
-        await speakResponse("I'm sorry, I didn't catch the amount. Could you repeat?");
+        if (isEnglish) {
+          await speakResponse("I'm sorry, I didn't catch the amount. Could you repeat?");
+        } else {
+          await speakResponse("对不起，我没有听清金额。你能重复一遍吗？");
+        }
       }
     } else if (aiResponse.includes("Check Account Balance 3")) {
       console.log("Checking Account Balance...");
-      await speakResponse("Here is your account balance.");
+      if (isEnglish) {
+        await speakResponse("Here is your account balance.");
+      } else {
+        await speakResponse("这是您的账户余额。");
+      }
     } else if (aiResponse.includes("Show More Options 4")) {
       console.log("Redirecting to more options page...");
+      if (isEnglish) {
+        await speakResponse("Redirecting to more options page...");
+      } else {
+        await speakResponse("正在跳转到更多选项页面...");
+      }
       window.location.href = '/More-Options';
     } else if (aiResponse.includes("Exit 5")) {
       console.log("User chose to exit.");
-      await speakResponse("Thank you for using our services. Goodbye!");
+      if (isEnglish) {
+        await speakResponse("Thank you for using our services. Goodbye!");
+      } else {
+        await speakResponse("感谢您使用我们的服务。再见！");
+      }
       window.location.href = '/exit';
     } else {
       await speakResponse(aiResponse);
@@ -326,7 +352,12 @@ function speakResponse(response) {
     isBotSpeaking = true;
 
     const utterance = new SpeechSynthesisUtterance(response);
-    utterance.lang = 'en-SG'; // Use Singapore English
+    if (isEnglish){
+      utterance.lang = 'en-SG';
+    }
+    else{
+      utterance.lang = 'zh-CN'
+    } 
     utterance.rate = 1.2;
     utterance.pitch = 1.0;
 
@@ -344,6 +375,7 @@ function speakResponse(response) {
 }
 
 // Handle withdrawal logic
+// Handle withdrawal logic
 async function initiateWithdraw(amount) {
   const userId = localStorage.getItem('UserId');
   if (userId && amount) {
@@ -360,14 +392,28 @@ async function initiateWithdraw(amount) {
 
       console.log('Withdrawal successful');
       location.reload();
-      await speakResponse(`You have successfully withdrawn $${amount}.`);
+      
+      if (isEnglish) {
+        await speakResponse(`You have successfully withdrawn $${amount}.`);
+      } else {
+        await speakResponse(`您已成功取款 $${amount}。`);
+      }
+
     } catch (error) {
       console.error('Withdrawal failed:', error);
-      await speakResponse('Sorry, the withdrawal failed.');
+      if (isEnglish) {
+        await speakResponse('Sorry, the withdrawal failed.');
+      } else {
+        await speakResponse('抱歉，取款失败。');
+      }
     }
   } else {
-    console.error('User not logged in or invalid amount');
-    await speakResponse('User not logged in or invalid amount.');
+    console.error('Invalid amount');
+    if (isEnglish) {
+      await speakResponse('User not logged in or invalid amount.');
+    } else {
+      await speakResponse('用户未登录或金额无效。');
+    }
   }
 }
 
@@ -379,3 +425,19 @@ recognition.addEventListener("error", (event) => {
     recognition.start(); // Restart recognition after an error
   }
 });
+
+
+isEnglish = true;
+function toggleLanguage() {
+  const languageText = document.getElementById('language-text');
+
+  if (isEnglish) {
+    languageText.innerText = "中文";
+    recognition.lang = "zh-CN"; // Set recognition language to Chinese
+    isEnglish = false; // Update flag
+  } else {
+    languageText.innerText = "English";
+    recognition.lang = "en-SG"; // Set recognition language to English (Singapore)
+    isEnglish = true; // Update flag
+  }
+}
