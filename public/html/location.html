@@ -80,8 +80,8 @@
 </head>
 <body>
     <div class="glass-container">
-        <h1>ATM Out of Cash</h1>
-        <p>Sorry, the ATM is out of cash. Please try again later or head to another ATM nearby.</p>
+        <h1 id="status-header">ATM Status</h1>
+        <p>Sorry, the ATM is not operational. Please try again later or head to another ATM nearby.</p>
 
         <h2 style="color: #e63946;">Nearest ATM</h2>
         <select id="atm-locations" onchange="updateSelectedATM()">
@@ -222,6 +222,22 @@
                     'An error occurred while predicting wait time.';
             }
         }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Get the errorMessage from the URL query params
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorMessage = urlParams.get('errorMessage');
+
+            const statusHeader = document.getElementById('status-header');
+
+            if (errorMessage) {
+                if (errorMessage === 'outofcash') {
+                    statusHeader.textContent = "ATM Out of Cash";
+                } else {
+                    statusHeader.textContent = `ATM Error: ${errorMessage}`;
+                }
+            }
+        });
     </script>
 </body>
 </html>

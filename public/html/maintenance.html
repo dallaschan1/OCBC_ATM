@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATM Maintenance Logs</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h2 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #b8b8b8; }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4); /* Black with opacity */
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 40%;
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+        }
+
+        .close, .unresolve {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            margin-left: 10px;
+            border-radius: 5px;
+        }
+
+        .close {
+            background-color: #f44336;
+        }
+
+        .unresolve {
+            background-color: #008CBA;
+        }
+
+        .edit {
+            color:white;
+            padding-left:15px;
+            padding-right:15px;
+            padding-top:5px;
+            padding-bottom:5px;
+            border-radius: 15px;
+            background-color: rgb(100, 100, 250);
+            border:none;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>ATM Maintenance Logs</h2>
+    <p><strong>ATM ID:</strong> <span id="atmIdDisplay"></span></p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Log ID</th>
+                <th>ATM ID</th>
+                <th>Message</th>
+                <th>Date</th>
+                <th>Action</th> <!-- New Action Column -->
+            </tr>
+        </thead>
+        <tbody id="logsTable">
+            <!-- Logs will be inserted here -->
+        </tbody>
+    </table>
+
+    <!-- Modal Structure -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                Editing Maintenance Log: <span id="logIdTitle"></span>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+                Are you sure you want to edit this log?
+            </div>
+            <!-- Modal Footer with Action Buttons -->
+            <div class="modal-footer">
+                <button class="close" id="closeModal">Close</button>
+                <button class="unresolve" id="unresolveLog">Unresolve</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to get URL query parameters
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // Get atmId from URL
+        const atmId = getQueryParam('atmId');
+
+        // Display ATM ID on the page
+        if (atmId) {
+            document.getElementById('atmIdDisplay').textContent = atmId;
+            fetchLogs(atmId);
+        } else {
+            document.body.innerHTML = "<h2>ATM ID not provided in the URL.</h2>";
+        }
+
+        // Function to fetch logs from API
+        async function fetchLogs(atmId) {
+            try {
+                const response = await fetch(`http://localhost:3001/get-all-logs/${atmId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const logsTable = document.getElementById('logsTable');
+                    logsTable.innerHTML = ""; // Clear existing logs
+
+                    data.logs.forEach(log => {
+                        // Format the date and time using Date object
+                        const formattedDateTime = formatDateTime(log.start_date);
+
+                        // Append the log row with an action button
+                        logsTable.innerHTML += `
+                            <tr>
+                                <td>${log.id}</td>
+                                <td>${log.atm_id}</td>
+                                <td>${log.maintenance_type}</td>
+                                <td>${formattedDateTime}</td>
+                                <td><button class="edit" onclick="openModal(${log.id},'${log.maintenance_type}')">Edit</button></td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    document.body.innerHTML = `<h2>No logs found for ATM ID: ${atmId}</h2>`;
+                }
+            } catch (error) {
+                console.error("Error fetching logs:", error);
+                document.body.innerHTML = "<h2>Failed to fetch logs. Please try again later.</h2>";
+            }
+        }
+
+        // Function to format date and time (e.g., "2025-01-31T12:45:30Z" -> "01/31/2025 12:45:30 PM")
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Get month and pad with leading zero if necessary
+            const day = String(date.getDate()).padStart(2, '0'); // Get day and pad with leading zero if necessary
+            const year = date.getFullYear(); // Get full year
+
+            // Extract hours, minutes, seconds, and AM/PM
+            let hours = date.getHours();
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+
+            hours = hours % 12; // Convert hours to 12-hour format
+            hours = hours ? hours : 12; // If hour is 0, set it to 12 for the 12-hour format
+
+            // Format the date as MM/DD/YYYY and time as HH:MM:SS AM/PM
+            return `${month}/${day}/${year} ${hours}:${minutes}:${seconds} ${ampm}`;
+        }
+
+        // Function to open the modal for editing
+        function openModal(logId, maintenanceType) {
+            // Show the modal
+            const modal = document.getElementById("myModal");
+            const logIdTitle = document.getElementById("logIdTitle");
+            logIdTitle.textContent = logId;  // Display Log ID in the modal title
+            modal.style.display = "block";
+
+            // Handle "Close" button
+            document.getElementById("closeModal").onclick = function() {
+                modal.style.display = "none";
+            };
+
+            // Handle "Unresolve" button
+            document.getElementById("unresolveLog").onclick = function() {
+                let maintenance_type = maintenanceType + " (Unresolved)";
+                triggerMaintenance(maintenance_type);
+                window.location.href = `/ATM/${atmId}`;
+                modal.style.display = "none";
+            };
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById("myModal");
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        };
+
+        function triggerMaintenance(maintenance_type) {
+            // Simulate API call to update maintenanceRequired in ATM table
+            fetch(`/update-maintenance`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ATMID: atmId,
+                    MaintenanceRequired: 1
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Record maintenance in atm_maintenance table
+                    recordMaintenance(atmId, maintenance_type);
+                } else {
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function recordMaintenance(atmId, maintenance_type) {
+            // Simulate API call to insert a record into the atm_maintenance table
+            fetch(`/insert-into-maintenance`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    atm_id: atmId,
+                    maintenance_type: maintenance_type,
+                    start_date: new Date().toISOString(), // Current time as start date
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log(`Maintenance type "${maintenance_type}" recorded successfully.`);
+                } else {
+                    console.error('Failed to record maintenance in the database.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+    </script>
+
+</body>
+</html>

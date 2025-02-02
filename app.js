@@ -9,10 +9,11 @@ const Web3 = require('web3').default;
 const QRCode = require('qrcode');
 const cors = require('cors');
 const { sendFcmMessage } = require('./controllers/fcmController')
-const { registerUser, nricCheck, notifySuccess, login, handleDeductBalance, storeWebToken, getWebToken, removeWebToken, getId,findUserByNameOrPhone } = require('./controllers/userController');
+const { registerUser, nricCheck, notifySuccess, login, handleDeductBalance, storeWebToken, getWebToken, removeWebToken, getId,findUserByNameOrPhone,pincodeSuccess,ATMCardLock,ATMCardUnlock } = require('./controllers/userController');
 const chatbot = require("./controllers/chatBotController.js");
 const { adminlogin } = require("./controllers/adminController.js");
-const { fetchATMs,handleATMStatusUpdate, handleUserSuspicionUpdate,getUserSuspicion,getBalance,withdrawATMbalance } = require("./controllers/atmController.js");
+const { fetchATMs,handleATMStatusUpdate, handleUserSuspicionUpdate,getUserSuspicion,getBalance,withdrawATMbalance,handleMaintenanceUpdate, 
+    getATMById,insertintoMaintenance,getATMMaintenance,deleteATMMaintenance,addingLog,getAllLog,getAllComponentsHealth } = require("./controllers/atmController.js");
 const axios = require('axios');
 const {loginUserByFace, updateUserFace} = require("./models/facialModel.js");
 const { PythonShell } = require('python-shell');
@@ -68,6 +69,9 @@ module.exports = { sql, poolPromise };
 
 const genAI = new GoogleGenerativeAI(API_KEY); // Replace with your actual API key
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+const genAI2 = new GoogleGenerativeAI(API_KEY2); // Replace with your actual API key
+const model2 = genAI2.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 // Middleware setup
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -134,6 +138,9 @@ app.get('/check-auth-status', (req, res) => {
 });
 
 app.post("/login", login);
+app.post("/pincode-success", pincodeSuccess);
+app.post("/ATMCardLock", ATMCardLock);
+app.post("/ATMCardUnlock", ATMCardUnlock);
 
 let qrCodeData = null;
 
@@ -261,6 +268,28 @@ app.post('/update-user-suspicion', handleUserSuspicionUpdate);
 app.post('/get-user-suspicion', getUserSuspicion);
 app.post('/get-balance', getBalance);
 app.post('/withdraw-atm-balance', withdrawATMbalance);
+app.post('/update-maintenance', handleMaintenanceUpdate);
+app.get('/get-atm/:ATMID', getATMById);
+
+app.get("/ATM/:ATMID", async (req,res) => {
+    res.sendFile(path.join(__dirname, 'public/html/atm.html'))
+});
+
+app.post('/insert-into-maintenance', insertintoMaintenance);
+app.post('/get-maintenance', getATMMaintenance);
+app.delete('/delete-maintenance', deleteATMMaintenance);
+app.get('/get-all-logs/:atm_id', getAllLog);
+app.post('/add-log', addingLog);
+
+app.get("/test", async (req,res) => {
+    res.sendFile(path.join(__dirname, 'public/html/test.html'))
+});
+
+app.get("/maintenance-logs", async (req,res) => {
+    res.sendFile(path.join(__dirname, 'public/html/maintenance.html'))
+});
+
+app.get("/components-health/:atm_id", getAllComponentsHealth);
 
 app.get('/location', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/html/location.html'))
@@ -1999,6 +2028,117 @@ app.post('/send-sms', (req, res) => {
         .catch(error => {
             console.error('Error sending SMS:', error);
             res.status(500).json({ success: false, message: 'Failed to send SMS.' });
+        });
+});
+
+app.get("/Components", (req, res) => {
+    res.sendFile(path.join(__dirname, "public/html", "components.html"));
+});
+
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+
+app.post('/send-activity-log', (req, res) => {
+    const { message, atmId, activityType } = req.body;
+
+    // Predefined ATM locations
+    const atmLocations = {
+        '1': '28 Dover Cres, Singapore 130028',
+        '2': '325 Clementi Ave 5, Block 325, Singapore 120325',
+        '3': '170 Stirling Rd, #01-1147 FairPrice, Singapore 140170'
+    };
+
+    // Get the location based on atmId
+    const location = atmLocations[atmId] || 'Location not available';
+
+    // Define color mappings based on activity type
+    const activityColors = {
+        'suspicious': 0xFF9900, // Yellow
+        'maintenance': 0xFF9900, // Yellow
+        'resolved': 0x4CAF50,    // Green
+        'rejected': 0xF44336     // Red
+    };
+
+    const activityIcons = {
+        'resolved': '✅',    // Check mark for resolved
+        'rejected': '❌'      // Cross mark for rejection
+    };
+
+    const specificMessage = {
+        'suspicious': 'Suspicious activity detected: User attempted a transfer to a suspicious account.',
+        'maintenance': 'ATM is down and requires immediate maintenance.',
+        'resolved': 'Issue resolved.',
+        'rejected': 'Maintenance still not resolved, will require more time.'
+    };
+
+    // Use the color based on the activity type
+    const color = activityColors[activityType] || 0x000000; // Default to black if no color is found
+
+    // Use the specific message based on activity type or fallback to the provided message
+    const logMessage = specificMessage[activityType] || message;
+
+    // Split the message into main activity message and details if it's maintenance
+    const [activityMainMessage, maintenanceDetails] = message.split(':');
+
+    // If the activity is maintenance, use the activityMainMessage for the title
+    const messageWithIcon = activityType === 'maintenance' 
+        ? `${activityIcons[activityType] || ' '} ${activityMainMessage.trim()}` 
+        : `${activityIcons[activityType] || ' '} ${message}`;
+
+    // Prepare the Discord embed
+    const discordEmbed = {
+        title: messageWithIcon, // Title of the embed with icon and message
+        color: color, // Use the color from the activityType mapping
+        fields: [
+            {
+                name: 'Log Message:',
+                value: logMessage, // The actual log message in the field
+                inline: false
+            },
+            {
+                name: 'Details:', 
+                value: maintenanceDetails ? maintenanceDetails.trim() : 'No additional details available.', // Display the maintenance details if available
+                inline: false
+            },
+            {
+                name: 'Location:',
+                value: location, // Use the location based on atmId
+                inline: false
+            }
+        ],
+        timestamp: new Date(), // Timestamp to show when the log was created
+        footer: {
+            text: 'ATM Activity Log'
+        }
+    };
+
+    const payload = {
+        embeds: [discordEmbed] // Send the embed inside an array
+    };
+
+    axios.post(DISCORD_WEBHOOK_URL, payload)
+        .then(response => {
+            console.log('Activity log sent to Discord:', response.data);
+            res.status(200).send('Activity log sent');
+        })
+        .catch(error => {
+            console.error('Error sending activity log to Discord:', error);
+            res.status(500).send('Error sending activity log');
+        });
+});
+
+const atmFilepath = path.join(__dirname, 'python/Time/synthetic_atm_data.csv');
+
+app.get('/get-atm-data', (req, res) => {
+    const atmData = [];
+
+    // Read CSV data
+    fs.createReadStream(atmFilepath)
+        .pipe(csv())
+        .on('data', (row) => {
+            atmData.push(row);
+        })
+        .on('end', () => {
+            res.json(atmData);
         });
 });
 
