@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATM Components Health</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .component {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+        .component h3 {
+            margin: 5px 0;
+            color: #333;
+        }
+        .component p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        /* Durability Bar */
+        .durability-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .durability-fill {
+            height: 100%;
+            transition: width 0.5s ease-in-out;
+        }
+        /* Color-coded durability fill */
+        .durability-fill.red {
+            background-color: #FF4136;
+        }
+        .durability-fill.orange {
+            background-color: #FF851B;
+        }
+        .durability-fill.yellow {
+            background-color: #FFDC00;
+        }
+        .durability-fill.green {
+            background-color: #4CAF50;
+        }
+        /* Sort Dropdown */
+        .sort-dropdown {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>ATM Component Health</h2>
+        <div class="sort-dropdown">
+            <label for="sortOrder">Sort by Durability: </label>
+            <select id="sortOrder" onchange="sortComponents()">
+                <option value="desc">High to Low</option>
+                <option value="asc">Low to High</option>
+            </select>
+        </div>
+        <div id="components"></div>
+    </div>
+
+    <script>
+        function getATMIdFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("atmId");
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString("en-US", {
+                year: "numeric", month: "long", day: "numeric",
+                hour: "2-digit", minute: "2-digit"
+            });
+        }
+
+        async function fetchComponentsHealth(atmId) {
+            if (!atmId) {
+                document.getElementById("components").innerHTML = "<p>No ATM ID found in URL.</p>";
+                return;
+            }
+
+            try {
+                const response = await fetch(`/components-health/${atmId}`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch data");
+                }
+                const { success, components } = await response.json();
+
+                if (!success || !components || components.length === 0) {
+                    document.getElementById("components").innerHTML = "<p>No components found.</p>";
+                    return;
+                }
+
+                displayComponents(components);
+            } catch (error) {
+                document.getElementById("components").innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+
+        function displayComponents(components) {
+            const container = document.getElementById("components");
+            container.innerHTML = "";
+
+            components.forEach(component => {
+                const div = document.createElement("div");
+                div.className = "component";
+                const durabilityClass = getDurabilityClass(component.durability);
+                div.innerHTML = `
+                    <h3>${component.component}</h3>
+                    <p><strong>Condition:</strong> ${component.condition}</p>
+                    <p><strong>Last Maintenance:</strong> ${formatDate(component.last_maintenance_date)}</p>
+                    <p><strong>Durability:</strong> ${component.durability}%</p>
+                    <div class="durability-bar">
+                        <div class="durability-fill ${durabilityClass}" style="width: ${component.durability}%;"></div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function getDurabilityClass(durability) {
+            if (durability >= 75) return "green";
+            if (durability >= 50) return "yellow";
+            if (durability >= 25) return "orange";
+            return "red";
+        }
+
+        function sortComponents() {
+            const sortOrder = document.getElementById("sortOrder").value;
+            const atmId = getATMIdFromURL();
+
+            fetch(`/components-health/${atmId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const { success, components } = data;
+                    if (success) {
+                        const sortedComponents = components.sort((a, b) => {
+                            return sortOrder === "asc" ? a.durability - b.durability : b.durability - a.durability;
+                        });
+                        displayComponents(sortedComponents);
+                    }
+                });
+        }
+
+        const atmId = getATMIdFromURL();
+        fetchComponentsHealth(atmId);
+    </script>
+</body>
+</html>

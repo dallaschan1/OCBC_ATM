@@ -7,20 +7,24 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: #ffffff;
             margin: 0;
             padding: 0;
+            color: rgb(0, 0, 0)
         }
         .container {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            margin: 20px;
+            width:700px;
+            margin-top: 20px;
+            margin-left: auto;
+            margin-right: auto;
         }
         .atm-box {
             position: relative;
-            background-color: rgba(199, 199, 199, 0.8);
-            width: 180px;
+            background-color: rgb(200, 200, 200, 0.7);
+            width: 200px;
             height: 250px;
             display: flex;
             flex-direction: column;
@@ -44,7 +48,7 @@
             margin-top: 10px;
             font-size: 18px;
             font-weight: bold;
-            color: #ffffff;
+            color: #000000;
         }
         .atm-status {
             margin-top: 10px;
@@ -137,12 +141,72 @@
         #modal-atm-info {
             font-size:18px;
         }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 350px;
+            height: 100%;
+            background-color: #f4f4f4;
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 2px solid #ccc;
+        }
+        .activity-log {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .activity-log h3 {
+            font-size: 24px;
+            margin-bottom: 25px;
+            margin-left: auto;
+        }
+        .activity-item {
+            margin-top:15px;
+            padding: 0px;
+        }
+        .activity-item span {
+            font-size: 14px;
+        }
+
+        .activity-item.online {
+            color: #4CAF50; /* Green for online */
+        }
+
+        .activity-item.maintenance {
+            color: #ff9900; /* Yellow for maintenance required */
+        }
+
+        .activity-item.resolved {
+            color: #4CAF50; /* Green for resolved */
+        }
+
+        .activity-item.rejected {
+            color: #F44336; /* Red for rejected */
+        }
+        .online {
+            color: #ffffff; /* White color for text */
+        }
+
+        .icon-online {
+            filter: brightness(0) invert(0.98); /* Make icon white */
+        }
+        .box-online{
+            background-color: rgb(200, 200, 200, 1);
+        }
     </style>
 </head>
 <body>
 
-    <h1>ATM Dashboard</h1>
-    
+    <h1>Admin Dashboard</h1>
+    <div class="sidebar">
+        <div class="activity-log">
+            <h3>Activity Log</h3>
+            <div id="log-container"></div>
+        </div>
+    </div>
+
     <div class="container" id="atm-container"></div>
 
     <!-- Modal for approving/rejecting -->
@@ -158,51 +222,71 @@
     <script>
         const alertedATMs = new Set(); // Store ATM IDs that have already triggered an alert
         let selectedATMId = null; // To keep track of the selected ATM ID
+        let userSuspicion = null;
+        let atmStatus = null;
+        let maintenanceRequired = null;
 
+        let previousATMsState = {};
+    
         async function fetchATMs() {
             try {
                 const response = await fetch('/atms');
                 const data = await response.json();
-
+    
                 if (data.success) {
                     const atmContainer = document.getElementById('atm-container');
                     atmContainer.innerHTML = '';
-
+    
                     data.atms.forEach(atm => {
                         const atmBox = document.createElement('div');
                         atmBox.classList.add('atm-box');
                         atmBox.style.cursor = atm.UserSuspicion === 1 ? 'pointer' : 'default';
-
+                        if (atm.Status === 'Active') {
+                            atmBox.classList.add('box-online');
+                        }
+    
                         // ATM Icon
                         const atmIcon = document.createElement('div');
                         atmIcon.classList.add('atm-icon');
                         atmIcon.style.backgroundImage = "url('../images/atm-machine.png')";
 
+                        if (atm.Status === 'Active') {
+                            atmIcon.classList.add('icon-online');
+                        }
+    
                         // ATM ID
                         const atmId = document.createElement('div');
                         atmId.classList.add('atm-id');
+                        if (atm.Status === 'Active') {
+                            atmId.classList.add('online');
+                        }
                         atmId.innerText = `ID: ${atm.ATMID}`;
-
+    
                         // ATM Status
                         const atmStatus = document.createElement('div');
                         atmStatus.classList.add('atm-status');
                         atmStatus.classList.add(atm.Status === 'Inactive' ? 'inactive' : 'active');
                         atmStatus.innerText = `${atm.Status}`;
-
-                        // Overlay for suspicious activity
+    
+                        // Overlay for suspicious activity or maintenance
                         const overlay = document.createElement('div');
                         overlay.classList.add('overlay');
                         if (atm.UserSuspicion === 1 && atm.Status === 'Active') {
                             overlay.classList.add('show');
-                            overlay.innerHTML = `<div class="warning-icon">⚠️</div> Suspicious Activity`;
-                            atmBox.onclick = () => showModal(atm.ATMID);
+                            overlay.innerHTML = `<div class="warning-icon">⚠️</div> Suspicious Activity Detected`;
+                            atmBox.onclick = () => showModal(atm, 'suspicious');
+                        } else if (atm.Status === 'Active') {
+                            atmBox.onclick = () => {
+                                window.location.href = `/ATM/${atm.ATMID}`;
+                            };
                         }
-
                         atmBox.appendChild(atmIcon);
                         atmBox.appendChild(atmId);
                         atmBox.appendChild(atmStatus);
                         atmBox.appendChild(overlay);
                         atmContainer.appendChild(atmBox);
+
+                        logActivityIfChanged(atm);
                     });
                 } else {
                     alert('No ATMs found.');
@@ -211,33 +295,108 @@
                 console.error('Error fetching ATM data:', error);
             }
         }
+    
+        // Store logged activities in a set or object, keeping track of each ATM ID and their activity statuses.
+        const loggedATMs = new Set();
 
-        function showModal(atmId) {
-            selectedATMId = atmId;
-            document.getElementById('modal-atm-id').innerText = `ATM ID: ${atmId}`;
-            document.getElementById('modal-atm-info').innerText = `User is trying to transfer fund to an suspicious account from this ATM. Do you want to approve or reject this?`;
-            
+        function logActivityIfChanged(atm) {
+            const atmId = atm.ATMID;
+            const currentState = {
+                status: atm.Status,
+                userSuspicion: atm.UserSuspicion,
+            };
+
+            // Check if the ATM has already been logged for the current status
+            if (!previousATMsState[atmId] || 
+                previousATMsState[atmId].status !== currentState.status ||
+                previousATMsState[atmId].userSuspicion !== currentState.userSuspicion) {
+                
+                // Only log the activity if the ATM hasn't been logged before for the same status
+                if (!loggedATMs.has(atmId)) {
+                    // Log when the ATM goes online
+                    if (atm.Status === 'Active' && (!previousATMsState[atmId] || previousATMsState[atmId].status !== 'Active')) {
+                        logActivity(atmId, 'is online', 'online');
+                    }
+
+                    // Log suspicious activity if detected immediately
+                    if (atm.UserSuspicion === 1 && atm.Status === 'Active') {
+                        logActivity(atmId, '⚠️Suspicious Account Transfer Detected', 'maintenance');
+                    }
+                    // Update the previous state for this ATM
+                    previousATMsState[atmId] = currentState;
+                }
+            }
+        }
+
+        function logActivity(atmId, activity, activityType) {
+            const logContainer = document.getElementById('log-container');
+            const logItem = document.createElement('div');
+            logItem.classList.add('activity-item', activityType); // Add the type to the class
+            logItem.innerHTML = `ATM ${atmId}: ${activity}`;
+            logContainer.appendChild(logItem);
+
+            let activityLogs = JSON.parse(sessionStorage.getItem('activityLogs')) || [];
+            activityLogs.push({ atmId, activity, activityType });
+            sessionStorage.setItem('activityLogs', JSON.stringify(activityLogs));
+        }
+    
+        function showModal(atm, type) {
+            selectedATMId = atm.ATMID; // Store the selected ATM ID
+            atmStatus = atm.Status; // Store ATM status
+            userSuspicion = atm.UserSuspicion; // Store user suspicion status
+            maintenanceRequired = atm.MaintenanceRequired; // Store maintenance required status
+    
+            // Set ATM ID in the modal
+            document.getElementById('modal-atm-id').innerText = `ATM ID: ${atm.ATMID}`;
+    
+            // Modify modal content based on the ATM status
+            if (type === 'suspicious' && userSuspicion === 1 && atmStatus === 'Active') {
+                // Show modal for Suspicious Activity
+                document.getElementById('modal-atm-info').innerText = `Suspicious activity detected. User is attempting to transfer funds to a suspicious account. Do you want to approve or reject this?`;
+            } else if (type === 'maintenance' && maintenanceRequired === 1) {
+                // Show modal for Maintenance
+                document.getElementById('modal-atm-info').innerText = `This ATM is currently inactive and needs maintenance. Do you want to approve maintenance or reject?`;
+            }
+    
+            // Show the modal
             document.getElementById('atm-modal').classList.add('show');
             document.getElementById('modal-overlay').classList.add('show');
         }
-
+    
         function closeModal() {
             document.getElementById('atm-modal').classList.remove('show');
             document.getElementById('modal-overlay').classList.remove('show');
         }
-
+    
         function handleApprove() {
-            alert(`Approved ATM ID: ${selectedATMId}`);
-            updateSuspicionStatus(0);
-            closeModal();
+            if (selectedATMId) {
+                // Assuming you're checking if it's suspicious or maintenance to decide the action
+                alert(`Approved ATM ID: ${selectedATMId}`);
+                
+                // For suspicious activity
+                if (userSuspicion === 1 && atmStatus === 'Active') {
+                    updateSuspicionStatus(0); // Approved suspicious activity
+                    logActivity(selectedATMId, 'Suspicious activity resolved', 'resolved');
+                }
+    
+                closeModal();
+            }
         }
-
+    
         function handleReject() {
-            alert(`Rejected ATM ID: ${selectedATMId}`);
-            updateSuspicionStatus(2);
-            closeModal();
+            if (selectedATMId) {
+                // Rejecting suspicious activity or maintenance based on condition
+                alert(`Rejected ATM ID: ${selectedATMId}`);
+                
+                // For suspicious activity
+                if (userSuspicion === 1 && atmStatus === 'Active') {
+                    updateSuspicionStatus(2); // Rejected suspicious activity
+                    logActivity(selectedATMId, 'Suspicious activity rejected', 'rejected');
+                }
+                closeModal();
+            }
         }
-
+    
         async function updateSuspicionStatus(suspicionStatus) {
             try {
                 const response = await fetch('/update-user-suspicion', {
@@ -246,11 +405,11 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        ATMID: 1,
+                        ATMID: selectedATMId,
                         UserSuspicion: suspicionStatus
                     })
                 });
-
+    
                 if (response.ok) {
                     console.log(`User suspicion status updated to ${suspicionStatus}.`);
                 } else {
@@ -260,10 +419,10 @@
                 console.error('Error during suspicion update:', error);
             }
         }
-
+    
         setInterval(fetchATMs, 3000);
         window.onload = fetchATMs;
-    </script>
+    </script>    
     
 </body>
 </html>
