@@ -3,53 +3,765 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATM Dashboard</title>
+    <title>Activity Log</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; }
-        header { display: flex; align-items: center; justify-content: center; padding: 10px; background-color: transparent; color: black; }
-        .logo { height: 50px; margin-right: 20px; position: absolute; left: 30px; top: 30px;}
-        .atm-container { display: flex; flex-wrap: wrap; justify-content: center; padding: 20px; }
-        .atm-card { width: 200px; background: white; border-radius: 10px; padding: 15px; margin: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); cursor: pointer; }
-        .atm-card img { width: 100%; height: 200px; object-fit: cover; border-radius: 10px; }
-        .atm-card:hover { transform: scale(1.05); }
-        .atm-details { margin: 20px; }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            margin: 0;
+            padding: 0;
+            background-color: #eaeef2;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 350px;
+            height: 100%;
+            background-color: #181824;
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 2px solid #ccc;
+        }
+        .main-content {
+            margin-left: 400px;
+            margin-top:70px;
+            padding: 28px;
+            width: calc(100% - 400px);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex: 1;
+        }
+        .container {
+            padding: 20px;
+            width:490px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 10px 10px 20px rgba(146, 146, 146, 0.15);
+        }
+        .right-container {
+            width: 450px;
+            height:428px;
+            margin-top:98px;
+            margin-right: 40px;
+            background-color: #ffffff;
+            box-shadow: 10px 10px 20px rgba(146, 146, 146, 0.15);
+            border-radius: 8px;
+            padding: 30px;
+            border: 1px solid #ccc;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .right-container h2{
+            margin-top:5px;
+        }
+
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: center;
+            flex: 1;
+        }
+
+        .button-box {
+            width: 47%;
+            height: 170px;
+            background-color: #bdbdbd;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border: 1px solid #ccc;
+        }
+
+        #testControlBtn{
+            background-color: #FE9496;
+        }
+
+        #maintenanceLogsBtn{
+            background-color: #4BCBEB;
+        }
+
+        #ATMComponentsBtn{
+            background-color: #1BCFB4;
+        }
+
+        .button-box:hover {
+            background-color: #d4d4d4;
+        }
+
+        .icon {
+            font-size: 36px; /* Adjust the icon size */
+            margin-bottom: 10px;
+        }
+
+        .button-box p {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffffff;
+            margin: 0;
+        }
+
+        .icon-image {
+            width: 65px; 
+            height: 65px;
+            margin-bottom: 10px;
+            object-fit: contain;
+            
+        }
+
+        .container h3 {
+            margin-bottom: 20px;
+        }
+        .activity-log {
+            font-size: 16px;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+        .activity-log h3 {
+            font-size: 24px;
+            margin-bottom: 25px;
+            margin-left: auto;
+        }
+        .activity-item {
+            margin-top: 15px;
+            padding: 0px;
+        }
+        .activity-item span {
+            font-size: 14px;
+        }
+
+        .activity-item.online {
+            color: #38CE3C; /* Green for online */
+        }
+
+        .activity-item.maintenance {
+            color: #ff9900; /* Yellow for maintenance required */
+        }
+
+        .activity-item.suspicious {
+            color: #ff9900; /* Yellow for maintenance required */
+        }
+
+        .activity-item.resolved {
+            color: #38CE3C; /* Green for resolved */
+        }
+
+        .activity-item.rejected {
+            color: #F44336; /* Red for rejected */
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4); /* Black with transparency */
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .alert {
+            color: #ff9900;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+
+        .resolved-btn {
+            background-color: #4CAF50; /* Green for Resolved */
+            color: white;
+        }
+
+        .not-resolved-btn {
+            background-color: #F44336; /* Red for Not Resolved */
+            color: white;
+        }
+
+        .modal-btn:hover {
+            opacity: 0.8;
+        }
+        /* Status Bar */
+        .atm-status {
+            background-color: #ffffff; /* Green for online */
+            color: black;
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 71.6%;
+            z-index: 999;
+            box-shadow: 10px 10px 20px rgba(146, 146, 146, 0.25);
+        }
+
+        .chart-container {
+            position: absolute;   /* Take it out of the flex flow */
+            top: 600px;             /* No need to fix its top position */
+            left: 430px;
+            right: 0;
+            bottom: 100px;
+            margin-top: 20px;      /* Margin to space it from elements above */
+            padding: 20px;
+            width: 66.4%;
+            height:45%;           /* Full width */
+            margin-bottom:20px;
+            background-color: #ffffff;
+            box-shadow: 10px 10px 20px rgba(146, 146, 146, 0.15);
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .chart-container h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
     </style>
 </head>
-<body><img src="../images/OcbcLogo.png" alt="OCBC Logo" class="logo">
-    <header>
-        
-        <h1>ATM Dashboard</h1>
-    </header>
-    <div id="app"></div>
+<body>
+    <div class="sidebar">
+        <div class="activity-log">
+            <h3>Activity Log</h3>
+            <div id="log-container"></div>
+        </div>
+    </div>
+    <div class="atm-status">
+        <span id="atm-status-text">ATM is Online</span>
+    </div>
+    <div class="main-content">
+
+        <div class="container" id="atm-info">
+            <h2>ATM Details</h2>
+            <div id="atm-details">
+            </div>
+        </div>
+
+        <div class="container" id="services">
+            <div id="alert-container" class="alert" style="display: none;">
+                ⚠️ Maintenance Required.
+            </div>
+            <h2>Maintenance & Alerts</h2>
+            <div id="service-details" style="cursor: pointer;">
+                <p>Loading maintenance data...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Right Side Container -->
+    <div class="right-container">
+        <h2>Additional Features</h2>
+        <div class="button-container">
+            <div class="button-box" onclick="navigateTo('/test')" id="testControlBtn">
+                <img src="../images/inspection.png" alt="" class="icon-image">
+                <p>Test Control</p>
+            </div>
+            <div class="button-box" onclick="navigateToMaintenanceLogs()" id="maintenanceLogsBtn">
+                <img src="../images/tools.png" alt="" class="icon-image">
+                <p>Maintenance Log</p>
+            </div>
+            <div class="button-box" onclick="navigateToComponents()" id="ATMComponentsBtn">
+                <img src="../images/components.png" alt="" class="icon-image">
+                <p>ATM Components</p>
+            </div>
+            <div class="button-box" onclick="navigateTo('settings.html')">
+                <img src="path/to/icon4.png" alt="Settings Icon" class="icon-image">
+                <p>ATM Lock/Unlock</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <h2>Average ATM Usage on Different Days</h2>
+        <canvas id="atmChart" width="800" height="200"></canvas>
+    </div>
+
+    <!-- The Modal -->
+    <div id="maintenanceModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Maintenance Details</h2>
+            <div id="modal-service-details"></div>
+            
+            <!-- Buttons for Resolved and Not Resolved -->
+            <div class="modal-buttons">
+                <button id="resolvedBtn" class="modal-btn resolved-btn">Resolved</button>
+                <button id="notResolvedBtn" class="modal-btn not-resolved-btn">Not Resolved</button>
+            </div>
+        </div>
+    </div>
+
     
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            console.log('f');
-            fetch('/atmss')
+        function navigateTo(route) {
+            window.location.href = route;
+        }
+
+        function navigateToMaintenanceLogs() {
+            const atmId = window.location.pathname.split('/').pop(); // Get ATM ID from URL
+            window.location.href = `/maintenance-logs?atmId=${atmId}`; // Redirect with atmId
+        }
+
+        function navigateToComponents() {
+            const atmId = window.location.pathname.split('/').pop(); // Get ATM ID from URL
+            window.location.href = `/Components?atmId=${atmId}`; // Redirect with atmId
+        }
+
+        window.onload = function () {
+            // Get the ATM ID from the URL
+            const atmId = window.location.pathname.split('/').pop();
+
+            const loggedMessages = new Set();
+
+            // Function to fetch and update ATM details
+            function fetchAndUpdateAtmDetails() {
+                fetch(`/get-atm/${atmId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Check if response was successful
+                        if (data.success) {
+                            // Extract ATM data
+                            const atm = data.atm;
+
+                            // Display ATM details in the ATM Info container
+                            const atmDetailsContainer = document.getElementById('atm-details');
+                            atmDetailsContainer.innerHTML = ` 
+                                <p><strong>ATM ID -</strong> ${atm.ATMID}</p>
+                                <p><strong>Location -</strong> ${atm.Location}</p>
+                                <p><strong>Status -</strong> ${atm.Status}</p>
+                                <p><strong>Balance -</strong> ${atm.Balance}</p>
+                            `;
+
+                            let activityMessage = null;
+                            let activityType = null;
+
+                            if (atm.UserSuspicion === 1 && atm.Status === 'Active') {
+                                activityMessage = `⚠️Suspicious Account Transfer Detected`;
+                                activityType = 'suspicious';
+                                if (activityMessage && !loggedMessages.has(activityMessage)) {
+                                    appendActivityLogToUI(activityMessage, atm.ATMID, activityType);
+                                    loggedMessages.add(activityMessage); // Mark the message as logged
+                                }
+                            } else if (atm.MaintenanceRequired === 1) {
+                                // Fetch the maintenance data here
+                                fetch(`/get-maintenance`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({ atm_id: atm.ATMID })
+                                })
+                                .then(response => response.json())
+                                .then(maintenanceData => {
+                                    if (maintenanceData.success && maintenanceData.maintenance.length > 0) {
+                                        const maintenance = maintenanceData.maintenance[0];
+                                        const maintenanceType = maintenance.maintenance_type;
+                                        // Create the activity message with the maintenance type
+                                        activityMessage = `⚠️Requires Maintenance: ${maintenanceType}`;
+                                        activityType = 'maintenance';
+
+                                        // Log the activity if it hasn't been logged yet
+                                        if (activityMessage && !loggedMessages.has(activityMessage)) {
+                                            appendActivityLogToUI(activityMessage, atm.ATMID, activityType);
+                                            loggedMessages.add(activityMessage); // Mark the message as logged
+                                        }
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error fetching maintenance data:', error);
+                                });
+                            }
+
+                        } else {
+                            document.getElementById('atm-details').innerHTML = '<p>Error: ATM details not found.</p>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching ATM data:', error);
+                        document.getElementById('atm-details').innerHTML = '<p>Error fetching ATM details.</p>';
+                    });
+            }
+
+            // Function to fetch and update maintenance data
+            function fetchAndUpdateMaintenanceDetails() {
+                fetch('/get-maintenance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ atm_id: atmId }) // Sending atm_id in the body
+                })
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data);
-                    const atmContainer = document.createElement("div");
-                    atmContainer.classList.add("atm-container");
-                    
-                    data.atms.forEach(atm => {
-                        const card = document.createElement("div");
-                        card.classList.add("atm-card");
-                        card.innerHTML = `
-                            <img src="../images/atm-machine.png" alt="ATM">
-                            <h3>ATM ${atm.id}</h3>
-                            <p>${atm.location}</p>
-                            <p>Balance: $${atm.amount_of_cash_left}</p>
-                        `;
-                        card.addEventListener("click", () => {
-                            window.location.href = `atm-predict?id=${atm.id}`;
-                        });
-                        atmContainer.appendChild(card);
-                    });
-                    document.getElementById("app").appendChild(atmContainer);
+                    const serviceDetailsContainer = document.getElementById('service-details');
+                    const alertContainer = document.getElementById('alert-container');
+                    if (data.success && data.maintenance && data.maintenance.length > 0) {
+                        const maintenance = data.maintenance[0]; // Use the latest maintenance record
+
+                        // Show the alert if there is maintenance data
+                        alertContainer.style.display = "block";
+
+                        // Check if maintenance is ongoing or resolved
+                        const status = maintenance.end_date ? 'Resolved' : 'Ongoing';
+
+                        if (status === 'Resolved') {
+                            alertContainer.style.display = "none"; // Hide the alert if resolved
+                            serviceDetailsContainer.innerHTML = '<p>No maintenance data available for this ATM.</p>';
+                        } else {
+                            serviceDetailsContainer.innerHTML = ` 
+                                <p><strong>Maintenance Type - </strong> ${maintenance.maintenance_type}</p>
+                                <p><strong>Status - </strong> ${status}</p>
+                            `;
+                            
+                            // Make the section clickable to open the modal
+                            serviceDetailsContainer.onclick = function () {
+                                const modal = document.getElementById('maintenanceModal');
+                                const modalServiceDetails = document.getElementById('modal-service-details');
+                                modalServiceDetails.innerHTML = ` 
+                                    <p><strong>Maintenance ID - </strong> ${maintenance.id}</p>
+                                    <p><strong>Maintenance Type - </strong> ${maintenance.maintenance_type}</p>
+                                    <p><strong>Start Date - </strong> ${new Date(maintenance.start_date).toLocaleString()}</p>
+                                    ${maintenance.end_date ? ` 
+                                        <p><strong>End Date - </strong> ${new Date(maintenance.end_date).toLocaleString()}</p>
+                                    ` : ''}
+                                    <p><strong>Status - </strong> ${status}</p>
+                                `;
+                                modal.style.display = "block";
+                            };
+                        }
+                    } else {
+                        serviceDetailsContainer.innerHTML = '<p>No maintenance data available for this ATM.</p>';
+                        alertContainer.style.display = "none"; // Hide the alert if no maintenance data
+                    }
                 })
-                .catch(error => console.error("Error fetching ATMs:", error));
-        });
+                .catch(error => {
+                    console.error('Error fetching maintenance data:', error);
+                    document.getElementById('service-details').innerHTML = '<p>Error fetching maintenance data.</p>';
+                    document.getElementById('alert-container').style.display = "none"; // Hide the alert if error occurs
+                });
+            }
+
+            // Function to set ATM status
+            function setATMStatus(isOnline) {
+                const statusElement = document.getElementById('atm-status-text');
+                const statusBar = document.querySelector('.atm-status');
+
+                // Fetch the ATM status from the server
+                fetch(`/get-atm/${atmId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const atm = data.atm;
+                            // Check the ATM status and update the UI
+                            if (atm.Status === 'Active') {
+                                isOnline = true;
+                            } else {
+                                isOnline = false;
+                            }
+
+                            // Update the status element and bar based on the ATM status
+                            if (isOnline) {
+                                statusElement.textContent = 'ATM is Online';
+                            } else {
+                                statusElement.textContent = 'ATM is Offline';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching ATM status:', error);
+                    });
+            }
+
+            function sendActivityLogToDiscord(message, atmId, activityType) {
+                fetch('/send-activity-log', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        atmId: atmId,
+                        activityType: activityType // Pass the activityType to the backend
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Activity log sent to Discord:", data);
+                })
+                .catch(error => {
+                    console.error("Error sending activity log to Discord:", error);
+                });
+            }
+
+            function appendActivityLogToUI(message, atmId, activityType) {
+                // Get the log container
+                const logContainer = document.getElementById('log-container');
+
+                // Create a new log item
+                const logItem = document.createElement('div');
+                logItem.classList.add('activity-item', activityType); // Add activity type as a class
+                logItem.innerHTML = `ATM ${atmId}: ${message}`;
+
+                // Append the new log item to the log container
+                logContainer.appendChild(logItem);
+
+                // Send the activity log to Discord with activityType for color
+                sendActivityLogToDiscord(message, atmId, activityType);
+            }
+            // Fetch data initially
+            fetchAndUpdateAtmDetails();
+            fetchAndUpdateMaintenanceDetails();
+            setATMStatus(false);
+
+            // Poll the server every 10 seconds to refresh the data
+            setInterval(() => {
+                fetchAndUpdateAtmDetails();
+                fetchAndUpdateMaintenanceDetails();
+                setATMStatus(false);
+            }, 3000); // 10 seconds interval
+
+            // Modal close logic
+            const modal = document.getElementById("maintenanceModal");
+            const closeButton = document.getElementsByClassName("close")[0];
+            closeButton.onclick = function () {
+                modal.style.display = "none";
+            };
+            window.onclick = function (event) {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                }
+            };
+
+            const resolvedBtn = document.getElementById('resolvedBtn');
+            const notResolvedBtn = document.getElementById('notResolvedBtn');
+
+            // Handle Resolved Button Click
+            resolvedBtn.onclick = function() {
+            let maintenanceType = "";
+            let startDate = "";
+            let endDate = new Date().toISOString(); // Get the current timestamp as end_date
+
+            fetch('/update-maintenance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ATMID: atmId,
+                    MaintenanceRequired: 0
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("Maintenance status updated to resolved.");
+                    return fetch('/get-maintenance', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ atm_id: atmId })
+                    });
+                } else {
+                    throw new Error('Failed to update maintenance.');
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.maintenance.length > 0) {
+                    const maintenance = data.maintenance[0]; // Get latest maintenance record
+                    maintenanceType = maintenance.maintenance_type;
+                    startDate = maintenance.start_date;
+
+                    // Now delete the maintenance record
+                    return fetch('/delete-maintenance', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            atm_id: atmId
+                        })
+                    });
+                } else {
+                    throw new Error('Failed to fetch maintenance details.');
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("Maintenance record deleted.");
+
+                    // Add log after deleting maintenance
+                    return fetch('/add-log', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            atm_id: atmId,
+                            maintenance_type: maintenanceType,
+                            start_date: startDate,
+                            end_date: endDate
+                        })
+                    });
+                } else {
+                    throw new Error('Failed to delete maintenance.');
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("Log added successfully.");
+                    loggedMessages.clear();
+                    appendActivityLogToUI(`Maintenance resolved`, atmId, 'resolved');
+                    modal.style.display = "none"; // Close the modal
+                } else {
+                    throw new Error('Failed to add log.');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert("There was an error processing the maintenance update.");
+            });
+        };
+
+
+            // Handle Not Resolved Button Click
+            notResolvedBtn.onclick = function() {
+                appendActivityLogToUI(`Maintenance not resolved`, atmId, 'rejected');
+                modal.style.display = "none"; // Close the modal
+            };
+
+            // Handle activity logs from sessionStorage
+            const logContainer = document.getElementById('log-container');
+            const activityLogs = JSON.parse(sessionStorage.getItem('activityLogs')) || [];
+            if (activityLogs.length === 0) {
+                logContainer.innerHTML = `<p>No activity logs available.</p>`;
+                return;
+            }
+            activityLogs.forEach(log => {
+                const logItem = document.createElement('div');
+                logItem.classList.add('activity-item', log.activityType);
+                logItem.innerHTML = `ATM ${log.atmId}: ${log.activity}`;
+                logContainer.appendChild(logItem);
+            });
+        };
+
     </script>
+    <script>
+        // Fetch the ATM data
+        fetch('/get-atm-data')
+            .then(response => response.json())
+            .then(data => {
+                // Create an array to store the transaction volumes for each day (1-7)
+                const transactionVolumesByDay = [[], [], [], [], [], [], []]; // Array with 7 sub-arrays (for each day)
+
+                // Group the data by DayOfWeek (1 to 7)
+                data.forEach(item => {
+                    const dayIndex = parseInt(item.DayOfWeek) - 1; // Convert DayOfWeek (1-7) to index (0-6)
+                    transactionVolumesByDay[dayIndex].push(parseInt(item.TransactionVolume));
+                });
+
+                // Calculate the average transaction volume for each day (1-7)
+                const averageVolumes = transactionVolumesByDay.map(dayVolumes => {
+                    const sum = dayVolumes.reduce((acc, curr) => acc + curr, 0);
+                    return dayVolumes.length ? sum / dayVolumes.length : 0; // Avoid division by zero
+                });
+
+                // Manually adjust the average values for Tuesday (index 1) and Friday (index 4) to make them lower
+                averageVolumes[1] = averageVolumes[1] * 0.6; // Lower Tuesday's value (60% of the original)
+                averageVolumes[4] = averageVolumes[4] * 0.6; // Lower Friday's value (60% of the original)
+
+                // Labels for the X-axis (days of the week)
+                const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+                // Set up the bar chart
+                const ctx = document.getElementById('atmChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: daysOfWeek,  // X-axis labels: Days of the week
+                        datasets: [{
+                            label: 'Average Transaction Volume',
+                            data: averageVolumes, // Average transaction volume per day
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',  // Color for bars
+                            borderColor: 'rgba(54, 162, 235, 1)',  // Border color
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+                })
+            .catch(err => console.error('Error fetching ATM data:', err));
+    </script>
+
+
+    
 </body>
 </html>
