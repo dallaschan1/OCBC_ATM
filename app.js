@@ -1969,7 +1969,7 @@ app.get('/atms/:id', async (req, res) => {  // ✅ Kept "atmss" as per your orig
 });
 
 // Serve HTML pages correctly
-app.get('/atm2', (req, res) => res.sendFile(path.join(__dirname, 'public/html/Atm.html')));
+app.get('/atm2', (req, res) => res.sendFile(path.join(__dirname, 'public/html/ATM2.html')));
 app.get('/atm-predict', (req, res) => res.sendFile(path.join(__dirname, 'public/html/AtmPredict.html')));
 
 app.get('/Personalized-Budgetting', (req, res) => {
