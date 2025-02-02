@@ -168,3 +168,29 @@ input[type="text"], input[type="number"] {
     transition: opacity 0.5s ease-in-out;
     z-index: 1000;
 }
+
+/* Additional Styles for Recurring Transfers */
+.recurring-options {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.recurring-options label {
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.select-container {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+#frequency{
+    font-size: 15px;
+    padding: 2px;
+}
+.hidden {
+    display: none;
+}

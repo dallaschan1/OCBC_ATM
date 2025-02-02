@@ -153,17 +153,17 @@
       <div id="Cash-Container">
         <h1>Get Cash</h1>
         <div id="Top">
-          <div class="Cash-Holder"><h3>$20</h3></div>
-          <div class="Cash-Holder"><h3>$50</h3></div>
+          <div class="Cash-Holder" onclick="redirectToWithdraw(20)"><h3>$20</h3></div>
+          <div class="Cash-Holder" onclick="redirectToWithdraw(50)"><h3>$50</h3></div>
         </div>
         <div id="Middle">
-          <div class="Cash-Holder"><h3>$100</h3></div>
-          <div class="Cash-Holder"><h3>$200</h3></div>
+          <div class="Cash-Holder" onclick="redirectToWithdraw(100)"><h3>$100</h3></div>
+          <div class="Cash-Holder" onclick="redirectToWithdraw(200)"><h3>$200</h3></div>
         </div>
-        <div id="Bottom">
+        <div id="Bottom" onclick="redirectToCustomWithdraw()">
           <h3>Other Cash Amount</h3>
         </div>
-      </div>
+      </div>      
     </div>
     <div id="Right">
       <div class="Top-container">

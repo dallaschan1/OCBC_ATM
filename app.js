@@ -28,6 +28,9 @@ const dbConfig = require("./dbconfig.js");
 const Password = require('./controllers/PasswordController');
 const Withdraw = require('./controllers/withdrawalController');
 const dbconfig = require('./dbconfig.js');
+const cron = require('node-cron');
+const moment = require('moment');
+
 
 const genAI = new GoogleGenerativeAI(API_KEY); // Replace with your actual API key
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -55,6 +58,22 @@ app.get('/fingerprint', (req, res) => {
 
 app.get('/crypto', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/html/crypto.html'));
+});
+
+app.get('/more-options2', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/more-options2.html'));
+});
+
+app.get('/autoTransac', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/autoTransactions.html'));
+});
+
+app.get('/withdrawalPage', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/confirm-withdrawal.html'));
+});
+
+app.get('/thankYou', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/html/ThankYou.html'));
 });
 
 app.post('/send-message', sendFcmMessage);
@@ -1071,27 +1090,27 @@ app.get('/get-feedback', async (req, res) => {
 app.post('/updateTransactionCount', async (req, res) => {
     try {
         const { userId } = req.body; // Get userId from request body
-        
+
         if (!userId) {
-            return res.status(400).send('User ID is required');
+            return res.status(400).send('UserID is required');
         }
 
-        const pool = await sql.connect('your-mssql-connection-string');
+        const pool = await sql.connect(dbConfig);
         const result = await pool.request()
-            .input('userId', sql.Int, userId) // Parameterized query to prevent SQL injection
-            .query('SELECT transactionCount FROM UserTransactionCount WHERE userId = @userId');
-        
+            .input('userId', sql.Int, userId) // Ensure proper casing
+            .query('SELECT TransactionCount FROM UserTransactionCount WHERE UserID = @userId');
+
         let transactionCount;
-        
+
         if (result.recordset.length === 0) {
             // If no record is found, create a new one with a default transaction count of 1
             transactionCount = 1;
             await pool.request()
                 .input('userId', sql.Int, userId)
                 .input('transactionCount', sql.Int, transactionCount)
-                .query('INSERT INTO UserTransactionCount (userId, transactionCount) VALUES (@userId, @transactionCount)');
+                .query('INSERT INTO UserTransactionCount (UserID, TransactionCount) VALUES (@userId, @transactionCount)');
         } else {
-            transactionCount = result.recordset[0].transactionCount;
+            transactionCount = result.recordset[0].TransactionCount;
             transactionCount = transactionCount + 1; // Increment transaction count
 
             if (transactionCount > 30) {
@@ -1102,7 +1121,7 @@ app.post('/updateTransactionCount', async (req, res) => {
             await pool.request()
                 .input('userId', sql.Int, userId)
                 .input('transactionCount', sql.Int, transactionCount)
-                .query('UPDATE UserTransactionCount SET transactionCount = @transactionCount WHERE userId = @userId');
+                .query('UPDATE UserTransactionCount SET TransactionCount = @transactionCount WHERE UserID = @userId');
         }
 
         res.status(200).send({ success: true });
@@ -1111,36 +1130,38 @@ app.post('/updateTransactionCount', async (req, res) => {
         res.status(500).send('Error updating transaction count');
     }
 });
+
 app.get('/getTransactionCount', async (req, res) => {
     try {
         const { userId } = req.query; // Get userId from query parameters
-        
+
         if (!userId) {
-            return res.status(400).send('User ID is required');
+            return res.status(400).send('UserID is required');
         }
 
-        const pool = await sql.connect('your-mssql-connection-string');
+        const pool = await sql.connect(dbConfig);
         const result = await pool.request()
-            .input('userId', sql.Int, userId) // Parameterized query to prevent SQL injection
-            .query('SELECT transactionCount FROM UserTransactionCount WHERE userId = @userId');
-        
+            .input('userId', sql.Int, userId) // Ensure proper casing
+            .query('SELECT TransactionCount FROM UserTransactionCount WHERE UserID = @userId');
+
         if (result.recordset.length === 0) {
             // If no record is found, initialize with a default transaction count of 1
             await pool.request()
                 .input('userId', sql.Int, userId)
                 .input('transactionCount', sql.Int, 1) // Default transaction count
-                .query('INSERT INTO UserTransactionCount (userId, transactionCount) VALUES (@userId, @transactionCount)');
-            
-            return res.json({ transactionCount: 1 }); // Return default count of 1
+                .query('INSERT INTO UserTransactionCount (UserID, TransactionCount) VALUES (@userId, @transactionCount)');
+
+            return res.json({ TransactionCount: 1 }); // Return default count of 1
         }
 
         // Return transaction count as JSON
-        res.json({ transactionCount: result.recordset[0].transactionCount });
+        res.json({ TransactionCount: result.recordset[0].TransactionCount });
     } catch (err) {
         console.error(err);
         res.status(500).send('Error retrieving transaction count');
     }
 });
+
 
 //
 app.get('/EditMembers', (req, res) => {
@@ -1157,8 +1178,8 @@ const transporter = nodemailer.createTransport({
   port: 465,
   secure: true,
   auth: {
-    user: 'nandithabvs06@gmail.com', // Use environment variables for security
-    pass:  'abhl zvij brqf ohve', // App-specific password or OAuth2 token
+    user: 'meowow2317@gmail.com', // Use environment variables for security
+    pass:  'xxks plgf bjqs ppjw', // App-specific password or OAuth2 token
   },
 });
 
@@ -1186,7 +1207,7 @@ app.post('/add-member', (req, res) => {
   const reportLink = `http://localhost:${PORT}/report-member/${newMember.id}`;
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: 'nandithabvs06@gmail.com',
     to: email,
     subject: 'Approval Needed: Shared Account',
     html: `
@@ -1250,6 +1271,270 @@ app.delete('/delete-member/:id', (req, res) => {
   }
   res.status(404).json({ message: 'Member not found.' });
 });
+app.post('/scheduleTransfer', async (req, res) => {
+    const { userId, amount, recipient, frequency, time, date } = req.body;
+
+    console.log("Received transfer data:", req.body);
+
+    // Validate required fields
+    if (!userId || !amount || !recipient || !frequency || !time || (frequency !== "daily" && !date)) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Validate time format (HH:mm:ss)
+    const isValidTime = /^([01]?\d|2[0-3]):([0-5]\d):([0-5]\d)$/.test(time);
+    if (!isValidTime) {
+        return res.status(400).json({ message: 'Invalid time format. Expected HH:mm:ss' });
+    }
+
+    try {
+        const pool = await sql.connect(dbConfig);
+
+        // Check if user exists and has sufficient balance
+        const userResult = await pool.request()
+            .input('userID', sql.Int, userId)
+            .query('SELECT balance FROM Users WHERE UserID = @userID');
+
+        if (userResult.recordset.length === 0) return res.status(400).json({ message: 'User not found' });
+        if (userResult.recordset[0].balance < amount) return res.status(400).json({ message: 'Insufficient balance' });
+
+        const [hours, minutes, seconds] = time.split(':').map(Number);
+        let nextScheduledDateTime = new Date();
+        nextScheduledDateTime.setHours(hours, minutes, seconds, 0);
+
+        let scheduledDay = null;
+
+        // Set scheduled day and adjust next scheduled date based on frequency
+        if (frequency === 'daily') {
+            scheduledDay = 1; // Set ScheduledDay to 1 for daily transfers
+            if (new Date().getTime() > nextScheduledDateTime.getTime()) {
+                nextScheduledDateTime.setDate(nextScheduledDateTime.getDate() + 1); // Set to next day
+            }
+        } else if (frequency === 'weekly') {
+            scheduledDay = date; // Set ScheduledDay to the day of the week (1-7)
+            const daysUntilNext = (date - nextScheduledDateTime.getDay() + 7) % 7;
+            nextScheduledDateTime.setDate(nextScheduledDateTime.getDate() + daysUntilNext);
+        } else if (frequency === 'monthly') {
+            scheduledDay = date; // Set ScheduledDay to the day of the month (1-31)
+            nextScheduledDateTime.setMonth(nextScheduledDateTime.getMonth() + 1);
+            nextScheduledDateTime.setDate(date);
+        }
+
+        // Insert scheduled transfer into the database
+        await pool.request()
+            .input('UserId', sql.Int, userId)
+            .input('Amount', sql.Decimal(18, 2), amount)
+            .input('Recipient', sql.Int, recipient)
+            .input('Frequency', sql.NVarChar, frequency)
+            .input('NextScheduledDate', sql.DateTime, nextScheduledDateTime)
+            .input('ScheduledDay', sql.Int, scheduledDay)
+            .query(`
+                INSERT INTO ScheduledTransfers (UserID, RecipientID, Amount, Frequency, NextScheduledDate, ScheduledDay) 
+                VALUES (@UserId, @Recipient, @Amount, @Frequency, @NextScheduledDate, @ScheduledDay)
+            `);
+
+        res.status(200).json({ message: 'Transfer scheduled successfully' });
+
+    } catch (error) {
+        console.error('Error scheduling transfer:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+});
+
+async function processScheduledTransfer(userId, amount, recipientId, userEmail) {
+    try {
+        const pool = await sql.connect(dbConfig);
+        const transaction = new sql.Transaction(pool);
+        await transaction.begin();
+
+        // Check sender's balance
+        const senderResult = await transaction.request()
+            .input('userID', sql.Int, userId)
+            .query('SELECT balance FROM Users WHERE UserID = @userID');
+
+        if (!senderResult.recordset.length || senderResult.recordset[0].balance < amount) {
+            await transaction.rollback();
+            return { success: false, message: 'Insufficient balance or sender not found' };
+        }
+
+        // Update sender's and recipient's balance
+        await transaction.request()
+            .input('amount', sql.Decimal(18, 2), amount)
+            .input('userID', sql.Int, userId)
+            .query('UPDATE Users SET balance = balance - @amount WHERE UserID = @userID');
+
+        await transaction.request()
+            .input('amount', sql.Decimal(18, 2), amount)
+            .input('recipientID', sql.Int, recipientId)
+            .query('UPDATE Users SET balance = balance + @amount WHERE UserID = @recipientID');
+
+        await transaction.commit();
+
+        sendTransferNotification(userEmail, amount, recipientId);
+        return { success: true, message: 'Transfer completed successfully' };
+
+    } catch (error) {
+        console.error('Error processing transfer:', error);
+        return { success: false, message: 'Internal server error' };
+    }
+}
+
+// Cron job to process scheduled transfers
+cron.schedule('* * * * *', async () => {
+    console.log('Checking for scheduled transfers...');
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request().query(`SELECT * FROM ScheduledTransfers WHERE NextScheduledDate <= GETDATE()`);
+
+        for (const transfer of result.recordset) {
+            const { TransferID, UserID, Amount, RecipientID, Frequency, NextScheduledDate } = transfer;
+
+            console.log(`Processing transfer ID ${TransferID} for User ${UserID} with frequency ${Frequency}`);
+
+            const userEmailResult = await pool.request()
+                .input('userID', sql.Int, UserID)
+                .query('SELECT Email FROM Users WHERE UserID = @userID');
+
+            const userEmail = userEmailResult.recordset[0]?.Email;
+            if (!userEmail) {
+                console.error(`Skipping transfer ${TransferID} - User email not found.`);
+                continue;
+            }
+
+            const response = await processScheduledTransfer(UserID, Amount, RecipientID, userEmail);
+            if (response.success) {
+                let nextDate = new Date(NextScheduledDate);
+
+                // Calculate next scheduled date based on frequency
+                if (Frequency === 'daily') {
+                    nextDate.setDate(nextDate.getDate() + 1);
+                } else if (Frequency === 'weekly') {
+                    nextDate.setDate(nextDate.getDate() + 7);
+                } else if (Frequency === 'monthly') {
+                    nextDate.setMonth(nextDate.getMonth() + 1);
+                }
+
+                // Prevent scheduling in the past
+                if (nextDate < new Date()) {
+                    nextDate = new Date();
+                    nextDate.setDate(nextDate.getDate() + 1);
+                }
+
+                await pool.request()
+                    .input('lastProcessedDate', sql.DateTime, NextScheduledDate)
+                    .input('nextDate', sql.DateTime, nextDate)
+                    .input('transferID', sql.Int, TransferID)
+                    .query(`
+                        UPDATE ScheduledTransfers 
+                        SET LastProcessedDate = @lastProcessedDate, NextScheduledDate = @nextDate 
+                        WHERE TransferID = @transferID
+                    `);
+
+                sendTransferNotification(userEmail, Amount, RecipientID, Frequency, NextScheduledDate);
+            }
+        }
+    } catch (error) {
+        console.error('Error processing scheduled transfers:', error);
+    }
+});
+
+async function sendTransferNotification(userEmail, amount, recipientId, frequency, lastProcessedDate) {
+    try {
+        // Check if frequency is undefined, return early if so
+        if (!frequency) {
+            console.log("Skipping email: Frequency is undefined.");
+            return;
+        }
+
+        const pool = await sql.connect(dbConfig);
+
+        // Fetch recipient's name and phone number
+        const recipientResult = await pool.request()
+            .input('recipientID', sql.Int, recipientId)
+            .query('SELECT UserName, PhoneNumber FROM Users WHERE UserID = @recipientID');
+
+        let recipientInfo = recipientResult.recordset[0];
+
+        // Mask phone number (replace all but last 4 digits with "xxxx")
+        let maskedPhone = recipientInfo?.PhoneNumber
+            ? `XXXX ${recipientInfo.PhoneNumber.slice(-4)}`
+            : null;
+
+        let recipientDisplay = recipientInfo 
+            ? (recipientInfo.UserName 
+                ? (maskedPhone 
+                    ? `${recipientInfo.UserName} (${maskedPhone})` 
+                    : recipientInfo.UserName) 
+                : `(${maskedPhone})`)
+            : `Recipient ID ${recipientId}`;
+
+        // Format date and time properly
+        const formattedDate = moment(lastProcessedDate).format('dddd, MMMM D, YYYY');
+        const formattedTime = moment(lastProcessedDate).format('h:mm A'); // Example: 4:50 PM
+
+        const mailOptions = {
+            from: 'meowow2317@gmail.com',
+            to: userEmail,
+            subject: 'Scheduled Transfer Processed',
+            html: `<p>Your ${frequency} scheduled transfer of ${amount} to ${recipientDisplay} has been processed on ${formattedDate} at ${formattedTime}.</p>
+                   <p>If you wish to stop or modify this scheduled transfer, please visit the ATM again.</p>`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) console.error('Error sending email:', error);
+            else console.log('Email sent:', info.response);
+        });
+
+    } catch (error) {
+        console.error('Error sending transfer notification:', error);
+    }
+}
+
+
+app.get('/get-atm-cash', async (req, res) => {
+    const atmId = req.query.atmId || 1; // Default to ATMID 1 if not provided
+
+    try {
+        // Connect to the database
+        const pool = await sql.connect(dbConfig);
+        
+        // Query to fetch ATM cash data for the specified ATMID
+        const result = await pool.request()
+            .input('atmId', sql.Int, atmId)  // Pass ATMID as a parameter to the query
+            .query('SELECT * FROM ATM_Cash WHERE ATMID = @atmId');
+        
+        // If no records are found, return a 404
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: 'ATM not found' });
+        }
+
+        const atmCash = result.recordset[0];
+        const totalAmountInATM = (atmCash.TwoDollar * 2) + 
+                                 (atmCash.FiveDollar * 5) + 
+                                 (atmCash.TenDollar * 10) + 
+                                 (atmCash.FiftyDollar * 50) + 
+                                 (atmCash.HundredDollar * 100);
+
+        // Check if the ATM has enough funds
+        const requestedAmount = parseInt(req.query.amount) || 50;
+        if (totalAmountInATM < requestedAmount) {
+            return res.status(400).json({ message: 'Insufficient funds in ATM' });
+        }
+
+        // Send the fetched ATM cash data as a response
+        res.status(200).json({
+            twoDollar: atmCash.TwoDollar,
+            fiveDollar: atmCash.FiveDollar,
+            tenDollar: atmCash.TenDollar,
+            fiftyDollar: atmCash.FiftyDollar,
+            hundredDollar: atmCash.HundredDollar
+        });
+    } catch (error) {
+        console.error('Error fetching ATM cash data:', error);
+        res.status(500).send({ message: 'Error fetching ATM cash data.' });
+    }
+});
+
 
 
 // Start the server

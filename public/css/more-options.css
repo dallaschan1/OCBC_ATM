@@ -54,11 +54,24 @@
     line-height: 1;
   }
 
-  .back-text {
+  .back-text{
     color: #888;
     font-size: 25px;
   }
-
+  .next-arrow {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+    margin-left: 5px;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  
+  .next-arrow:hover {
+    color: #555;
+    cursor: pointer;
+  }
+  
   .top-right {
     display: flex;
     align-items: start;
@@ -173,10 +186,18 @@
     line-height: 1.5;
   }
 
+  .more-options2container{
+    height:46%;
+  }
+
   .greyed-out {
     background: #f5f5f5;
   }
 
+  .hidden {
+    display: none;
+  }
+  
  /*Voice assistant*/
  #voice-assistant {
   position: absolute;

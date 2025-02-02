@@ -114,86 +114,144 @@ function submitInput() {
     alert('Input submitted: ' + enteredValue);
 }
 
-//Exit button
-document.addEventListener("DOMContentLoaded", function() {
-    // Show exit confirmation when exit button is clicked
-    document.getElementById("exit-button").onclick = function() {
-        document.getElementById("exit-confirmation").style.display = "flex";
-    };
+// //Exit button
+// document.addEventListener("DOMContentLoaded", function() {
+//     // Show exit confirmation when exit button is clicked
+//     document.getElementById("exit-button").onclick = function() {
+//         document.getElementById("exit-confirmation").style.display = "flex";
+//     };
 
-    // Confirm exit and show loading animation
-    window.confirmExit = function() {
-        console.log("Exit confirmed."); // Debug message
-        // Hide confirmation text and buttons
-        document.querySelector("#exit-confirmation h1").style.display = "none";
-        document.querySelector("#exit-confirmation p").style.display = "none";
-        document.querySelectorAll(".modal-button").forEach(button => button.style.display = "none");
+//     // Confirm exit and show loading animation
+//     window.confirmExit = function() {
+//         console.log("Exit confirmed."); // Debug message
+//         // Hide confirmation text and buttons
+//         document.querySelector("#exit-confirmation h1").style.display = "none";
+//         document.querySelector("#exit-confirmation p").style.display = "none";
+//         document.querySelectorAll(".modal-button").forEach(button => button.style.display = "none");
 
-        // Show loading animation
-        document.getElementById("loading-animation").style.display = "flex";
+//         // Show loading animation
+//         document.getElementById("loading-animation").style.display = "flex";
 
-        // Redirect to login page after 3 seconds
-        setTimeout(function() {
-            console.log("Redirecting to login page."); // Debug message
-            window.location.href = '/feedback'; // Redirect to the login page
+//         // Redirect to login page after 3 seconds
+//         setTimeout(function() {
+//             console.log("Redirecting to login page."); // Debug message
+//             window.location.href = '/feedback'; // Redirect to the login page
+//         }, 3000);
+//     }
+
+//     // Cancel exit and hide the modal
+//     window.cancelExit = function() {
+//         document.getElementById("exit-confirmation").style.display = "none";
+//     }
+// });
+
+document.addEventListener("DOMContentLoaded", function () {
+    async function fetchTransactionCount() {
+        const userId = localStorage.getItem("UserId");
+        if (!userId) {
+            console.error("User not logged in. No userId found.");
+            return null;
+        }
+
+        try {
+            const response = await fetch(`/getTransactionCount?userId=${userId}`);
+            if (!response.ok) throw new Error("Failed to fetch transaction count");
+            
+            const data = await response.json();
+            return data.TransactionCount;
+        } catch (error) {
+            console.error("Error fetching transaction count:", error);
+            return null;
+        }
+    }
+
+    async function updateTransactionCount() {
+        const userId = localStorage.getItem("UserId");
+        if (!userId) {
+            console.error("User not logged in. No userId found.");
+            return;
+        }
+
+        try {
+            const response = await fetch("/updateTransactionCount", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId }),
+            });
+
+            if (!response.ok) throw new Error("Failed to update transaction count");
+            console.log("Transaction count updated successfully.");
+        } catch (error) {
+            console.error("Error updating transaction count:", error);
+        }
+    }
+
+    async function confirmExit() {
+        console.log("Exit confirmed.");
+
+        const loadingAnimation = document.getElementById("loading-animation");
+        const modalButtons = document.querySelectorAll(".modal-button");
+        const confirmationHeading = document.querySelector("#exit-confirmation h1");
+        const confirmationText = document.querySelector("#exit-confirmation p");
+
+        if (loadingAnimation) loadingAnimation.style.display = "flex";
+        if (confirmationText) confirmationText.style.display = "none";
+        if (confirmationHeading) confirmationHeading.style.display = "none";
+        if (modalButtons.length) modalButtons.forEach(button => button.style.display = "none");
+
+        await updateTransactionCount();
+        const updatedTransactionCount = await fetchTransactionCount();
+
+        setTimeout(() => {
+            if (updatedTransactionCount === 1) {
+                window.location.href = "/feedback";
+            } else {
+                window.location.href = "/thankYou";
+            }
         }, 3000);
     }
 
-    // Cancel exit and hide the modal
-    window.cancelExit = function() {
-        document.getElementById("exit-confirmation").style.display = "none";
+    function cancelExit() {
+        const exitConfirmation = document.getElementById("exit-confirmation");
+        if (exitConfirmation) exitConfirmation.style.display = "none";
     }
+
+    async function setupExitButton() {
+        const exitButton = document.getElementById("exit-button");
+        const exitConfirmation = document.getElementById("exit-confirmation");
+        
+        if (exitButton && exitConfirmation) {
+            exitButton.onclick = () => exitConfirmation.style.display = "flex";
+        } else {
+            console.error("Exit button or exit confirmation modal not found.");
+        }
+    }
+
+    async function setupTransactionCompleteButton() {
+        const transactionCompleteButton = document.getElementById("transaction-complete");
+        if (transactionCompleteButton) {
+            transactionCompleteButton.addEventListener("click", async function () {
+                await updateTransactionCount();
+                await fetchTransactionCount();
+                document.getElementById("exit-confirmation").style.display = "flex";
+            });
+        } else {
+            console.error("Transaction complete button not found.");
+        }
+    }
+
+    async function initialize() {
+        await fetchTransactionCount();
+        setupExitButton();
+        setupTransactionCompleteButton();
+
+        window.confirmExit = confirmExit;
+        window.cancelExit = cancelExit;
+    }
+
+    initialize();
 });
-// document.addEventListener("DOMContentLoaded", function() {
-//     // Get userId from localStorage
-//     const userId = 1; // Hardcoded for now, but replace with localStorage.getItem('userId') for real use
-//     if (!userId) {
-//         console.error("User not logged in. No userId found.");
-//         return;
-//     }
 
-//     // Show exit confirmation when exit button is clicked
-//     document.getElementById("exit-button").onclick = async function() {
-//         try {
-//             // Fetch the current transaction count for the user
-//             const response = await fetch(`/getTransactionCount?userId=${userId}`);
-//             const data = await response.json();
-//             const transactionCount = data.transactionCount;
-
-//             // Show exit confirmation modal
-//             document.getElementById("exit-confirmation").style.display = "flex";
-
-//             // Confirm exit
-//             window.confirmExit = function() {
-//                 console.log("Exit confirmed.");
-
-//                 // Hide confirmation text and buttons
-//                 document.querySelector("#exit-confirmation h1").style.display = "none";
-//                 document.querySelector("#exit-confirmation p").style.display = "none";
-//                 document.querySelectorAll(".modal-button").forEach(button => button.style.display = "none");
-
-//                 // Show loading animation
-//                 document.getElementById("loading-animation").style.display = "flex";
-
-//                 // Redirect based on transaction count
-//                 setTimeout(function() {
-//                     if (transactionCount === 1) {
-//                         window.location.href = 'rating-page.html'; // Redirect to rating page
-//                     } else {
-//                         window.location.href = 'thank-you-page.html'; // Redirect to Thank You page
-//                     }
-//                 }, 3000);
-//             };
-
-//             // Cancel exit and hide the modal
-//             window.cancelExit = function() {
-//                 document.getElementById("exit-confirmation").style.display = "none";
-//             };
-//         } catch (err) {
-//             console.error("Error fetching transaction count:", err);
-//         }
-//     };
-// });
 
 
 // Feedback page
@@ -248,7 +306,7 @@ function submitRating() {
 
         // Simulate a delay before redirecting to login page
         setTimeout(() => {
-            window.location.href = '/'; // Replace with the actual login page URL
+            window.location.href = '/thankYou'; 
         }, 2000);
     }
 }
@@ -268,7 +326,7 @@ function submitRating() {
 
        // After 3 more seconds, redirect to the login page
        setTimeout(() => {
-           window.location.href = "login-page.html"; // Redirect to login page
+           window.location.href = '/'; // Redirect to login page
        }, 3000);
 
    }, 3000);

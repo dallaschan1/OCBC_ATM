@@ -93,6 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const amount = button.textContent.replace('$', '');
             const userId = localStorage.getItem('UserId');
             const ATMID = localStorage.getItem('ATMID');
+            window.location.href = `/withdrawalPage?amount=${amount}`;
             
             if (userId && amount) {
                 try {
@@ -131,53 +132,72 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // Handle "Other Cash Amount" button click event
-    const otherCashButton = document.querySelector('#Bottom h3');
-    otherCashButton.addEventListener('click', async () => {
-        const amount = prompt('Enter the amount you want to withdraw:');
-        if (amount && !isNaN(amount) && Number(amount) > 0) {
-            const userId = localStorage.getItem('UserId');
-            const ATMID = localStorage.getItem('ATMID');
-            
-            if (userId) {
-                try {
-                    const response = await fetch('/withdraw', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ userId, amount })
-                    });
+  // Handle "Other Cash Amount" button click event
+const otherCashButton = document.querySelector('#Bottom h3');
+otherCashButton.addEventListener('click', async () => {
+    let amount = prompt('Enter the amount you want to withdraw:');
 
-                    if (!response.ok) {
-                        throw new Error('Failed to withdraw');
-                    }
+    if (!amount || isNaN(amount) || Number(amount) <= 0) {
+        alert('Please enter a valid amount.');
+        return;
+    }
 
-                    const atmResponse = await fetch('/withdraw-atm-balance', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({ ATMID: ATMID, withdrawalAmount: amount }),
-                    });
-              
-                    if (!atmResponse.ok) {
-                      throw new Error('Failed to update ATM balance');
-                    }
-
-                    alert('Withdrawal successful');
-                    location.reload();
-                } catch (error) {
-                    console.error('Withdrawal failed:', error);
-                }
-            } else {
-                alert('User not logged in');
-            }
-        } else {
-            alert('Please enter a valid amount');
+    // Validate that the amount is a multiple of either 5 or 2
+    while (Number(amount) % 5 !== 0 && Number(amount) % 2 !== 0) {
+        amount = prompt('Invalid amount. Please enter a valid cash note amount (multiple of 5 or 2).');
+        
+        if (!amount || isNaN(amount) || Number(amount) <= 0) {
+            alert('Invalid input. Please enter a positive number.');
+            return;
         }
-    });
-});
+    }
+
+    const userId = localStorage.getItem('UserId');
+    const ATMID = localStorage.getItem('ATMID');
+
+    if (!userId) {
+        alert('User not logged in');
+        return;
+    }
+
+    try {
+        // Withdraw from user balance
+        const response = await fetch('/withdraw', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userId, amount })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to withdraw');
+        }
+
+        // Redirect to withdrawal confirmation page
+        window.location.href = `/withdrawalPage?amount=${amount}`;
+
+        if (ATMID) {
+            // Deduct from ATM balance
+            const atmResponse = await fetch('/withdraw-atm-balance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ATMID: ATMID, withdrawalAmount: amount }),
+            });
+
+            if (!atmResponse.ok) {
+                throw new Error('Failed to update ATM balance');
+            }
+        }
+
+        alert('Withdrawal successful');
+        location.reload();
+    } catch (error) {
+        console.error('Withdrawal failed:', error);
+    }
+});})
 
 
 window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;

@@ -147,14 +147,20 @@ public class Notifications extends AppCompatActivity {
                                 String message = "Hi " + userName + ", we noticed that you recently gave our ATM experience a rating of " + ratingValue + ". Please provide feedback so we can improve your experience.";
                                 String type = "feedback";
                                 String time = convertToTimeFormat(ratingDate);
-                                notifications.add(new Notification(title, message, time, type, ratingValue));
+                                notifications.add(0, new Notification(title, message, time, type, ratingValue));
                             }
                         }
 
                         // Update the RecyclerView on the main thread
                         runOnUiThread(() -> {
-                            NotificationsAdapter adapter = new NotificationsAdapter(Notifications.this, notifications);
-                            notificationsRecyclerView.setAdapter(adapter);
+                            NotificationsAdapter adapter = (NotificationsAdapter) notificationsRecyclerView.getAdapter();
+                            if (adapter == null) {
+                                adapter = new NotificationsAdapter(Notifications.this, notifications);
+                                notificationsRecyclerView.setAdapter(adapter);
+                            } else {
+                                adapter.notifyDataSetChanged();
+                            }
+
                         });
 
                     } catch (Exception e) {
@@ -171,7 +177,7 @@ public class Notifications extends AppCompatActivity {
     // Method to convert ISO date format to "h:mm a" in local timezone
     private String convertToTimeFormat(String ratingDate) {
         SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
-        inputFormat.setTimeZone(TimeZone.getTimeZone("UTC"));  // Parse as UTC time
+        inputFormat.setTimeZone(TimeZone.getTimeZone("Asia/Singapore"));  // Parse as UTC time
         SimpleDateFormat outputFormat = new SimpleDateFormat("h:mm a", Locale.getDefault());
         outputFormat.setTimeZone(TimeZone.getDefault());       // Format as local time
 

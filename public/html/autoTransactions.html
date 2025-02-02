@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Recurring Transfer</title>
+    <link rel="stylesheet" href="../css/transfer.css">
+</head>
+<body>
+    <img src="../images/OcbcLogo.png" alt="Logo" class="logo">
+    <div class="transfer-container">
+        <h2>Schedule Recurring Transfer</h2>
+
+        <div class="form-group">
+            <label for="account">Recipient Account:</label>
+            <input type="text" id="account" placeholder="Enter account name or number" oninput="getUserInfo()">
+        </div>
+
+        <div class="form-group">
+            <label for="amount">Amount:</label>
+            <input type="number" id="amount" placeholder="Enter amount to transfer">
+        </div>
+
+        <div class="form-group">
+            <label for="frequency">Transfer Frequency:</label>
+            <select id="frequency" onchange="toggleScheduleOptions()">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="weekly-options" style="display: none;">
+            <label for="weekly-day">Select Day of the Week:</label>
+            <select id="weekly-day">
+                <option value="1">Monday</option>
+                <option value="2">Tuesday</option>
+                <option value="3">Wednesday</option>
+                <option value="4">Thursday</option>
+                <option value="5">Friday</option>
+                <option value="6">Saturday</option>
+                <option value="7">Sunday</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="monthly-options" style="display: none;">
+            <label for="monthly-day">Select Day of the Month:</label>
+            <input type="number" id="monthly-day" min="1" max="31" placeholder="Enter day (1-31)">
+        </div>
+
+        <div class="form-group">
+            <label for="time">Transfer Time (Optional, Default: 12:00 PM):</label>
+            <input type="time" id="time">
+        </div>
+
+        <button class="btn" onclick="scheduleTransfer()">Schedule Transfer</button>
+        <a href="/home" class="back-link">Go Back</a>
+    </div>
+
+    <div id="toast" class="toast" style="display: none;">Transfer Scheduled Successfully!</div>
+
+    <script>
+        function toggleScheduleOptions() {
+            const frequency = document.getElementById("frequency").value;
+            document.getElementById("weekly-options").style.display = (frequency === "weekly") ? "block" : "none";
+            document.getElementById("monthly-options").style.display = (frequency === "monthly") ? "block" : "none";
+        }
+
+        async function getRecipientId(accountInput) {
+            try {
+                const response = await fetch('/get-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ UserName: accountInput, phoneNumber: accountInput })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    return data?.user?.UserID || null;
+                }
+            } catch (error) {
+                console.error('Error fetching recipient ID:', error);
+            }
+            return null;
+        }
+
+        function getSenderUserId() {
+            return localStorage.getItem('UserId') || null;
+        }
+
+        async function scheduleTransfer() {
+            const account = document.getElementById("account").value.trim();
+            const amount = document.getElementById("amount").value.trim();
+            const frequency = document.getElementById("frequency").value;
+            let time = document.getElementById("time").value || "12:00";
+            let scheduleDetail = "", date = null;
+
+            if (!account || !amount) {
+                alert("Please fill in all required fields.");
+                return;
+            }
+
+            const senderId = getSenderUserId();
+            if (!senderId) {
+                alert("Sender not found.");
+                return;
+            }
+
+            const recipientId = await getRecipientId(account);
+            if (!recipientId) {
+                alert("Recipient not found.");
+                return;
+            }
+
+            if (time.length === 5) {
+                time += ":00"; // Ensure format HH:mm:ss
+            }
+
+            if (frequency === "weekly") {
+                date = document.getElementById("weekly-day").value;
+            } else if (frequency === "monthly") {
+                date = document.getElementById("monthly-day").value;
+            }
+
+            try {
+                const response = await fetch('/scheduleTransfer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: senderId, amount, recipient: recipientId, frequency, time, date })
+                });
+
+                if (response.ok) {
+                    showToast("Recurring Transfer Scheduled Successfully!");
+                } else {
+                    showToast("Failed to schedule transfer.");
+                }
+            } catch (error) {
+                console.error("Error scheduling transfer:", error);
+                showToast("An error occurred.");
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
