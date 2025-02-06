@@ -28,7 +28,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class VirtualCardActivity extends AppCompatActivity {
-    private static final String NGROK_URL = "https://3e97-116-88-162-192.ngrok-free.app"; // Replace with your Ngrok URL
+    private static final String NGROK_URL = "https://f0ec-116-88-162-192.ngrok-free.app"; // Replace with your Ngrok URL
     private static final String LOCK_URL = NGROK_URL + "/ATMCardLock";
     private static final String UNLOCK_URL = NGROK_URL + "/ATMCardUnlock";
 
